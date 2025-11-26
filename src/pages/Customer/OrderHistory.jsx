@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -30,49 +30,15 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { getOrderHistory, submitFeedback } from '../../services/api';
 
-interface OrderItem {
-  foodId: {
-    _id: string;
-    name: string;
-    price: number;
-    image: string;
-  };
-  name: string;
-  price: number;
-  quantity: number;
-  subtotal: number;
-}
-
-interface Order {
-  _id: string;
-  orderNumber: string;
-  customerName: string;
-  customerPhone: string;
-  orderType: string;
-  items: OrderItem[];
-  subtotal: number;
-  tax: number;
-  discount: number;
-  grandTotal: number;
-  tableNumber: string;
-  status: string;
-  paymentStatus: string;
-  paymentMethod: string;
-  rating?: number;
-  customerFeedback?: string;
-  feedbackDate?: string;
-  createdAt: string;
-}
-
-const OrderHistory: React.FC = () => {
+const OrderHistory = () => {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState<boolean>(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [rating, setRating] = useState<number>(0);
-  const [feedback, setFeedback] = useState<string>('');
-  const [submittingFeedback, setSubmittingFeedback] = useState<boolean>(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState('');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     fetchOrderHistory();
@@ -98,7 +64,7 @@ const OrderHistory: React.FC = () => {
     }
   };
 
-  const handleOpenFeedback = (order: Order) => {
+  const handleOpenFeedback = (order) => {
     setSelectedOrder(order);
     setRating(order.rating || 0);
     setFeedback(order.customerFeedback || '');
@@ -119,7 +85,6 @@ const OrderHistory: React.FC = () => {
       setSubmittingFeedback(true);
       const response = await submitFeedback(selectedOrder._id, rating, feedback);
       if (response.data.success) {
-        // Update the order in the list
         setOrders((prev) =>
           prev.map((order) =>
             order._id === selectedOrder._id
@@ -137,7 +102,7 @@ const OrderHistory: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'warning';
@@ -156,7 +121,7 @@ const OrderHistory: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -211,7 +176,6 @@ const OrderHistory: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      {/* App Bar */}
       <AppBar position="sticky" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={() => navigate('/customer/home')}>
@@ -223,7 +187,6 @@ const OrderHistory: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Content */}
       <Container maxWidth="md" sx={{ py: 3 }}>
         {orders.length === 0 ? (
           <Card sx={{ mt: 4, textAlign: 'center', py: 6 }}>
@@ -249,7 +212,6 @@ const OrderHistory: React.FC = () => {
             {orders.map((order) => (
               <Card key={order._id} sx={{ boxShadow: 2 }}>
                 <CardContent>
-                  {/* Order Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div>
                       <Typography variant="h6" fontWeight="bold" color="primary">
@@ -269,7 +231,6 @@ const OrderHistory: React.FC = () => {
 
                   <Divider sx={{ mb: 2 }} />
 
-                  {/* Order Items */}
                   <div style={{ marginBottom: '16px' }}>
                     {order.items.map((item, index) => (
                       <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -285,7 +246,6 @@ const OrderHistory: React.FC = () => {
 
                   <Divider sx={{ mb: 2 }} />
 
-                  {/* Order Details */}
                   <div style={{ marginBottom: '16px' }}>
                     <Typography variant="body2" color="text.secondary">
                       <LocationOn sx={{ fontSize: 16, verticalAlign: 'middle', mr: 0.5 }} />
@@ -299,7 +259,6 @@ const OrderHistory: React.FC = () => {
                     </Typography>
                   </div>
 
-                  {/* Total */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <Typography variant="h6" fontWeight="bold">
                       Total
@@ -309,27 +268,26 @@ const OrderHistory: React.FC = () => {
                     </Typography>
                   </div>
 
-                  {/* Feedback Section */}
                   {order.status === 'delivered' && (
-                      <>
-                        <Divider sx={{ mb: 2 }} />
-                        {order.rating ? (
-                          <div>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              Your Feedback
-                            </Typography>
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <>
+                      <Divider sx={{ mb: 2 }} />
+                      {order.rating ? (
+                        <div>
+                          <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Your Feedback
+                          </Typography>
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                             <Rating value={order.rating} readOnly size="small" />
                             <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                                ({order.rating}/5)
-                              </Typography>
-                            </div>
-                            {order.customerFeedback && (
-                              <Typography variant="body2" color="text.secondary">
-                                "{order.customerFeedback}"
-                              </Typography>
-                            )}
+                              ({order.rating}/5)
+                            </Typography>
                           </div>
+                          {order.customerFeedback && (
+                            <Typography variant="body2" color="text.secondary">
+                              "{order.customerFeedback}"
+                            </Typography>
+                          )}
+                        </div>
                       ) : (
                         <Button
                           variant="outlined"
@@ -350,7 +308,6 @@ const OrderHistory: React.FC = () => {
         )}
       </Container>
 
-      {/* Feedback Dialog */}
       <Dialog open={feedbackDialogOpen} onClose={handleCloseFeedback} maxWidth="sm" fullWidth>
         <DialogTitle>Rate Your Experience</DialogTitle>
         <DialogContent>

@@ -4,33 +4,19 @@ import {
   Drawer,
   AppBar,
   Toolbar,
-  List,
   Typography,
-  Divider,
   IconButton,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
 } from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Dashboard,
-  ShoppingCart,
-  Restaurant,
-  People,
-  ExitToApp,
-  LocalOffer,
-} from '@mui/icons-material';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Menu as MenuIcon } from '@mui/icons-material';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AdminSidebar from './admin/AdminSidebar';
 
 const drawerWidth = 240;
 
-const AdminLayout: React.FC = () => {
+const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const { logout, user } = useAuth();
 
   const handleDrawerToggle = () => {
@@ -41,50 +27,6 @@ const AdminLayout: React.FC = () => {
     logout();
     navigate('/login');
   };
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
-    { text: 'Orders', icon: <ShoppingCart />, path: '/admin/orders' },
-    { text: 'Food Items', icon: <Restaurant />, path: '/admin/food' },
-    { text: 'Coupons', icon: <LocalOffer />, path: '/admin/coupons' },
-    { text: 'Users', icon: <People />, path: '/admin/users' },
-  ];
-
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Restaurant sx={{ mr: 2, color: '#667eea' }} />
-        <Typography variant="h6" noWrap>
-          Admin Panel
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      <List>
-        <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout}>
-            <ListItemIcon>
-              <ExitToApp />
-            </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </ListItemButton>
-        </ListItem>
-      </List>
-    </div>
-  );
 
   return (
     <div style={{ display: 'flex' }}>
@@ -126,7 +68,7 @@ const AdminLayout: React.FC = () => {
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          {drawer}
+          <AdminSidebar onLogout={handleLogout} />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -136,7 +78,7 @@ const AdminLayout: React.FC = () => {
           }}
           open
         >
-          {drawer}
+          <AdminSidebar onLogout={handleLogout} />
         </Drawer>
       </Box>
       <Box

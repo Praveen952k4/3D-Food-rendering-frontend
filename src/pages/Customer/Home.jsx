@@ -32,26 +32,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getFoodItems } from '../../services/api';
 
-interface FoodItem {
-  _id: string;
-  name: string;
-  description?: string;
-  price: number;
-  category: string;
-  imageUrl?: string;
-  isVeg?: boolean;
-  modelUrl?: string;
-}
-
 // 3D Model Component
-const Model: React.FC<{ modelUrl: string }> = ({ modelUrl }) => {
+const Model = ({ modelUrl }) => {
   const gltf = useGLTF(modelUrl, true);
   const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
   return <primitive object={scene} dispose={null} />;
 };
 
 // Sphere Animation Loader Component
-const SphereLoader: React.FC<{ isDark: boolean }> = ({ isDark }) => {
+const SphereLoader = ({ isDark }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '32px' }}>
       <div className="sphere-loader">
@@ -67,7 +56,7 @@ const SphereLoader: React.FC<{ isDark: boolean }> = ({ isDark }) => {
 };
 
 // Interactive GLB Viewer
-const GLBViewer: React.FC<{ modelUrl?: string }> = ({ modelUrl }) => {
+const GLBViewer = ({ modelUrl }) => {
   if (!modelUrl) {
     return (
       <div
@@ -127,24 +116,24 @@ const GLBViewer: React.FC<{ modelUrl?: string }> = ({ modelUrl }) => {
   );
 };
 
-const CustomerHome: React.FC = () => {
+const CustomerHome = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<FoodItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [activePreviewFood, setActivePreviewFood] = useState<FoodItem | null>(null);
-  const [menuDrawerOpen, setMenuDrawerOpen] = useState<boolean>(false);
-  const [allItemsDrawerOpen, setAllItemsDrawerOpen] = useState<boolean>(false);
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState<boolean>(false);
-  const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [vegFilter, setVegFilter] = useState<'all' | 'veg' | 'non-veg'>('all');
-  const [themeMode, setThemeMode] = useState<'dark' | 'light'>('light');
-  const [quantity, setQuantity] = useState<number>(0);
-  const [showSplash, setShowSplash] = useState<boolean>(true);
-  const [loadingFoods, setLoadingFoods] = useState<boolean>(false);
-  const [cartVersion, setCartVersion] = useState<number>(0);
+  const [foodItems, setFoodItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activePreviewFood, setActivePreviewFood] = useState(null);
+  const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
+  const [allItemsDrawerOpen, setAllItemsDrawerOpen] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [vegFilter, setVegFilter] = useState('all');
+  const [themeMode, setThemeMode] = useState('light');
+  const [quantity, setQuantity] = useState(0);
+  const [showSplash, setShowSplash] = useState(true);
+  const [loadingFoods, setLoadingFoods] = useState(false);
+  const [cartVersion, setCartVersion] = useState(0);
 
   // Hide splash after 10s
   useEffect(() => {
@@ -158,7 +147,7 @@ const CustomerHome: React.FC = () => {
       setLoadingFoods(true);
       try {
         const response = await getFoodItems();
-        const items: FoodItem[] = response.data.foodItems || [];
+        const items = response.data.foodItems || [];
         setFoodItems(items);
         setFilteredItems(items);
         if (items.length > 0) {
@@ -216,7 +205,7 @@ const CustomerHome: React.FC = () => {
 
   // Categories
   const categories = useMemo(() => {
-    const uniqueCategories = new Set<string>();
+    const uniqueCategories = new Set();
     foodItems.forEach((item) => uniqueCategories.add(item.category || 'General'));
     return ['All', ...Array.from(uniqueCategories)];
   }, [foodItems]);
@@ -232,7 +221,7 @@ const CustomerHome: React.FC = () => {
     const saved = localStorage.getItem('cart');
     if (!saved) return 0;
     try {
-      const cart = JSON.parse(saved) as Record<string, number>;
+      const cart = JSON.parse(saved);
       return Object.values(cart).reduce((sum, qty) => sum + Number(qty || 0), 0);
     } catch {
       return 0;
@@ -249,7 +238,7 @@ const CustomerHome: React.FC = () => {
   };
 
   const addToCart = useCallback(
-    (foodId: string, amount = 1) => {
+    (foodId, amount = 1) => {
       if (!foodId || amount <= 0) return;
       const saved = localStorage.getItem('cart');
       const cart = saved ? JSON.parse(saved) : {};
@@ -264,13 +253,13 @@ const CustomerHome: React.FC = () => {
     [activePreviewFood]
   );
 
-  const handleFoodSelection = useCallback((food: FoodItem) => {
+  const handleFoodSelection = useCallback((food) => {
     setActivePreviewFood(food);
     // Check if item is already in cart and set quantity accordingly
     const saved = localStorage.getItem('cart');
     if (saved) {
       try {
-        const cart = JSON.parse(saved) as Record<string, number>;
+        const cart = JSON.parse(saved);
         const itemQuantity = cart[food._id] || 0;
         setQuantity(itemQuantity);
       } catch {
@@ -304,11 +293,11 @@ const CustomerHome: React.FC = () => {
       const carouselRect = carousel.getBoundingClientRect();
       const carouselCenter = carouselRect.left + carouselRect.width / 2;
 
-      let closestItem: HTMLElement | null = null;
+      let closestItem = null;
       let closestDistance = Infinity;
 
       filteredItems.forEach((food) => {
-        const itemElement = document.getElementById(`carousel-item-${food._id}`) as HTMLElement | null;
+        const itemElement = document.getElementById(`carousel-item-${food._id}`);
         if (itemElement) {
           const itemRect = itemElement.getBoundingClientRect();
           const itemCenter = itemRect.left + itemRect.width / 2;
@@ -322,14 +311,14 @@ const CustomerHome: React.FC = () => {
       });
 
       if (closestItem) {
-        const foodId = (closestItem as HTMLElement).id.replace('carousel-item-', '');
+        const foodId = closestItem.id.replace('carousel-item-', '');
         const food = filteredItems.find((f) => f._id === foodId);
         if (food && food._id !== activePreviewFood?._id) {
           setActivePreviewFood(food);
           const saved = localStorage.getItem('cart');
           if (saved) {
             try {
-              const cart = JSON.parse(saved) as Record<string, number>;
+              const cart = JSON.parse(saved);
               const itemQuantity = cart[food._id] || 0;
               setQuantity(itemQuantity);
             } catch {
@@ -342,7 +331,7 @@ const CustomerHome: React.FC = () => {
       }
     };
 
-    let scrollTimeout: NodeJS.Timeout;
+    let scrollTimeout;
     const debouncedScroll = () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(handleScroll, 20);
@@ -486,30 +475,6 @@ const CustomerHome: React.FC = () => {
                   ₹{activePreviewFood.price}
                 </Typography>
               </div>
-
-              {/* Interaction Hint - Bottom Center */}
-              {/* <div
-                style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'rgba(0,0,0,0.75)',
-                  backdropFilter: 'blur(10px)',
-                  color: '#fff',
-                  padding: '6px 12px',
-                  borderRadius: '16px',
-                  fontSize: '0.65rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  pointerEvents: 'none',
-                }}
-              >
-                <ViewInArIcon sx={{ fontSize: 12 }} />
-                Drag • Zoom • Pan
-              </div> */}
             </div>
           </>
         )}
@@ -628,7 +593,7 @@ const CustomerHome: React.FC = () => {
         let itemQuantity = 0;
         if (saved) {
           try {
-            const cart = JSON.parse(saved) as Record<string, number>;
+            const cart = JSON.parse(saved);
             itemQuantity = cart[food._id] || 0;
           } catch {
             itemQuantity = 0;
@@ -971,7 +936,7 @@ const CustomerHome: React.FC = () => {
               let itemQuantity = 0;
               if (saved) {
                 try {
-                  const cart = JSON.parse(saved) as Record<string, number>;
+                  const cart = JSON.parse(saved);
                   itemQuantity = cart[food._id] || 0;
                 } catch {
                   itemQuantity = 0;
@@ -1145,7 +1110,7 @@ const CustomerHome: React.FC = () => {
               let itemQuantity = 0;
               if (saved) {
                 try {
-                  const cart = JSON.parse(saved) as Record<string, number>;
+                  const cart = JSON.parse(saved);
                   itemQuantity = cart[food._id] || 0;
                 } catch {
                   itemQuantity = 0;

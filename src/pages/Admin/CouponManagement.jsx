@@ -31,31 +31,15 @@ import {
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCoupon } from '../../services/api';
 import { format } from 'date-fns';
 
-interface Coupon {
-  _id: string;
-  code: string;
-  description: string;
-  discountType: 'percentage' | 'fixed';
-  discountValue: number;
-  minOrderValue: number;
-  maxDiscount?: number;
-  usageLimit?: number;
-  usedCount: number;
-  validFrom: string;
-  validUntil: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
-const CouponManagement: React.FC = () => {
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
+const CouponManagement = () => {
+  const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [editingCoupon, setEditingCoupon] = useState(null);
   const [formData, setFormData] = useState({
     code: '',
     description: '',
-    discountType: 'percentage' as 'percentage' | 'fixed',
+    discountType: 'percentage',
     discountValue: 0,
     minOrderValue: 0,
     maxDiscount: '',
@@ -82,7 +66,7 @@ const CouponManagement: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (coupon?: Coupon) => {
+  const handleOpenDialog = (coupon) => {
     if (coupon) {
       setEditingCoupon(coupon);
       setFormData({
@@ -134,12 +118,12 @@ const CouponManagement: React.FC = () => {
 
       fetchCoupons();
       handleCloseDialog();
-    } catch (error: any) {
+    } catch (error) {
       alert(error.response?.data?.message || 'Failed to save coupon');
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this coupon?')) {
       try {
         await deleteCoupon(id);
@@ -150,7 +134,7 @@ const CouponManagement: React.FC = () => {
     }
   };
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = async (id) => {
     try {
       await toggleCoupon(id);
       fetchCoupons();
@@ -159,7 +143,7 @@ const CouponManagement: React.FC = () => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert('Coupon code copied!');
   };
@@ -287,7 +271,7 @@ const CouponManagement: React.FC = () => {
                 <Select
                   value={formData.discountType}
                   label="Discount Type"
-                  onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
                 >
                   <MenuItem value="percentage">Percentage (%)</MenuItem>
                   <MenuItem value="fixed">Fixed Amount (₹)</MenuItem>

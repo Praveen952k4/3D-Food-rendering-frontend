@@ -24,10 +24,10 @@ import {
 import { getAdminOrders, updateAdminOrder } from '../../services/api';
 import { format } from 'date-fns';
 
-const OrderManagement: React.FC = () => {
-  const [orders, setOrders] = useState<any[]>([]);
+const OrderManagement = () => {
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
@@ -59,8 +59,8 @@ const OrderManagement: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: any = {
+  const getStatusColor = (status) => {
+    const colors = {
       pending: 'warning',
       confirmed: 'info',
       preparing: 'primary',

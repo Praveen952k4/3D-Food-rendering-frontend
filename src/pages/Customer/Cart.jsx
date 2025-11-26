@@ -31,17 +31,8 @@ import ShoppingCart from '@mui/icons-material/ShoppingCart';
 import { useNavigate } from 'react-router-dom';
 import { getFoodItems, createOrder } from '../../services/api';
 
-interface CartItem {
-  _id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  imageUrl: string;
-  isVeg: boolean;
-}
-
-const CustomerCart: React.FC = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+const CustomerCart = () => {
+  const [cartItems, setCartItems] = useState([]);
   const [promoCode, setPromoCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -49,8 +40,8 @@ const CustomerCart: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [tableNumber, setTableNumber] = useState('');
-  const [orderType, setOrderType] = useState<'dine-in' | 'takeaway'>('dine-in');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'online'>('cash');
+  const [orderType, setOrderType] = useState('dine-in');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [orderNumber, setOrderNumber] = useState('');
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -71,9 +62,9 @@ const CustomerCart: React.FC = () => {
       const response = await getFoodItems();
       const allFoods = response.data.foodItems || [];
 
-      const items: CartItem[] = [];
+      const items = [];
       Object.keys(cart).forEach((foodId) => {
-        const food = allFoods.find((f: any) => f._id === foodId);
+        const food = allFoods.find((f) => f._id === foodId);
         if (food && cart[foodId] > 0) {
           items.push({
             _id: food._id,
@@ -94,7 +85,7 @@ const CustomerCart: React.FC = () => {
     }
   };
 
-  const updateQuantity = (foodId: string, change: number) => {
+  const updateQuantity = (foodId, change) => {
     const savedCart = localStorage.getItem('cart');
     if (!savedCart) return;
 
@@ -109,7 +100,7 @@ const CustomerCart: React.FC = () => {
     loadCart();
   };
 
-  const removeItem = (foodId: string) => {
+  const removeItem = (foodId) => {
     const savedCart = localStorage.getItem('cart');
     if (!savedCart) return;
 
@@ -178,15 +169,37 @@ const CustomerCart: React.FC = () => {
         paymentMethod,
       };
 
+      console.log('🛒 Placing order with data:', JSON.stringify(orderData, null, 2));
+      console.log('🔑 Token present:', !!localStorage.getItem('token'));
+      
       const response = await createOrder(orderData);
+      console.log('✅ Order created successfully:', response.data);
+      
       localStorage.removeItem('cart');
       
       setOrderNumber(response.data.orderNumber);
       setCheckoutDialogOpen(false);
       setSuccessDialogOpen(true);
-    } catch (error: any) {
-      console.error('Checkout failed:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to place order. Please try again.';
+    } catch (error) {
+      console.error('❌ Checkout failed:', error);
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
+      let errorMessage = 'Failed to place order. Please try again.';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Session expired. Please login again.';
+        setTimeout(() => {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }, 2000);
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       alert(errorMessage);
     } finally {
       setLoading(false);
@@ -495,7 +508,7 @@ const CustomerCart: React.FC = () => {
             <FormLabel component="legend" sx={{ fontWeight: 600 }}>Order Type</FormLabel>
             <RadioGroup
               value={orderType}
-              onChange={(e) => setOrderType(e.target.value as 'dine-in' | 'takeaway')}
+              onChange={(e) => setOrderType(e.target.value)}
             >
               <FormControlLabel
                 value="dine-in"
@@ -536,7 +549,7 @@ const CustomerCart: React.FC = () => {
             <FormLabel component="legend" sx={{ fontWeight: 600 }}>Payment Method</FormLabel>
             <RadioGroup
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'online')}
+              onChange={(e) => setPaymentMethod(e.target.value)}
             >
               <FormControlLabel
                 value="cash"

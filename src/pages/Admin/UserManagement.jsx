@@ -23,13 +23,7 @@ import { Person, CheckCircle, History, Phone, Email } from '@mui/icons-material'
 import { getOnlineUsers, getLoginHistory } from '../../services/api';
 import { format } from 'date-fns';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
+function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>
@@ -38,10 +32,10 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const UserManagement: React.FC = () => {
+const UserManagement = () => {
   const [tabValue, setTabValue] = useState(0);
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [loginHistory, setLoginHistory] = useState<any[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,7 +66,7 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 

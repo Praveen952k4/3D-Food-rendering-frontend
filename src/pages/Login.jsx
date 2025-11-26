@@ -2,24 +2,20 @@ import React, { useState } from 'react';
 import {
   Container,
   Paper,
-  TextField,
-  Button,
   Typography,
-  CircularProgress,
   Alert,
-  InputAdornment,
 } from '@mui/material';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LockIcon from '@mui/icons-material/Lock';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { useNavigate } from 'react-router-dom';
 import { sendOTP } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import PhoneForm from '../components/auth/PhoneForm';
+import OTPForm from '../components/auth/OTPForm';
 
-const Login: React.FC = () => {
+const Login = () => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [step, setStep] = useState('phone');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [devOtp, setDevOtp] = useState('');
@@ -48,7 +44,7 @@ const Login: React.FC = () => {
       
       setStep('otp');
       setError('');
-    } catch (err: any) {
+    } catch (err) {
       console.error('OTP Error:', err);
       console.error('Error response:', err.response);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to send OTP. Make sure backend is running on port 5001.';
@@ -80,25 +76,18 @@ const Login: React.FC = () => {
           navigate('/customer/menu');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 10) {
-      setPhone(value);
-    }
-  };
-
-  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 6) {
-      setOtp(value);
-    }
+  const handleChangePhone = () => {
+    setStep('phone');
+    setOtp('');
+    setError('');
+    setDevOtp('');
   };
 
   return (
@@ -148,89 +137,20 @@ const Login: React.FC = () => {
           )}
 
           {step === 'phone' ? (
-            <>
-              <TextField
-                fullWidth
-                label="Phone Number"
-                value={phone}
-                onChange={handlePhoneChange}
-                placeholder="8148545814"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                style={{ marginBottom: 24 }}
-                autoFocus
-              />
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                onClick={handleSendOTP}
-                disabled={loading || phone.length < 10}
-                style={{
-                  padding: '12px 0',
-                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Send OTP'}
-              </Button>
-
-              <Typography variant="caption" display="block" textAlign="center" style={{ marginTop: 16 }}>
-                Admin phone: 8148545814
-              </Typography>
-            </>
+            <PhoneForm 
+              phone={phone} 
+              setPhone={setPhone} 
+              onSendOTP={handleSendOTP} 
+              loading={loading} 
+            />
           ) : (
-            <>
-              <TextField
-                fullWidth
-                label="OTP"
-                value={otp}
-                onChange={handleOtpChange}
-                placeholder="Enter 6-digit OTP"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                style={{ marginBottom: 24 }}
-                autoFocus
-              />
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                onClick={handleVerifyOTP}
-                disabled={loading || otp.length !== 6}
-                style={{
-                  padding: '12px 0',
-                  marginBottom: 16,
-                  background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify OTP'}
-              </Button>
-
-              <Button
-                fullWidth
-                variant="text"
-                onClick={() => {
-                  setStep('phone');
-                  setOtp('');
-                  setError('');
-                  setDevOtp('');
-                }}
-              >
-                Change Phone Number
-              </Button>
-            </>
+            <OTPForm 
+              otp={otp} 
+              setOtp={setOtp} 
+              onVerifyOTP={handleVerifyOTP} 
+              onChangePhone={handleChangePhone}
+              loading={loading} 
+            />
           )}
         </Paper>
       </Container>

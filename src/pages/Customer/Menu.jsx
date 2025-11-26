@@ -19,9 +19,9 @@ import { Add, Remove, ShoppingCart, Restaurant } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodItems } from '../../services/api';
 
-const CustomerMenu: React.FC = () => {
-  const [foodItems, setFoodItems] = useState<any[]>([]);
-  const [cart, setCart] = useState<any[]>([]);
+const CustomerMenu = () => {
+  const [foodItems, setFoodItems] = useState([]);
+  const [cart, setCart] = useState([]);
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -51,12 +51,12 @@ const CustomerMenu: React.FC = () => {
     }
   };
 
-  const saveCart = (updatedCart: any[]) => {
+  const saveCart = (updatedCart) => {
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart));
   };
 
-  const addToCart = (item: any) => {
+  const addToCart = (item) => {
     const existingItem = cart.find((cartItem) => cartItem._id === item._id);
     let updatedCart;
 
@@ -73,7 +73,7 @@ const CustomerMenu: React.FC = () => {
     saveCart(updatedCart);
   };
 
-  const removeFromCart = (itemId: string) => {
+  const removeFromCart = (itemId) => {
     const existingItem = cart.find((cartItem) => cartItem._id === itemId);
     let updatedCart;
 
@@ -90,7 +90,7 @@ const CustomerMenu: React.FC = () => {
     saveCart(updatedCart);
   };
 
-  const getItemQuantity = (itemId: string) => {
+  const getItemQuantity = (itemId) => {
     const item = cart.find((cartItem) => cartItem._id === itemId);
     return item?.quantity || 0;
   };
