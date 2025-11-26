@@ -37,7 +37,9 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
+      console.log('Sending OTP to:', phone);
       const response = await sendOTP(phone);
+      console.log('OTP Response:', response.data);
       
       // Show dummy OTP hint
       if (response.data.otp) {
@@ -47,7 +49,10 @@ const Login: React.FC = () => {
       setStep('otp');
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
+      console.error('OTP Error:', err);
+      console.error('Error response:', err.response);
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to send OTP. Make sure backend is running on port 5001.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
