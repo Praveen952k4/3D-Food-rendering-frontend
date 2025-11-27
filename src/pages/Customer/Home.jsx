@@ -270,130 +270,77 @@ const CustomerHome = () => {
     }
   }, []);
 
-  // Infinite scroll: Create duplicated items for seamless loop
-  const [duplicatedItems, setDuplicatedItems] = React.useState([]);
-  
+  // Auto-scroll carousel to center selected item (simplified, no lag)
   useEffect(() => {
-    if (filteredItems.length > 0) {
-      // Duplicate items 3 times for infinite scroll effect
-      const duplicated = [...filteredItems, ...filteredItems, ...filteredItems];
-      setDuplicatedItems(duplicated);
-    }
-  }, [filteredItems]);
-
-  // Auto-scroll carousel to center selected item
-  useEffect(() => {
-    if (activePreviewFood && duplicatedItems.length > 0) {
+    if (activePreviewFood) {
       const carousel = document.getElementById('food-carousel-container');
-      if (!carousel) return;
-
-      // Find the middle set item (index = filteredItems.length to filteredItems.length * 2 - 1)
-      const middleSetStartIndex = filteredItems.length;
-      const itemIndex = filteredItems.findIndex(f => f._id === activePreviewFood._id);
-      const targetIndex = middleSetStartIndex + itemIndex;
-      
-      const selectedItem = document.querySelectorAll('.carousel-item-wrapper')[targetIndex];
-      if (selectedItem) {
+      const selectedItem = document.getElementById(`carousel-item-${activePreviewFood._id}`);
+      if (carousel && selectedItem) {
         const carouselRect = carousel.getBoundingClientRect();
         const itemRect = selectedItem.getBoundingClientRect();
         const scrollLeft = itemRect.left - carouselRect.left - (carouselRect.width / 2) + (itemRect.width / 2) + carousel.scrollLeft;
         carousel.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
-  }, [activePreviewFood, duplicatedItems, filteredItems]);
+  }, [activePreviewFood]);
 
-  // Auto-select centered item on scroll with infinite loop
+  // Auto-select centered item on scroll (optimized for performance)
   useEffect(() => {
     const carousel = document.getElementById('food-carousel-container');
-    if (!carousel || duplicatedItems.length === 0) return;
-
-    let isScrolling;
-    let lastScrollLeft = carousel.scrollLeft;
-
-    const handleScroll = () => {
-      const carouselRect = carousel.getBoundingClientRect();
-      const carouselCenter = carouselRect.left + carouselRect.width / 2;
-
-      let closestItem = null;
-      let closestDistance = Infinity;
-      let closestIndex = -1;
-
-      const items = document.querySelectorAll('.carousel-item-wrapper');
-      items.forEach((itemElement, idx) => {
-        const itemRect = itemElement.getBoundingClientRect();
-        const itemCenter = itemRect.left + itemRect.width / 2;
-        const distance = Math.abs(carouselCenter - itemCenter);
-
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestItem = itemElement;
-          closestIndex = idx;
-        }
-      });
-
-      if (closestItem && closestIndex >= 0) {
-        const actualIndex = closestIndex % filteredItems.length;
-        const food = filteredItems[actualIndex];
-        
-        if (food && food._id !== activePreviewFood?._id) {
-          setActivePreviewFood(food);
-          const saved = localStorage.getItem('cart');
-          if (saved) {
-            try {
-              const cart = JSON.parse(saved);
-              const itemQuantity = cart[food._id] || 0;
-              setQuantity(itemQuantity);
-            } catch {
-              setQuantity(0);
-            }
-          } else {
-            setQuantity(0);
-          }
-        }
-      }
-
-      // Clear previous timeout
-      clearTimeout(isScrolling);
-      
-      // Detect boundaries and reposition after scroll stops
-      isScrolling = setTimeout(() => {
-        const itemWidth = 90; // Approximate item width with gap
-        const setWidth = filteredItems.length * itemWidth;
-        const scrollPos = carousel.scrollLeft;
-        const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-
-        // If scrolled into first set, jump to second set (seamless)
-        if (scrollPos < setWidth * 0.3) {
-          carousel.scrollLeft = scrollPos + setWidth;
-        }
-        // If scrolled into third set, jump back to second set (seamless)
-        else if (scrollPos > setWidth * 2.7 || scrollPos >= maxScroll - 100) {
-          carousel.scrollLeft = scrollPos - setWidth;
-        }
-      }, 100);
-    };
+    if (!carousel) return;
 
     let scrollTimeout;
-    const debouncedScroll = () => {
+    const handleScroll = () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 20);
+      scrollTimeout = setTimeout(() => {
+        const carouselRect = carousel.getBoundingClientRect();
+        const carouselCenter = carouselRect.left + carouselRect.width / 2;
+
+        let closestItem = null;
+        let closestDistance = Infinity;
+
+        filteredItems.forEach((food) => {
+          const itemElement = document.getElementById(`carousel-item-${food._id}`);
+          if (itemElement) {
+            const itemRect = itemElement.getBoundingClientRect();
+            const itemCenter = itemRect.left + itemRect.width / 2;
+            const distance = Math.abs(carouselCenter - itemCenter);
+
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestItem = itemElement;
+            }
+          }
+        });
+
+        if (closestItem) {
+          const foodId = closestItem.id.replace('carousel-item-', '');
+          const food = filteredItems.find((f) => f._id === foodId);
+          if (food && food._id !== activePreviewFood?._id) {
+            setActivePreviewFood(food);
+            const saved = localStorage.getItem('cart');
+            if (saved) {
+              try {
+                const cart = JSON.parse(saved);
+                const itemQuantity = cart[food._id] || 0;
+                setQuantity(itemQuantity);
+              } catch {
+                setQuantity(0);
+              }
+            } else {
+              setQuantity(0);
+            }
+          }
+        }
+      }, 50); // Reduced debounce for snappier response
     };
 
-    carousel.addEventListener('scroll', debouncedScroll);
-    
-    // Initialize scroll position to middle set
-    setTimeout(() => {
-      const itemWidth = 90;
-      const setWidth = filteredItems.length * itemWidth;
-      carousel.scrollLeft = setWidth;
-    }, 100);
-
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      carousel.removeEventListener('scroll', debouncedScroll);
+      carousel.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);
-      clearTimeout(isScrolling);
     };
-  }, [duplicatedItems, filteredItems, activePreviewFood]);
+  }, [filteredItems, activePreviewFood]);
 
   return (
     <div
@@ -628,12 +575,15 @@ const CustomerHome = () => {
         flex: 1,
         scrollBehavior: 'smooth',
         WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none', // Hide scrollbar for cleaner infinite loop
-        msOverflowStyle: 'none', // Hide scrollbar for IE
+        scrollbarWidth: 'thin',
+        scrollbarColor:
+          themeMode === 'dark'
+            ? '#667eea rgba(255,255,255,0.1)'
+            : '#667eea rgba(0,0,0,0.1)',
       }}
       className="food-carousel-scroll"
     >
-      {(duplicatedItems.length > 0 ? duplicatedItems : filteredItems).map((food, idx) => {
+      {filteredItems.map((food) => {
         const isActive = activePreviewFood?._id === food._id;
         
         // Get quantity for this food item from cart
@@ -650,8 +600,8 @@ const CustomerHome = () => {
 
         return (
           <div
-            key={`${food._id}-${idx}`}
-            className="carousel-item-wrapper"
+            key={food._id}
+            id={`carousel-item-${food._id}`}
             onClick={() => handleFoodSelection(food)}
             style={{
               display: 'inline-flex',
@@ -660,9 +610,9 @@ const CustomerHome = () => {
               gap: '6px',
               cursor: 'pointer',
               minWidth: isActive ? '90px' : '70px',
-              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              transform: isActive ? 'scale(1.2)' : 'scale(1)',
-              opacity: isActive ? 1 : 0.7,
+              transition: 'all 0.3s ease',
+              transform: isActive ? 'scale(1.15)' : 'scale(1)',
+              opacity: isActive ? 1 : 0.75,
               position: 'relative',
             }}
           >
@@ -685,7 +635,7 @@ const CustomerHome = () => {
                   ? '0 3px 10px rgba(0,0,0,0.5)'
                   : '0 2px 6px rgba(0,0,0,0.15)',
                 position: 'relative',
-                transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: 'all 0.3s ease',
               }}
             >
               <img
