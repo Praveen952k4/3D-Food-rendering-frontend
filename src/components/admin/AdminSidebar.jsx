@@ -35,6 +35,17 @@ const AdminSidebar = ({ onLogout }) => {
     { text: 'Users', icon: <People />, path: '/admin/users' },
   ];
 
+  const categories = [
+    'Starters',
+    'Tandoori',
+    'Indian',
+    'Special Platter',
+    'Biryani',
+    'Desserts',
+    'Beverages',
+    'Fast Food',
+  ];
+
   return (
     <div>
       <Toolbar>

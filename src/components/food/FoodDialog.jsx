@@ -27,6 +27,8 @@ const categories = [
   'Indian',
   'Special Platter',
   'Biryani',
+  'Fast Food',
+  'Cake',
   'Desserts',
   'Beverages',
 ];
@@ -209,11 +211,17 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  const reader = new FileReader();
-                  reader.onload = () => {
-                    alert(`File selected: ${file.name}\nIn production, this would upload to cloud storage.`);
-                  };
-                  reader.readAsArrayBuffer(file);
+                  // Create a local file path for the model
+                  const modelPath = `/models/${file.name}`;
+                  setFood({ ...food, modelUrl: modelPath });
+                  
+                  // Show instructions to user
+                  alert(
+                    `File selected: ${file.name}\n\n` +
+                    `Please manually copy this file to:\n` +
+                    `public/models/${file.name}\n\n` +
+                    `The model URL has been set to: ${modelPath}`
+                  );
                 }
               }}
             />
