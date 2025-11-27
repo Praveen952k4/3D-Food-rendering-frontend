@@ -440,38 +440,134 @@ const CustomerHome = () => {
             {/* 3D GLB Viewer - Full Screen */}
             <div style={{ width: '100%', height: '100%' }}>
               <GLBViewer modelUrl={activePreviewFood.modelUrl} />
-              {/* Food Info Overlay - Top Left */}
+              
+              {/* Food Info Boxes - Top Left - Stacked Vertically */}
               <div
                 style={{
                   position: 'absolute',
                   top: '12px',
                   left: '12px',
-                  background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: '12px',
-                  padding: '8px 12px',
-                  maxWidth: '200px',
-                  boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '5px',
+                  maxWidth: '220px',
                 }}
               >
-                <Typography variant="subtitle2" fontWeight={700} sx={{ color: palette.textPrimary, marginBottom: '2px', fontSize: '0.75rem' }}>
-                  {activePreviewFood.name}
-                </Typography>
-                <Typography variant="caption" sx={{ color: palette.textSecondary, marginBottom: '4px', fontSize: '0.65rem', display: 'block' }}>
-                  {activePreviewFood.description || 'Interactive 3D Model'}
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={800}
-                  sx={{
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontSize: '0.9rem',
+                {/* Name Box */}
+                <div
+                  style={{
+                    background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '12px',
+                    padding: '5px 7px',
+                    boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
+                    border: `2px solid ${themeMode === 'dark' ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.2)'}`,
                   }}
                 >
-                  ₹{activePreviewFood.price}
-                </Typography>
+                  {/* <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: palette.textSecondary, 
+                      fontSize: '0.6rem', 
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: 600,
+                      display: 'block',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Dish Name
+                  </Typography> */}
+                  <Typography 
+                    variant="subtitle2" 
+                    fontWeight={700} 
+                    sx={{ 
+                      color: palette.textPrimary, 
+                      fontSize: '0.75rem',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {activePreviewFood.name}
+                  </Typography>
+                </div>
+
+                {/* Description Box */}
+                {/* {activePreviewFood.description && (
+                  <div
+                    style={{
+                      background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
+                      border: `2px solid ${themeMode === 'dark' ? 'rgba(118, 75, 162, 0.3)' : 'rgba(118, 75, 162, 0.2)'}`,
+                    }}
+                  >
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: palette.textSecondary, 
+                        fontSize: '0.6rem', 
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        fontWeight: 600,
+                        display: 'block',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      Description
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: palette.textPrimary, 
+                        fontSize: '0.7rem',
+                        lineHeight: 1.4,
+                        display: 'block',
+                      }}
+                    >
+                      {activePreviewFood.description}
+                    </Typography>
+                  </div>
+                )} */}
+
+                {/* Price Box */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95))',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    boxShadow: '0 4px 20px rgba(102, 126, 234, 0.5)',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: 'rgba(255,255,255,0.9)', 
+                      fontSize: '0.6rem', 
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: 600,
+                      display: 'block',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Price
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    fontWeight={800}
+                    sx={{
+                      color: '#fff',
+                      fontSize: '1.1rem',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    ₹{activePreviewFood.price}
+                  </Typography>
+                </div>
               </div>
             </div>
           </>
@@ -494,17 +590,11 @@ const CustomerHome = () => {
       left: 0,
       right: 0,
       height: '130px',
-      background:
-        themeMode === 'dark'
-          ? 'rgba(10, 10, 10, 0.98)'
-          : 'rgba(255, 255, 255, 0.98)',
-      backdropFilter: 'blur(30px)',
-      borderTop: `1px solid ${palette.border}`,
+      background: 'transparent',
+      backdropFilter: 'blur(10px)',
+      borderTop: `1px solid ${themeMode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
       zIndex: 100,
-      boxShadow:
-        themeMode === 'dark'
-          ? '0 -8px 32px rgba(0,0,0,0.6)'
-          : '0 -4px 16px rgba(0,0,0,0.1)',
+      boxShadow: 'none',
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
