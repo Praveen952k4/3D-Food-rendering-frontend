@@ -455,8 +455,6 @@ const CustomerHome = () => {
         setFilteredItems(items);
         if (items.length > 0) {
           setActivePreviewFood(items[0]);
-          // Set to middle copy of the first item (items.length is the middle set)
-          setActiveCarouselIndex(items.length);
         }
       } catch (error) {
         console.error("Failed to load foods", error);
@@ -627,15 +625,10 @@ const CustomerHome = () => {
   useEffect(() => {
     if (activePreviewFood) {
       const carousel = document.getElementById("food-carousel-container");
-      // Find the middle occurrence of the selected item
-      const middleIndex = filteredItems.findIndex(f => f._id === activePreviewFood._id) + filteredItems.length;
       const selectedItem = document.getElementById(
-        `carousel-item-${activePreviewFood._id}-${middleIndex}`
+        `carousel-item-${activePreviewFood._id}`
       );
       if (carousel && selectedItem) {
-        // Set the active carousel index to the middle occurrence
-        setActiveCarouselIndex(middleIndex);
-        
         const carouselRect = carousel.getBoundingClientRect();
         const itemRect = selectedItem.getBoundingClientRect();
         const scrollLeft =
@@ -660,13 +653,10 @@ const CustomerHome = () => {
 
       let closestItem = null;
       let closestDistance = Infinity;
-      let closestIndex = null;
 
-      // Check all tripled items
-      const totalItems = filteredItems.length * 3;
-      for (let i = 0; i < totalItems; i++) {
+      filteredItems.forEach((food) => {
         const itemElement = document.getElementById(
-          `carousel-item-${filteredItems[i % filteredItems.length]._id}-${i}`
+          `carousel-item-${food._id}`
         );
         if (itemElement) {
           const itemRect = itemElement.getBoundingClientRect();
@@ -676,17 +666,15 @@ const CustomerHome = () => {
           if (distance < closestDistance) {
             closestDistance = distance;
             closestItem = itemElement;
-            closestIndex = i;
           }
         }
-      }
+      });
 
-      if (closestItem && closestIndex !== null) {
-        const foodIndex = closestIndex % filteredItems.length;
-        const food = filteredItems[foodIndex];
+      if (closestItem) {
+        const foodId = closestItem.id.replace("carousel-item-", "");
+        const food = filteredItems.find((f) => f._id === foodId);
         if (food && food._id !== activePreviewFood?._id) {
           setActivePreviewFood(food);
-          setActiveCarouselIndex(closestIndex);
           const saved = localStorage.getItem("cart");
           if (saved) {
             try {
@@ -1060,38 +1048,9 @@ const CustomerHome = () => {
               paddingBottom: "15px",
             }}
             className="food-carousel-scroll"
-            onScroll={(e) => {
-              const container = e.target;
-              const scrollLeft = container.scrollLeft;
-              const scrollWidth = container.scrollWidth;
-              const clientWidth = container.clientWidth;
-              
-              // Check if scrolled to the end (near right edge)
-              if (scrollLeft + clientWidth >= scrollWidth - 10) {
-                // Temporarily disable smooth scrolling for the jump
-                container.style.scrollBehavior = 'auto';
-                container.scrollLeft = scrollLeft - (scrollWidth / 3);
-                // Re-enable smooth scrolling
-                setTimeout(() => {
-                  container.style.scrollBehavior = 'smooth';
-                }, 50);
-              }
-              
-              // Check if scrolled to the beginning (near left edge)
-              else if (scrollLeft <= 10) {
-                // Temporarily disable smooth scrolling for the jump
-                container.style.scrollBehavior = 'auto';
-                container.scrollLeft = (scrollWidth / 3) + scrollLeft;
-                // Re-enable smooth scrolling
-                setTimeout(() => {
-                  container.style.scrollBehavior = 'smooth';
-                }, 50);
-              }
-            }}
           >
-            {/* Render items 3 times for infinite scroll effect */}
-            {[...filteredItems, ...filteredItems, ...filteredItems].map((food, index) => {
-              const isActive = activeCarouselIndex === index;
+            {filteredItems.map((food) => {
+              const isActive = activePreviewFood?._id === food._id;
 
               // Get quantity for this food item from cart
               const saved = localStorage.getItem("cart");
@@ -1107,12 +1066,9 @@ const CustomerHome = () => {
 
               return (
                 <div
-                  key={`${food._id}-${index}`}
-                  id={`carousel-item-${food._id}-${index}`}
-                  onClick={() => {
-                    handleFoodSelection(food);
-                    setActiveCarouselIndex(index);
-                  }}
+                  key={food._id}
+                  id={`carousel-item-${food._id}`}
+                  onClick={() => handleFoodSelection(food)}
                   style={{
                     display: "inline-flex",
                     flexDirection: "column",
