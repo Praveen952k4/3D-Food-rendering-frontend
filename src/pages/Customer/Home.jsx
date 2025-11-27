@@ -270,24 +270,45 @@ const CustomerHome = () => {
     }
   }, []);
 
+  // Infinite scroll: Create duplicated items for seamless loop
+  const [duplicatedItems, setDuplicatedItems] = React.useState([]);
+  
+  useEffect(() => {
+    if (filteredItems.length > 0) {
+      // Duplicate items 3 times for infinite scroll effect
+      const duplicated = [...filteredItems, ...filteredItems, ...filteredItems];
+      setDuplicatedItems(duplicated);
+    }
+  }, [filteredItems]);
+
   // Auto-scroll carousel to center selected item
   useEffect(() => {
-    if (activePreviewFood) {
+    if (activePreviewFood && duplicatedItems.length > 0) {
       const carousel = document.getElementById('food-carousel-container');
-      const selectedItem = document.getElementById(`carousel-item-${activePreviewFood._id}`);
-      if (carousel && selectedItem) {
+      if (!carousel) return;
+
+      // Find the middle set item (index = filteredItems.length to filteredItems.length * 2 - 1)
+      const middleSetStartIndex = filteredItems.length;
+      const itemIndex = filteredItems.findIndex(f => f._id === activePreviewFood._id);
+      const targetIndex = middleSetStartIndex + itemIndex;
+      
+      const selectedItem = document.querySelectorAll('.carousel-item-wrapper')[targetIndex];
+      if (selectedItem) {
         const carouselRect = carousel.getBoundingClientRect();
         const itemRect = selectedItem.getBoundingClientRect();
         const scrollLeft = itemRect.left - carouselRect.left - (carouselRect.width / 2) + (itemRect.width / 2) + carousel.scrollLeft;
         carousel.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
-  }, [activePreviewFood]);
+  }, [activePreviewFood, duplicatedItems, filteredItems]);
 
-  // Auto-select centered item on scroll
+  // Auto-select centered item on scroll with infinite loop
   useEffect(() => {
     const carousel = document.getElementById('food-carousel-container');
-    if (!carousel) return;
+    if (!carousel || duplicatedItems.length === 0) return;
+
+    let isScrolling;
+    let lastScrollLeft = carousel.scrollLeft;
 
     const handleScroll = () => {
       const carouselRect = carousel.getBoundingClientRect();
@@ -295,24 +316,25 @@ const CustomerHome = () => {
 
       let closestItem = null;
       let closestDistance = Infinity;
+      let closestIndex = -1;
 
-      filteredItems.forEach((food) => {
-        const itemElement = document.getElementById(`carousel-item-${food._id}`);
-        if (itemElement) {
-          const itemRect = itemElement.getBoundingClientRect();
-          const itemCenter = itemRect.left + itemRect.width / 2;
-          const distance = Math.abs(carouselCenter - itemCenter);
+      const items = document.querySelectorAll('.carousel-item-wrapper');
+      items.forEach((itemElement, idx) => {
+        const itemRect = itemElement.getBoundingClientRect();
+        const itemCenter = itemRect.left + itemRect.width / 2;
+        const distance = Math.abs(carouselCenter - itemCenter);
 
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestItem = itemElement;
-          }
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestItem = itemElement;
+          closestIndex = idx;
         }
       });
 
-      if (closestItem) {
-        const foodId = closestItem.id.replace('carousel-item-', '');
-        const food = filteredItems.find((f) => f._id === foodId);
+      if (closestItem && closestIndex >= 0) {
+        const actualIndex = closestIndex % filteredItems.length;
+        const food = filteredItems[actualIndex];
+        
         if (food && food._id !== activePreviewFood?._id) {
           setActivePreviewFood(food);
           const saved = localStorage.getItem('cart');
@@ -329,6 +351,26 @@ const CustomerHome = () => {
           }
         }
       }
+
+      // Clear previous timeout
+      clearTimeout(isScrolling);
+      
+      // Detect boundaries and reposition after scroll stops
+      isScrolling = setTimeout(() => {
+        const itemWidth = 90; // Approximate item width with gap
+        const setWidth = filteredItems.length * itemWidth;
+        const scrollPos = carousel.scrollLeft;
+        const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+
+        // If scrolled into first set, jump to second set (seamless)
+        if (scrollPos < setWidth * 0.3) {
+          carousel.scrollLeft = scrollPos + setWidth;
+        }
+        // If scrolled into third set, jump back to second set (seamless)
+        else if (scrollPos > setWidth * 2.7 || scrollPos >= maxScroll - 100) {
+          carousel.scrollLeft = scrollPos - setWidth;
+        }
+      }, 100);
     };
 
     let scrollTimeout;
@@ -338,11 +380,20 @@ const CustomerHome = () => {
     };
 
     carousel.addEventListener('scroll', debouncedScroll);
+    
+    // Initialize scroll position to middle set
+    setTimeout(() => {
+      const itemWidth = 90;
+      const setWidth = filteredItems.length * itemWidth;
+      carousel.scrollLeft = setWidth;
+    }, 100);
+
     return () => {
       carousel.removeEventListener('scroll', debouncedScroll);
       clearTimeout(scrollTimeout);
+      clearTimeout(isScrolling);
     };
-  }, [filteredItems, activePreviewFood]);
+  }, [duplicatedItems, filteredItems, activePreviewFood]);
 
   return (
     <div
@@ -577,15 +628,12 @@ const CustomerHome = () => {
         flex: 1,
         scrollBehavior: 'smooth',
         WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'thin',
-        scrollbarColor:
-          themeMode === 'dark'
-            ? '#667eea rgba(255,255,255,0.1)'
-            : '#667eea rgba(0,0,0,0.1)',
+        scrollbarWidth: 'none', // Hide scrollbar for cleaner infinite loop
+        msOverflowStyle: 'none', // Hide scrollbar for IE
       }}
       className="food-carousel-scroll"
     >
-      {filteredItems.map((food) => {
+      {(duplicatedItems.length > 0 ? duplicatedItems : filteredItems).map((food, idx) => {
         const isActive = activePreviewFood?._id === food._id;
         
         // Get quantity for this food item from cart
@@ -602,8 +650,8 @@ const CustomerHome = () => {
 
         return (
           <div
-            key={food._id}
-            id={`carousel-item-${food._id}`}
+            key={`${food._id}-${idx}`}
+            className="carousel-item-wrapper"
             onClick={() => handleFoodSelection(food)}
             style={{
               display: 'inline-flex',
@@ -612,7 +660,7 @@ const CustomerHome = () => {
               gap: '6px',
               cursor: 'pointer',
               minWidth: isActive ? '90px' : '70px',
-              transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
               transform: isActive ? 'scale(1.2)' : 'scale(1)',
               opacity: isActive ? 1 : 0.7,
               position: 'relative',
