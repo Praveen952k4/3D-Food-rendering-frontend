@@ -967,17 +967,7 @@ const CustomerHome = () => {
             right: 0,
             height: "130px",
             paddingTop: "12px",
-            // background:
-            //   themeMode === "dark"
-            //     ? "rgba(10, 10, 10, 0.98)"
-            //     : "rgba(255, 255, 255, 0.98)",
-            // backdropFilter: "blur(30px)",
-            // borderTop: `1px solid ${palette.border}`,
-            zIndex: 100,
-            // boxShadow:
-            //   themeMode === "dark"
-            //     ? "0 -8px 32px rgba(0,0,0,0.6)"
-            //     : "0 -4px 16px rgba(0,0,0,0.1)",
+            zIndex: 90,
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -1044,7 +1034,7 @@ const CustomerHome = () => {
             id="food-carousel-container"
             style={{
               overflowX: "auto",
-              overflowY: "hidden",
+              overflowY: "visible",
               whiteSpace: "nowrap",
               display: "flex",
               alignItems: "center",
@@ -1053,11 +1043,8 @@ const CustomerHome = () => {
               scrollBehavior: "smooth",
               WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
-              // scrollbarWidth: "thin",
-              // scrollbarColor:
-              //   themeMode === "dark"
-              //     ? "#667eea rgba(255,255,255,0.1)"
-              //     : "#667eea rgba(0,0,0,0.1)",
+              paddingTop: "15px",
+              paddingBottom: "15px",
             }}
             className="food-carousel-scroll"
           >
@@ -2057,6 +2044,7 @@ const CustomerHome = () => {
               <Button
                 onClick={() => setDetailsDialogOpen(false)}
                 sx={{ color: palette.textPrimary }}
+
               >
                 Close
               </Button>
