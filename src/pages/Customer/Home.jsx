@@ -396,7 +396,9 @@ const CustomerHome = () => {
   const [vegFilter, setVegFilter] = useState("all");
   const [themeMode, setThemeMode] = useState("light");
   const [quantity, setQuantity] = useState(0);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    return sessionStorage.getItem('splashShown') ? false : true;
+  });
   const [loadingFoods, setLoadingFoods] = useState(false);
   const [cartVersion, setCartVersion] = useState(0);
   const [glbModelUrl, setGlbModelUrl] = useState("/models/Burger.glb"); // GLB model URL for 3D display
@@ -431,11 +433,16 @@ const CustomerHome = () => {
   });
   const [ingredientsExpanded, setIngredientsExpanded] = useState(false);
 
-  // Hide splash after 10s
+  // Hide splash after 10s, and persist splashShown
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 10000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (showSplash) {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('splashShown', 'true');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
 
   // Fetch food items
   useEffect(() => {
