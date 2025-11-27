@@ -97,11 +97,20 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
     sceneRef.current = scene;
 
     // Camera setup
-    const camera = new window.THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    const camera = new window.THREE.PerspectiveCamera(
+      75,
+      width / height,
+      0.1,
+      1000
+    );
     camera.position.set(0, 0, 3);
 
     // Renderer setup (transparent)
-    const renderer = new window.THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const renderer = new window.THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     rendererRef.current = renderer;
@@ -165,7 +174,8 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
       setModelLoading(false);
 
       // OrbitControls
-      const OrbitControlsClass = window.THREE?.OrbitControls || window.OrbitControls;
+      const OrbitControlsClass =
+        window.THREE?.OrbitControls || window.OrbitControls;
       if (!OrbitControlsClass) {
         console.warn("OrbitControls not loaded, continuing without controls");
       } else {
@@ -202,36 +212,31 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
     };
 
     // Try loader.load first; if it errors, attempt fetching ArrayBuffer and parsing manually
-    loader.load(
-      glbModelUrl,
-      handleGltfLoad,
-      undefined,
-      async (error) => {
-        console.error("GLB loading error:", error);
-        try {
-          const resp = await fetch(glbModelUrl, { mode: "cors" });
-          if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
-          const arrayBuffer = await resp.arrayBuffer();
-          // Parse manually using loader.parse
-          loader.parse(
-            arrayBuffer,
-            "",
-            (gltf) => {
-              handleGltfLoad(gltf);
-            },
-            (parseErr) => {
-              console.error("GLTF parse error after manual fetch:", parseErr);
-              setModelError("Failed to parse 3D model");
-              setModelLoading(false);
-            }
-          );
-        } catch (e) {
-          console.error("Manual fetch/parse failed:", e);
-          setModelError("Failed to load 3D model (CORS or network error)");
-          setModelLoading(false);
-        }
+    loader.load(glbModelUrl, handleGltfLoad, undefined, async (error) => {
+      console.error("GLB loading error:", error);
+      try {
+        const resp = await fetch(glbModelUrl, { mode: "cors" });
+        if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+        const arrayBuffer = await resp.arrayBuffer();
+        // Parse manually using loader.parse
+        loader.parse(
+          arrayBuffer,
+          "",
+          (gltf) => {
+            handleGltfLoad(gltf);
+          },
+          (parseErr) => {
+            console.error("GLTF parse error after manual fetch:", parseErr);
+            setModelError("Failed to parse 3D model");
+            setModelLoading(false);
+          }
+        );
+      } catch (e) {
+        console.error("Manual fetch/parse failed:", e);
+        setModelError("Failed to load 3D model (CORS or network error)");
+        setModelLoading(false);
       }
-    );
+    });
 
     // Handle window resize
     const handleResize = () => {
@@ -320,7 +325,10 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
               <div className="sphere"></div>
               <div className="sphere"></div>
             </div>
-            <Typography variant="caption" sx={{ color: "#fff", marginTop: "8px", display: "block" }}>
+            <Typography
+              variant="caption"
+              sx={{ color: "#fff", marginTop: "8px", display: "block" }}
+            >
               Loading 3D Model...
             </Typography>
           </div>
@@ -351,8 +359,6 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
     </div>
   );
 };
-  
-
 
 const CustomerHome = () => {
   const navigate = useNavigate();
@@ -380,7 +386,8 @@ const CustomerHome = () => {
   useEffect(() => {
     let mounted = true;
     const resolveModel = () => {
-      const modelPath = activePreviewFood?.modelPath || activePreviewFood?.modelUrl;
+      const modelPath =
+        activePreviewFood?.modelPath || activePreviewFood?.modelUrl;
       if (!modelPath) {
         if (mounted) setGlbModelUrl("/models/Burger.glb");
         return;
@@ -781,11 +788,11 @@ const CustomerHome = () => {
                   position: "absolute",
                   top: "12px",
                   left: "12px",
-                  background:
-                    themeMode === "dark"
-                      ? "rgba(0,0,0,0.85)"
-                      : "rgba(255,255,255,0.95)",
-                  backdropFilter: "blur(20px)",
+                  // background:
+                  //   themeMode === "dark"
+                  //     ? "rgba(0,0,0,0.85)"
+                  //     : "rgba(255,255,255,0.95)",
+                  // backdropFilter: "blur(20px)",
                   borderRadius: "12px",
                   padding: "8px 12px",
                   maxWidth: "200px",
@@ -859,17 +866,18 @@ const CustomerHome = () => {
             left: 0,
             right: 0,
             height: "130px",
-            background:
-              themeMode === "dark"
-                ? "rgba(10, 10, 10, 0.98)"
-                : "rgba(255, 255, 255, 0.98)",
-            backdropFilter: "blur(30px)",
-            borderTop: `1px solid ${palette.border}`,
+            paddingTop: "12px",
+            // background:
+            //   themeMode === "dark"
+            //     ? "rgba(10, 10, 10, 0.98)"
+            //     : "rgba(255, 255, 255, 0.98)",
+            // backdropFilter: "blur(30px)",
+            // borderTop: `1px solid ${palette.border}`,
             zIndex: 100,
-            boxShadow:
-              themeMode === "dark"
-                ? "0 -8px 32px rgba(0,0,0,0.6)"
-                : "0 -4px 16px rgba(0,0,0,0.1)",
+            // boxShadow:
+            //   themeMode === "dark"
+            //     ? "0 -8px 32px rgba(0,0,0,0.6)"
+            //     : "0 -4px 16px rgba(0,0,0,0.1)",
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -944,11 +952,12 @@ const CustomerHome = () => {
               flex: 1,
               scrollBehavior: "smooth",
               WebkitOverflowScrolling: "touch",
-              scrollbarWidth: "thin",
-              scrollbarColor:
-                themeMode === "dark"
-                  ? "#667eea rgba(255,255,255,0.1)"
-                  : "#667eea rgba(0,0,0,0.1)",
+              scrollbarWidth: "none",
+              // scrollbarWidth: "thin",
+              // scrollbarColor:
+              //   themeMode === "dark"
+              //     ? "#667eea rgba(255,255,255,0.1)"
+              //     : "#667eea rgba(0,0,0,0.1)",
             }}
             className="food-carousel-scroll"
           >
@@ -1197,7 +1206,6 @@ const CustomerHome = () => {
           >
             <CameraIcon sx={{ fontSize: 20 }} />
           </Fab>
-
 
           {cameraError && (
             <div style={{ color: "red", textAlign: "center", marginTop: 10 }}>
