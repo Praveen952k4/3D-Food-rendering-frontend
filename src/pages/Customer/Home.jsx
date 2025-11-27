@@ -44,6 +44,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+import CameraIcon from '@mui/icons-material/Camera';
 import { Canvas } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
@@ -56,24 +57,6 @@ const Model = ({ modelUrl }) => {
   const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
   return <primitive object={scene} dispose={null} />;
 };
-} from "@mui/material";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import LogoutIcon from "@mui/icons-material/Logout";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import CloseIcon from "@mui/icons-material/Close";
-import ViewInArIcon from "@mui/icons-material/ViewInAr";
-import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import CameraIcon from "@mui/icons-material/Camera";
-// Removed react-three/fiber and drei imports — using native camera only
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { getFoodItems } from "../../services/api";
-// removed three.js imports
 
 // Sphere Animation Loader Component
 const SphereLoader = ({ isDark }) => {
@@ -630,30 +613,6 @@ const CustomerHome = () => {
     }
   };
 
-  const handleCustomizeOrder = (food) => {
-    setSelectedFoodDetails(food);
-    setCustomization({
-      spiceLevel: 'medium',
-      extras: [],
-      specialInstructions: '',
-    });
-    setCustomizeDialogOpen(true);
-  };
-
-  const handleAddCustomizedToCart = () => {
-    const foodToAdd = selectedFoodDetails || activePreviewFood;
-    if (foodToAdd) {
-      addToCart(foodToAdd._id, 1, customization);
-      setCustomizeDialogOpen(false);
-      // Reset customization after adding
-      setCustomization({
-        spiceLevel: 'medium',
-        extras: [],
-        specialInstructions: '',
-      });
-    }
-  };
-
   // Auto-scroll carousel to center selected item
   useEffect(() => {
     if (activePreviewFood) {
@@ -899,258 +858,77 @@ const CustomerHome = () => {
                   position: "absolute",
                   top: "12px",
                   left: "12px",
-                  // background:
-                  //   themeMode === "dark"
-                  //     ? "rgba(0,0,0,0.85)"
-                  //     : "rgba(255,255,255,0.95)",
-                  // backdropFilter: "blur(20px)",
-                  borderRadius: "12px",
-                  padding: "8px 12px",
-                  maxWidth: "200px",
-                  boxShadow:
-                    themeMode === "dark"
-                      ? "0 4px 16px rgba(0,0,0,0.6)"
-                      : "0 2px 8px rgba(0,0,0,0.2)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  maxWidth: "220px",
+                  zIndex: 120,
                 }}
               >
-                <Typography
-                  variant="subtitle2"
-                  fontWeight={700}
-                  sx={{
-                    color: palette.textPrimary,
-                    marginBottom: "2px",
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  {activePreviewFood.name}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: palette.textSecondary,
-                    marginBottom: "4px",
-                    fontSize: "0.65rem",
-                    display: "block",
-                  }}
-                >
-                  {activePreviewFood.description || "Interactive 3D Model"}
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={800}
-                  sx={{
-                    background: "linear-gradient(135deg, #667eea, #764ba2)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  ₹{activePreviewFood.price}
-                </Typography>
-
-                {/* Customization Options Box */}
+                {/* Name Box */}
                 <div
                   style={{
-                    background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '12px',
-                    padding: '10px 12px',
-                    boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
-                    border: `2px solid ${themeMode === 'dark' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'}`,
-                    maxHeight: '300px',
-                    overflowY: 'auto',
+                    background: themeMode === "dark" ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.95)",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "12px",
+                    padding: "8px 12px",
+                    boxShadow: themeMode === "dark" ? "0 4px 16px rgba(0,0,0,0.6)" : "0 2px 8px rgba(0,0,0,0.2)",
+                    border: `2px solid ${themeMode === "dark" ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"}`,
                   }}
                 >
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      color: palette.textSecondary, 
-                      fontSize: '0.6rem', 
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      fontWeight: 600,
-                      display: 'block',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    🎯 Customize Your Order
-                  </Typography>
-
-                  {/* Ingredients Dropdown */}
-                  {activePreviewFood.ingredients && activePreviewFood.ingredients.length > 0 && (
-                    <div style={{ marginBottom: '8px' }}>
-                      <div 
-                        onClick={() => setIngredientsExpanded(!ingredientsExpanded)}
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'space-between',
-                          cursor: 'pointer',
-                          padding: '6px 8px',
-                          background: palette.surface,
-                          borderRadius: '6px',
-                          border: `1px solid ${palette.border}`,
-                          marginBottom: ingredientsExpanded ? '6px' : '0',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <RestaurantIcon sx={{ fontSize: '14px', color: '#667eea' }} />
-                          <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600 }}>
-                            Ingredients ({activePreviewFood.ingredients.length})
-                          </Typography>
-                        </div>
-                        <ExpandMoreIcon 
-                          sx={{ 
-                            fontSize: '16px', 
-                            color: palette.textPrimary,
-                            transform: ingredientsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.3s',
-                          }} 
-                        />
-                      </div>
-                      {ingredientsExpanded && (
-                        <div style={{ 
-                          padding: '8px',
-                          background: palette.surface,
-                          borderRadius: '6px',
-                          border: `1px solid ${palette.border}`,
-                        }}>
-                          {activePreviewFood.ingredients.map((ingredient, idx) => (
-                            <div 
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                padding: '4px 6px',
-                                marginBottom: idx < activePreviewFood.ingredients.length - 1 ? '4px' : '0',
-                                background: themeMode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.6rem' }}>
-                                {ingredient.name}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: palette.textSecondary, fontSize: '0.6rem', fontWeight: 600 }}>
-                                {ingredient.quantity}
-                              </Typography>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Spice Level Mini */}
-                  <div style={{ marginBottom: '8px' }}>
-                    <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
-                      🌶️ Spice Level:
-                    </Typography>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {['mild', 'medium', 'spicy', 'extra-spicy'].map((level) => (
-                        <Button
-                          key={level}
-                          size="small"
-                          variant={customization.spiceLevel === level ? 'contained' : 'outlined'}
-                          onClick={() => setCustomization({ ...customization, spiceLevel: level })}
-                          sx={{
-                            fontSize: '0.6rem',
-                            padding: '2px 8px',
-                            minWidth: 'auto',
-                            textTransform: 'capitalize',
-                            borderColor: customization.spiceLevel === level ? '#10b981' : palette.border,
-                            background: customization.spiceLevel === level ? '#10b981' : 'transparent',
-                            color: customization.spiceLevel === level ? '#fff' : palette.textPrimary,
-                            '&:hover': {
-                              borderColor: '#10b981',
-                              background: customization.spiceLevel === level ? '#059669' : 'rgba(16, 185, 129, 0.1)',
-                            },
-                          }}
-                        >
-                          {level.split('-')[0]}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Extras Mini */}
-                  <div style={{ marginBottom: '8px' }}>
-                    <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
-                      ➕ Extras:
-                    </Typography>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {[
-                        { id: 'extra-salt', label: 'Salt', icon: '🧂' },
-                        { id: 'extra-cheese', label: 'Cheese', icon: '🧀' },
-                        { id: 'extra-sauce', label: 'Sauce', icon: '🥫' },
-                        { id: 'extra-vegetables', label: 'Veggies', icon: '🥗' },
-                        { id: 'extra-meat', label: 'Meat', icon: '🍖' },
-                      ].map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => {
-                            const isSelected = customization.extras.includes(item.id);
-                            setCustomization({
-                              ...customization,
-                              extras: isSelected
-                                ? customization.extras.filter(e => e !== item.id)
-                                : [...customization.extras, item.id],
-                            });
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '4px 8px',
-                            background: customization.extras.includes(item.id) 
-                              ? 'rgba(16, 185, 129, 0.15)' 
-                              : palette.surface,
-                            border: `1px solid ${customization.extras.includes(item.id) ? '#10b981' : palette.border}`,
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                          }}
-                        >
-                          <span style={{ fontSize: '14px' }}>{item.icon}</span>
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              color: palette.textPrimary,
-                              fontSize: '0.65rem',
-                              fontWeight: customization.extras.includes(item.id) ? 600 : 400,
-                            }}
-                          >
-                            {item.label}
-                          </Typography>
-                          {customization.extras.includes(item.id) && (
-                            <span style={{ marginLeft: 'auto', color: '#10b981', fontSize: '14px' }}>✓</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Add Button */}
-                  <Button
-                    fullWidth
-                    size="small"
-                    variant="contained"
-                    onClick={() => {
-                      handleAddCustomizedToCart();
-                    }}
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={700}
                     sx={{
-                      marginTop: '8px',
-                      fontSize: '0.7rem',
-                      padding: '6px 12px',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #059669, #047857)',
-                      },
+                      color: palette.textPrimary,
+                      fontSize: "0.75rem",
+                      lineHeight: 1.3,
                     }}
-                    startIcon={<AddIcon sx={{ fontSize: '14px' }} />}
                   >
-                    Add with Custom
-                  </Button>
+                    {activePreviewFood.name}
+                  </Typography>
                 </div>
+
+                {/* Price Box */}
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95))",
+                    backdropFilter: "blur(20px)",
+                    borderRadius: "12px",
+                    padding: "10px 12px",
+                    boxShadow: "0 4px 20px rgba(102, 126, 234, 0.5)",
+                    border: "2px solid rgba(255, 255, 255, 0.2)",
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "rgba(255,255,255,0.9)",
+                      fontSize: "0.6rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      fontWeight: 600,
+                      display: "block",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Price
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    fontWeight={800}
+                    sx={{
+                      color: "#fff",
+                      fontSize: "1.1rem",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    ₹{activePreviewFood.price}
+                  </Typography>
+                </div>
+
+                {/* Customization Options Box */}
+                
               </div>
             </div>
           </>
@@ -1492,7 +1270,7 @@ const CustomerHome = () => {
             position: "fixed",
             top: "100px",
             right: "20px",
-            zIndex: 110,
+            zIndex: 50,
             display: "flex",
             flexDirection: "column",
             gap: "12px",
