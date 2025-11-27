@@ -375,68 +375,17 @@ const CustomerHome = () => {
   const [glbModelUrl, setGlbModelUrl] = useState("/models/Burger.glb"); // GLB model URL for 3D display
   const [showModel, setShowModel] = useState(false); // only show 3D viewer when an item is explicitly clicked
 
-  // Resolve model URL and handle common CORS issues (e.g. GitHub blob links)
-  const convertGithubBlobUrls = (url) => {
-    try {
-      const m = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)$/);
-      if (m) {
-        const [, owner, repo, branch, path] = m;
-        return [
-          // raw.githubusercontent is fastest for direct file access
-          `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
-          // jsDelivr as fallback with better CORS headers
-          `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`,
-        ];
-      }
-    } catch (e) {}
-    return [];
-  };
-
+  // Resolve model URL: use modelPath (or modelUrl) directly from the food item
+  // If none is provided, fall back to the local Burger.glb
   useEffect(() => {
     let mounted = true;
-
-    const tryFetch = async (url, method = "HEAD") => {
-      try {
-        const res = await fetch(url, { method, mode: "cors" });
-        return res && res.ok;
-      } catch (e) {
-        return false;
-      }
-    };
-
-    const resolveModel = async () => {
-      if (!activePreviewFood?.modelPath) {
+    const resolveModel = () => {
+      const modelPath = activePreviewFood?.modelPath || activePreviewFood?.modelUrl;
+      if (!modelPath) {
         if (mounted) setGlbModelUrl("/models/Burger.glb");
         return;
       }
-
-      const orig = activePreviewFood.modelPath;
-      const candidates = [];
-      
-      // Try GitHub conversions first (raw.githubusercontent then jsDelivr)
-      const githubConversions = convertGithubBlobUrls(orig);
-      candidates.push(...githubConversions);
-      
-      // Try original URL as fallback
-      candidates.push(orig);
-
-      for (const c of candidates) {
-        // prefer HEAD to avoid downloading the whole GLB, but fallback to GET if HEAD not allowed
-        if (await tryFetch(c, "HEAD") || (await tryFetch(c, "GET"))) {
-          if (!mounted) return;
-          setGlbModelUrl(c);
-          return;
-        }
-      }
-
-      // If none worked, fall back to local model and hide the 3D view
-      if (mounted) {
-        console.warn(
-          `Model URL "${orig}" could not be resolved due to CORS or network restrictions. Falling back to local model. Consider hosting GLB in public/models or using a CORS-enabled CDN.`
-        );
-        setGlbModelUrl("/models/Burger.glb");
-        setShowModel(false);
-      }
+      if (mounted) setGlbModelUrl(modelPath);
     };
 
     resolveModel();
