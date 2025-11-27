@@ -905,6 +905,7 @@ const CustomerHome = () => {
                     padding: "10px 12px",
                     boxShadow: "0 4px 20px rgba(102, 126, 234, 0.5)",
                     border: "2px solid rgba(255, 255, 255, 0.2)",
+                    width: "65px",
                   }}
                 >
                   <Typography
