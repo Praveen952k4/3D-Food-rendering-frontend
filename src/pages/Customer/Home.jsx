@@ -13,6 +13,14 @@ import {
   ListItemAvatar,
   ListItemText,
   Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
@@ -26,6 +34,10 @@ import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HistoryIcon from '@mui/icons-material/History';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import InfoIcon from '@mui/icons-material/Info';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { Canvas } from '@react-three/fiber';
 import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
@@ -134,6 +146,15 @@ const CustomerHome = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [loadingFoods, setLoadingFoods] = useState(false);
   const [cartVersion, setCartVersion] = useState(0);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedFoodDetails, setSelectedFoodDetails] = useState(null);
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  const [customization, setCustomization] = useState({
+    spiceLevel: 'medium',
+    extras: [],
+    specialInstructions: '',
+  });
+  const [ingredientsExpanded, setIngredientsExpanded] = useState(false);
 
   // Hide splash after 10s
   useEffect(() => {
@@ -238,11 +259,26 @@ const CustomerHome = () => {
   };
 
   const addToCart = useCallback(
-    (foodId, amount = 1) => {
+    (foodId, amount = 1, customOptions = null) => {
       if (!foodId || amount <= 0) return;
       const saved = localStorage.getItem('cart');
       const cart = saved ? JSON.parse(saved) : {};
+      
+      // Store customization with cart item
+      const customizationData = localStorage.getItem('cartCustomization');
+      const cartCustomization = customizationData ? JSON.parse(customizationData) : {};
+      
       cart[foodId] = (cart[foodId] || 0) + amount;
+      
+      // Save customization if provided
+      if (customOptions) {
+        if (!cartCustomization[foodId]) {
+          cartCustomization[foodId] = [];
+        }
+        cartCustomization[foodId].push(customOptions);
+        localStorage.setItem('cartCustomization', JSON.stringify(cartCustomization));
+      }
+      
       localStorage.setItem('cart', JSON.stringify(cart));
       setCartVersion((prev) => prev + 1);
       // Update quantity state if the current item is being added
@@ -255,6 +291,8 @@ const CustomerHome = () => {
 
   const handleFoodSelection = useCallback((food) => {
     setActivePreviewFood(food);
+    // Reset ingredients dropdown when switching food items
+    setIngredientsExpanded(false);
     // Check if item is already in cart and set quantity accordingly
     const saved = localStorage.getItem('cart');
     if (saved) {
@@ -269,6 +307,30 @@ const CustomerHome = () => {
       setQuantity(0);
     }
   }, []);
+
+  const handleCustomizeOrder = (food) => {
+    setSelectedFoodDetails(food);
+    setCustomization({
+      spiceLevel: 'medium',
+      extras: [],
+      specialInstructions: '',
+    });
+    setCustomizeDialogOpen(true);
+  };
+
+  const handleAddCustomizedToCart = () => {
+    const foodToAdd = selectedFoodDetails || activePreviewFood;
+    if (foodToAdd) {
+      addToCart(foodToAdd._id, 1, customization);
+      setCustomizeDialogOpen(false);
+      // Reset customization after adding
+      setCustomization({
+        spiceLevel: 'medium',
+        extras: [],
+        specialInstructions: '',
+      });
+    }
+  };
 
   // Auto-scroll carousel to center selected item (simplified, no lag)
   useEffect(() => {
@@ -567,6 +629,210 @@ const CustomerHome = () => {
                   >
                     ₹{activePreviewFood.price}
                   </Typography>
+                </div>
+
+                {/* Customization Options Box */}
+                <div
+                  style={{
+                    background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
+                    border: `2px solid ${themeMode === 'dark' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'}`,
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: palette.textSecondary, 
+                      fontSize: '0.6rem', 
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      fontWeight: 600,
+                      display: 'block',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    🎯 Customize Your Order
+                  </Typography>
+
+                  {/* Ingredients Dropdown */}
+                  {activePreviewFood.ingredients && activePreviewFood.ingredients.length > 0 && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <div 
+                        onClick={() => setIngredientsExpanded(!ingredientsExpanded)}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          padding: '6px 8px',
+                          background: palette.surface,
+                          borderRadius: '6px',
+                          border: `1px solid ${palette.border}`,
+                          marginBottom: ingredientsExpanded ? '6px' : '0',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <RestaurantIcon sx={{ fontSize: '14px', color: '#667eea' }} />
+                          <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600 }}>
+                            Ingredients ({activePreviewFood.ingredients.length})
+                          </Typography>
+                        </div>
+                        <ExpandMoreIcon 
+                          sx={{ 
+                            fontSize: '16px', 
+                            color: palette.textPrimary,
+                            transform: ingredientsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.3s',
+                          }} 
+                        />
+                      </div>
+                      {ingredientsExpanded && (
+                        <div style={{ 
+                          padding: '8px',
+                          background: palette.surface,
+                          borderRadius: '6px',
+                          border: `1px solid ${palette.border}`,
+                        }}>
+                          {activePreviewFood.ingredients.map((ingredient, idx) => (
+                            <div 
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                padding: '4px 6px',
+                                marginBottom: idx < activePreviewFood.ingredients.length - 1 ? '4px' : '0',
+                                background: themeMode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.6rem' }}>
+                                {ingredient.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: palette.textSecondary, fontSize: '0.6rem', fontWeight: 600 }}>
+                                {ingredient.quantity}
+                              </Typography>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Spice Level Mini */}
+                  <div style={{ marginBottom: '8px' }}>
+                    <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                      🌶️ Spice Level:
+                    </Typography>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      {['mild', 'medium', 'spicy', 'extra-spicy'].map((level) => (
+                        <Button
+                          key={level}
+                          size="small"
+                          variant={customization.spiceLevel === level ? 'contained' : 'outlined'}
+                          onClick={() => setCustomization({ ...customization, spiceLevel: level })}
+                          sx={{
+                            fontSize: '0.6rem',
+                            padding: '2px 8px',
+                            minWidth: 'auto',
+                            textTransform: 'capitalize',
+                            borderColor: customization.spiceLevel === level ? '#10b981' : palette.border,
+                            background: customization.spiceLevel === level ? '#10b981' : 'transparent',
+                            color: customization.spiceLevel === level ? '#fff' : palette.textPrimary,
+                            '&:hover': {
+                              borderColor: '#10b981',
+                              background: customization.spiceLevel === level ? '#059669' : 'rgba(16, 185, 129, 0.1)',
+                            },
+                          }}
+                        >
+                          {level.split('-')[0]}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Extras Mini */}
+                  <div style={{ marginBottom: '8px' }}>
+                    <Typography variant="caption" sx={{ color: palette.textPrimary, fontSize: '0.65rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                      ➕ Extras:
+                    </Typography>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {[
+                        { id: 'extra-salt', label: 'Salt', icon: '🧂' },
+                        { id: 'extra-cheese', label: 'Cheese', icon: '🧀' },
+                        { id: 'extra-sauce', label: 'Sauce', icon: '🥫' },
+                        { id: 'extra-vegetables', label: 'Veggies', icon: '🥗' },
+                        { id: 'extra-meat', label: 'Meat', icon: '🍖' },
+                      ].map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            const isSelected = customization.extras.includes(item.id);
+                            setCustomization({
+                              ...customization,
+                              extras: isSelected
+                                ? customization.extras.filter(e => e !== item.id)
+                                : [...customization.extras, item.id],
+                            });
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 8px',
+                            background: customization.extras.includes(item.id) 
+                              ? 'rgba(16, 185, 129, 0.15)' 
+                              : palette.surface,
+                            border: `1px solid ${customization.extras.includes(item.id) ? '#10b981' : palette.border}`,
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          <span style={{ fontSize: '14px' }}>{item.icon}</span>
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: palette.textPrimary,
+                              fontSize: '0.65rem',
+                              fontWeight: customization.extras.includes(item.id) ? 600 : 400,
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                          {customization.extras.includes(item.id) && (
+                            <span style={{ marginLeft: 'auto', color: '#10b981', fontSize: '14px' }}>✓</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Add Button */}
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                      handleAddCustomizedToCart();
+                    }}
+                    sx={{
+                      marginTop: '8px',
+                      fontSize: '0.7rem',
+                      padding: '6px 12px',
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #059669, #047857)',
+                      },
+                    }}
+                    startIcon={<AddIcon sx={{ fontSize: '14px' }} />}
+                  >
+                    Add with Custom
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1283,13 +1549,38 @@ const CustomerHome = () => {
                   >
                     {food.name}
                   </Typography>
+                  {food.description && (
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: palette.textSecondary, 
+                        display: 'block', 
+                        marginBottom: '4px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {food.description}
+                    </Typography>
+                  )}
                   <Typography 
                     variant="caption" 
-                    sx={{ color: palette.textSecondary, display: 'block', marginBottom: '8px' }}
+                    sx={{ color: palette.textSecondary, display: 'block', marginBottom: '4px' }}
                   >
                     {food.category}
                   </Typography>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {/* Calories Badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                    <LocalFireDepartmentIcon sx={{ fontSize: '14px', color: '#f59e0b' }} />
+                    <Typography 
+                      variant="caption" 
+                      sx={{ color: '#f59e0b', fontWeight: 600, fontSize: '0.7rem' }}
+                    >
+                      {food.calories || 0} kcal
+                    </Typography>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <Typography 
                       variant="subtitle2" 
                       fontWeight={700} 
@@ -1315,6 +1606,30 @@ const CustomerHome = () => {
                       <AddIcon sx={{ fontSize: '16px' }} />
                     </IconButton>
                   </div>
+                  {/* Details Button */}
+                  <Button
+                    size="small"
+                    fullWidth
+                    startIcon={<InfoIcon sx={{ fontSize: '14px' }} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFoodDetails(food);
+                      setDetailsDialogOpen(true);
+                    }}
+                    sx={{
+                      fontSize: '0.7rem',
+                      padding: '4px 8px',
+                      color: palette.textPrimary,
+                      borderColor: palette.border,
+                      '&:hover': {
+                        backgroundColor: palette.background,
+                        borderColor: '#667eea',
+                      },
+                    }}
+                    variant="outlined"
+                  >
+                    View Details
+                  </Button>
                 </div>
               </div>
             );
@@ -1322,6 +1637,414 @@ const CustomerHome = () => {
           </div>
         </div>
       </Drawer>
+
+      {/* Food Details Dialog */}
+      <Dialog
+        open={detailsDialogOpen}
+        onClose={() => setDetailsDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: palette.surface,
+            borderRadius: '16px',
+          },
+        }}
+      >
+        {selectedFoodDetails && (
+          <>
+            <DialogTitle>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ color: palette.textPrimary }}>
+                    {selectedFoodDetails.name}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: palette.textSecondary }}>
+                    {selectedFoodDetails.category}
+                  </Typography>
+                </div>
+                <IconButton onClick={() => setDetailsDialogOpen(false)} size="small">
+                  <CloseIcon />
+                </IconButton>
+              </div>
+            </DialogTitle>
+            <DialogContent dividers>
+              {/* Food Image */}
+              {selectedFoodDetails.imageUrl && (
+                <div style={{ marginBottom: '16px', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img
+                    src={selectedFoodDetails.imageUrl}
+                    alt={selectedFoodDetails.name}
+                    style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                  />
+                </div>
+              )}
+
+              {/* Price */}
+              <Typography 
+                variant="h5" 
+                fontWeight={800} 
+                sx={{ 
+                  color: '#667eea',
+                  marginBottom: '16px',
+                }}
+              >
+                ₹{selectedFoodDetails.price}
+              </Typography>
+
+              {/* Description */}
+              {selectedFoodDetails.description && (
+                <div style={{ marginBottom: '16px' }}>
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary, marginBottom: '8px' }}>
+                    Description
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: palette.textSecondary, lineHeight: 1.6 }}>
+                    {selectedFoodDetails.description}
+                  </Typography>
+                </div>
+              )}
+
+              {/* Ingredients Accordion */}
+              {selectedFoodDetails.ingredients && selectedFoodDetails.ingredients.length > 0 && (
+                <Accordion 
+                  sx={{ 
+                    marginBottom: '12px',
+                    background: palette.background,
+                    '&:before': { display: 'none' },
+                  }}
+                >
+                  <AccordionSummary 
+                    expandIcon={<ExpandMoreIcon sx={{ color: palette.textPrimary }} />}
+                    sx={{ 
+                      '& .MuiAccordionSummary-content': { 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1 
+                      } 
+                    }}
+                  >
+                    <RestaurantIcon sx={{ fontSize: '20px', color: '#667eea' }} />
+                    <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary }}>
+                      Ingredients ({selectedFoodDetails.ingredients.length})
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedFoodDetails.ingredients.map((ingredient, index) => (
+                        <div 
+                          key={index}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '8px 12px',
+                            background: palette.surface,
+                            borderRadius: '8px',
+                            border: `1px solid ${palette.border}`,
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ color: palette.textPrimary }}>
+                            {ingredient.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: palette.textSecondary, fontWeight: 600 }}>
+                            {ingredient.quantity}
+                          </Typography>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+
+              {/* Calories Accordion */}
+              <Accordion 
+                sx={{ 
+                  background: palette.background,
+                  '&:before': { display: 'none' },
+                }}
+              >
+                <AccordionSummary 
+                  expandIcon={<ExpandMoreIcon sx={{ color: palette.textPrimary }} />}
+                  sx={{ 
+                    '& .MuiAccordionSummary-content': { 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1 
+                    } 
+                  }}
+                >
+                  <LocalFireDepartmentIcon sx={{ fontSize: '20px', color: '#f59e0b' }} />
+                  <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary }}>
+                    Nutritional Information
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div 
+                    style={{
+                      padding: '16px',
+                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
+                      borderRadius: '12px',
+                      border: '2px solid rgba(245, 158, 11, 0.3)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography 
+                      variant="h3" 
+                      fontWeight={800} 
+                      sx={{ 
+                        color: '#f59e0b',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      {selectedFoodDetails.calories || 0}
+                    </Typography>
+                    <Typography variant="subtitle2" sx={{ color: palette.textSecondary }}>
+                      Calories (kcal)
+                    </Typography>
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Veg/Non-Veg Badge */}
+              <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                <Chip
+                  label={selectedFoodDetails.isVeg ? '🟢 Vegetarian' : '🔴 Non-Vegetarian'}
+                  size="small"
+                  sx={{
+                    backgroundColor: selectedFoodDetails.isVeg ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                    color: selectedFoodDetails.isVeg ? '#10b981' : '#ef4444',
+                    fontWeight: 600,
+                    border: `1px solid ${selectedFoodDetails.isVeg ? '#10b981' : '#ef4444'}`,
+                  }}
+                />
+                {selectedFoodDetails.modelUrl && (
+                  <Chip
+                    label="3D Model Available"
+                    size="small"
+                    icon={<ViewInArIcon sx={{ fontSize: '16px' }} />}
+                    sx={{
+                      backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                      color: '#667eea',
+                      fontWeight: 600,
+                      border: '1px solid #667eea',
+                    }}
+                  />
+                )}
+              </div>
+            </DialogContent>
+            <DialogActions sx={{ padding: '16px 24px', display: 'flex', gap: 1 }}>
+              <Button
+                onClick={() => setDetailsDialogOpen(false)}
+                sx={{ color: palette.textPrimary }}
+              >
+                Close
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  handleCustomizeOrder(selectedFoodDetails);
+                  setDetailsDialogOpen(false);
+                }}
+                sx={{
+                  borderColor: '#667eea',
+                  color: '#667eea',
+                  '&:hover': {
+                    borderColor: '#5568d3',
+                    background: 'rgba(102, 126, 234, 0.05)',
+                  },
+                }}
+              >
+                Customize & Add
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  addToCart(selectedFoodDetails._id);
+                  setDetailsDialogOpen(false);
+                }}
+                sx={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #059669, #047857)',
+                  },
+                }}
+                startIcon={<AddIcon />}
+              >
+                Add to Cart
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* Customization Dialog */}
+      <Dialog
+        open={customizeDialogOpen}
+        onClose={() => setCustomizeDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: palette.background,
+            borderRadius: '16px',
+          }
+        }}
+      >
+        {selectedFoodDetails && (
+          <>
+            <DialogTitle sx={{ 
+              paddingBottom: '8px',
+              borderBottom: `1px solid ${palette.border}`,
+            }}>
+              <Typography variant="h6" fontWeight={700} sx={{ color: palette.textPrimary }}>
+                Customize Your Order
+              </Typography>
+              <Typography variant="body2" sx={{ color: palette.textSecondary, marginTop: '4px' }}>
+                {selectedFoodDetails.name}
+              </Typography>
+            </DialogTitle>
+            <DialogContent sx={{ paddingTop: '16px' }}>
+              {/* Spice Level */}
+              <div style={{ marginBottom: '24px' }}>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary, marginBottom: '12px' }}>
+                  🌶️ Spice Level
+                </Typography>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {['mild', 'medium', 'spicy', 'extra-spicy'].map((level) => (
+                    <Button
+                      key={level}
+                      variant={customization.spiceLevel === level ? 'contained' : 'outlined'}
+                      onClick={() => setCustomization({ ...customization, spiceLevel: level })}
+                      size="small"
+                      sx={{
+                        textTransform: 'capitalize',
+                        borderColor: customization.spiceLevel === level ? '#667eea' : palette.border,
+                        background: customization.spiceLevel === level ? '#667eea' : 'transparent',
+                        color: customization.spiceLevel === level ? '#fff' : palette.textPrimary,
+                        '&:hover': {
+                          borderColor: '#667eea',
+                          background: customization.spiceLevel === level ? '#5568d3' : 'rgba(102, 126, 234, 0.1)',
+                        },
+                      }}
+                    >
+                      {level}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Extra Items */}
+              <div style={{ marginBottom: '24px' }}>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary, marginBottom: '12px' }}>
+                  ➕ Extra Items
+                </Typography>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[
+                    { id: 'extra-salt', label: 'Extra Salt', icon: '🧂' },
+                    { id: 'extra-cheese', label: 'Extra Cheese', icon: '🧀' },
+                    { id: 'extra-sauce', label: 'Extra Sauce', icon: '🥫' },
+                    { id: 'extra-vegetables', label: 'Extra Vegetables', icon: '🥗' },
+                    { id: 'extra-meat', label: 'Extra Meat', icon: '🍖' },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        const isSelected = customization.extras.includes(item.id);
+                        setCustomization({
+                          ...customization,
+                          extras: isSelected
+                            ? customization.extras.filter(e => e !== item.id)
+                            : [...customization.extras, item.id],
+                        });
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px',
+                        background: customization.extras.includes(item.id) 
+                          ? 'rgba(102, 126, 234, 0.1)' 
+                          : palette.surface,
+                        border: `2px solid ${customization.extras.includes(item.id) ? '#667eea' : palette.border}`,
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <span style={{ fontSize: '20px' }}>{item.icon}</span>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: palette.textPrimary,
+                          fontWeight: customization.extras.includes(item.id) ? 600 : 400,
+                        }}
+                      >
+                        {item.label}
+                      </Typography>
+                      {customization.extras.includes(item.id) && (
+                        <span style={{ marginLeft: 'auto', color: '#667eea', fontSize: '18px' }}>✓</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Special Instructions */}
+              <div>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary, marginBottom: '12px' }}>
+                  📝 Special Instructions
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Any special requests? (e.g., less oil, no onions, etc.)"
+                  value={customization.specialInstructions}
+                  onChange={(e) => setCustomization({ ...customization, specialInstructions: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: palette.surface,
+                      '& fieldset': {
+                        borderColor: palette.border,
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#667eea',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#667eea',
+                      },
+                    },
+                    '& .MuiInputBase-input': {
+                      color: palette.textPrimary,
+                    },
+                  }}
+                />
+              </div>
+            </DialogContent>
+            <DialogActions sx={{ padding: '16px 24px', display: 'flex', gap: 1 }}>
+              <Button
+                onClick={() => setCustomizeDialogOpen(false)}
+                sx={{ color: palette.textPrimary }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleAddCustomizedToCart}
+                sx={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #059669, #047857)',
+                  },
+                }}
+                startIcon={<AddIcon />}
+              >
+                Add to Cart
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
       {/* Filter Drawer */}
       <Drawer

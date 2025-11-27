@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,9 +12,14 @@ import {
   Button,
   Switch,
   FormControlLabel,
+  IconButton,
+  Typography,
+  Box,
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const categories = [
   'Starters',
@@ -27,6 +32,22 @@ const categories = [
 ];
 
 const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading }) => {
+  const [newIngredient, setNewIngredient] = useState({ name: '', quantity: '' });
+
+  const handleAddIngredient = () => {
+    if (newIngredient.name && newIngredient.quantity) {
+      const ingredients = food.ingredients || [];
+      setFood({ ...food, ingredients: [...ingredients, { ...newIngredient }] });
+      setNewIngredient({ name: '', quantity: '' });
+    }
+  };
+
+  const handleRemoveIngredient = (index) => {
+    const ingredients = [...(food.ingredients || [])];
+    ingredients.splice(index, 1);
+    setFood({ ...food, ingredients });
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
@@ -75,6 +96,82 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
             onChange={(e) => setFood({ ...food, description: e.target.value })}
             sx={{ mb: 2 }}
           />
+
+          <TextField
+            fullWidth
+            label="Calories"
+            type="number"
+            value={food.calories || 0}
+            onChange={(e) => setFood({ ...food, calories: parseInt(e.target.value) || 0 })}
+            sx={{ mb: 2 }}
+            helperText="Enter calorie count (kcal) - Required"
+            required
+            error={!food.calories || food.calories === 0}
+          />
+
+          {/* Ingredients Section */}
+          <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '8px' }}>
+            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>
+              Ingredients
+            </Typography>
+            
+            {/* Existing Ingredients */}
+            {food.ingredients && food.ingredients.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                {food.ingredients.map((ingredient, index) => (
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1, 
+                      mb: 1,
+                      p: 1,
+                      backgroundColor: '#f5f5f5',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ flex: 1 }}>
+                      {ingredient.name} - {ingredient.quantity}
+                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      color="error" 
+                      onClick={() => handleRemoveIngredient(index)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* Add New Ingredient */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                size="small"
+                label="Ingredient Name"
+                value={newIngredient.name}
+                onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                sx={{ flex: 2 }}
+              />
+              <TextField
+                size="small"
+                label="Quantity"
+                value={newIngredient.quantity}
+                onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
+                sx={{ flex: 1 }}
+                placeholder="e.g., 100g"
+              />
+              <IconButton 
+                color="primary" 
+                onClick={handleAddIngredient}
+                disabled={!newIngredient.name || !newIngredient.quantity}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+          </Box>
 
           <TextField
             fullWidth

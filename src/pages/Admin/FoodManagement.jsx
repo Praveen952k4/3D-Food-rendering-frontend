@@ -22,6 +22,8 @@ const AdminFoodManagement = () => {
     description: '',
     imageUrl: '',
     modelUrl: '',
+    ingredients: [],
+    calories: 0,
     isVeg: true,
     isAvailable: true,
   });
@@ -51,6 +53,8 @@ const AdminFoodManagement = () => {
         description: '',
         imageUrl: '',
         modelUrl: '',
+        ingredients: [],
+        calories: 0,
         isVeg: true,
         isAvailable: true,
       });
@@ -65,6 +69,12 @@ const AdminFoodManagement = () => {
   };
 
   const handleSave = async () => {
+    // Validation
+    if (!currentFood.name || !currentFood.price || !currentFood.calories || currentFood.calories === 0) {
+      alert('Please fill in all required fields: Name, Price, and Calories');
+      return;
+    }
+    
     setLoading(true);
     try {
       if (editMode && currentFood._id) {
@@ -76,7 +86,7 @@ const AdminFoodManagement = () => {
       handleCloseDialog();
     } catch (error) {
       console.error('Failed to save food item:', error);
-      alert('Failed to save food item');
+      alert('Failed to save food item: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }

@@ -59,6 +59,9 @@ const CustomerCart = () => {
       }
 
       const cart = JSON.parse(savedCart);
+      const customizationData = localStorage.getItem('cartCustomization');
+      const cartCustomization = customizationData ? JSON.parse(customizationData) : {};
+      
       const response = await getFoodItems();
       const allFoods = response.data.foodItems || [];
 
@@ -73,6 +76,8 @@ const CustomerCart = () => {
             quantity: cart[foodId],
             imageUrl: food.imageUrl,
             isVeg: food.isVeg,
+            calories: food.calories,
+            customizations: cartCustomization[foodId] || [],
           });
         }
       });
@@ -157,6 +162,7 @@ const CustomerCart = () => {
           price: item.price,
           quantity: item.quantity,
           subtotal: item.price * item.quantity,
+          customizations: item.customizations || [],
         })),
         subtotal: getSubtotal(),
         tax: getTax(),
@@ -176,6 +182,7 @@ const CustomerCart = () => {
       console.log('✅ Order created successfully:', response.data);
       
       localStorage.removeItem('cart');
+      localStorage.removeItem('cartCustomization');
       
       setOrderNumber(response.data.orderNumber);
       setCheckoutDialogOpen(false);
@@ -334,8 +341,17 @@ const CustomerCart = () => {
                               {item.name}
                             </Typography>
                           </div>
+                          {/* Calories Display */}
+                          {item.calories && (
+                            <Typography variant="caption" sx={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '4px', mt: 0.5 }}>
+                              🔥 {item.calories} kcal
+                            </Typography>
+                          )}
                           <Typography variant="h6" color="primary" fontWeight="bold" mt={1}>
-                            ₹{item.price * item.quantity}
+                            ₹{item.price}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            Qty: {item.quantity}
                           </Typography>
                         </div>
                         <IconButton
@@ -346,6 +362,51 @@ const CustomerCart = () => {
                           <DeleteIcon />
                         </IconButton>
                       </div>
+
+                      {/* Customizations Display */}
+                      {item.customizations && item.customizations.length > 0 && (
+                        <div style={{ marginTop: '12px', padding: '8px', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                          {item.customizations.map((custom, idx) => (
+                            <div key={idx} style={{ marginBottom: idx < item.customizations.length - 1 ? '8px' : '0' }}>
+                              <Typography variant="caption" sx={{ color: '#6b7280', display: 'block', fontWeight: 600, marginBottom: '4px' }}>
+                                Customization {idx + 1}:
+                              </Typography>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                <span style={{ 
+                                  fontSize: '11px', 
+                                  padding: '2px 8px', 
+                                  background: '#fef3c7', 
+                                  border: '1px solid #f59e0b', 
+                                  borderRadius: '12px',
+                                  color: '#92400e',
+                                }}>
+                                  🌶️ {custom.spiceLevel}
+                                </span>
+                                {custom.extras && custom.extras.length > 0 && custom.extras.map((extra) => (
+                                  <span 
+                                    key={extra}
+                                    style={{ 
+                                      fontSize: '11px', 
+                                      padding: '2px 8px', 
+                                      background: '#dbeafe', 
+                                      border: '1px solid #3b82f6', 
+                                      borderRadius: '12px',
+                                      color: '#1e40af',
+                                    }}
+                                  >
+                                    {extra.replace('extra-', '').replace('-', ' ')}
+                                  </span>
+                                ))}
+                              </div>
+                              {custom.specialInstructions && (
+                                <Typography variant="caption" sx={{ color: '#6b7280', display: 'block', marginTop: '4px', fontStyle: 'italic' }}>
+                                  📝 {custom.specialInstructions}
+                                </Typography>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Quantity Controls */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
