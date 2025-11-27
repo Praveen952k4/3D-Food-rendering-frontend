@@ -392,7 +392,6 @@ const CustomerHome = () => {
   const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [allItemsDrawerOpen, setAllItemsDrawerOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All");
   const [vegFilter, setVegFilter] = useState("all");
   const [themeMode, setThemeMode] = useState("light");
   const [quantity, setQuantity] = useState(0);
@@ -512,14 +511,14 @@ const CustomerHome = () => {
     foodItems.forEach((item) =>
       uniqueCategories.add(item.category || "General")
     );
-    return ["All", ...Array.from(uniqueCategories)];
+    return Array.from(uniqueCategories);
   }, [foodItems]);
 
   // Displayed food items based on active category filter
   const displayedFoodItems = useMemo(() => {
-    if (activeCategory === "All") return foodItems;
-    return foodItems.filter((item) => item.category === activeCategory);
-  }, [foodItems, activeCategory]);
+    if (selectedCategory === "All") return foodItems;
+    return foodItems.filter((item) => item.category === selectedCategory);
+  }, [foodItems, selectedCategory]);
 
   // Cart count
   const cartCount = useMemo(() => {
@@ -967,14 +966,14 @@ const CustomerHome = () => {
             bottom: 0,
             left: 0,
             right: 0,
-            height: "130px",
-            paddingTop: "12px",
+            height: "120px",
+            paddingTop: "8px",
             zIndex: 90,
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            padding: "0 16px",
-            gap: "16px",
+            padding: "0 8px",
+            gap: "8px",
           }}
         >
           {/* LEFT: Minus Placeholder / Button */}
@@ -1619,19 +1618,19 @@ const CustomerHome = () => {
           >
             <Chip
               label="All"
-              onClick={() => setActiveCategory("All")}
+              onClick={() => setSelectedCategory("All")}
               sx={{
                 backgroundColor:
-                  activeCategory === "All" ? "#667eea" : palette.surface,
-                color: activeCategory === "All" ? "#fff" : palette.textPrimary,
+                  selectedCategory === "All" ? "#667eea" : palette.surface,
+                color: selectedCategory === "All" ? "#fff" : palette.textPrimary,
                 border: `1px solid ${
-                  activeCategory === "All" ? "#667eea" : palette.border
+                  selectedCategory === "All" ? "#667eea" : palette.border
                 }`,
                 fontWeight: 600,
                 fontSize: "0.85rem",
                 "&:hover": {
                   backgroundColor:
-                    activeCategory === "All" ? "#764ba2" : palette.background,
+                    selectedCategory === "All" ? "#764ba2" : palette.background,
                 },
               }}
             />
@@ -1639,19 +1638,19 @@ const CustomerHome = () => {
               <Chip
                 key={cat}
                 label={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => setSelectedCategory(cat)}
                 sx={{
                   backgroundColor:
-                    activeCategory === cat ? "#667eea" : palette.surface,
-                  color: activeCategory === cat ? "#fff" : palette.textPrimary,
+                    selectedCategory === cat ? "#667eea" : palette.surface,
+                  color: selectedCategory === cat ? "#fff" : palette.textPrimary,
                   border: `1px solid ${
-                    activeCategory === cat ? "#667eea" : palette.border
+                    selectedCategory === cat ? "#667eea" : palette.border
                   }`,
                   fontWeight: 600,
                   fontSize: "0.85rem",
                   "&:hover": {
                     backgroundColor:
-                      activeCategory === cat ? "#764ba2" : palette.background,
+                      selectedCategory === cat ? "#764ba2" : palette.background,
                   },
                 }}
               />
@@ -1662,10 +1661,11 @@ const CustomerHome = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-              gap: "16px",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: "20px",
               overflowY: "auto",
-              flex: 1,
+              maxHeight: "calc(100vh - 280px)",
+              paddingBottom: "20px",
             }}
           >
             {displayedFoodItems.map((food) => {
@@ -1691,20 +1691,21 @@ const CustomerHome = () => {
                   overflow: 'hidden',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  minHeight: '380px',
                 }}
                 onClick={() => {
                   handleFoodSelection(food);
                   setAllItemsDrawerOpen(false);
                 }}
               >
-                <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
                   <img
                     src={food.imageUrl || 'https://via.placeholder.com/200?text=Food'}
                     alt={food.name}
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
                       width: '100%',
                       height: '100%',
                       objectFit: 'cover',
