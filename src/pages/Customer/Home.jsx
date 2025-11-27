@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, Suspense, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import {
   Avatar,
   Badge,
@@ -13,108 +19,340 @@ import {
   ListItemAvatar,
   ListItemText,
   Typography,
-} from '@mui/material';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import CloseIcon from '@mui/icons-material/Close';
-import ViewInArIcon from '@mui/icons-material/ViewInAr';
-import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import HistoryIcon from '@mui/icons-material/History';
-import { Canvas } from '@react-three/fiber';
-import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { getFoodItems } from '../../services/api';
-
-// 3D Model Component
-const Model = ({ modelUrl }) => {
-  const gltf = useGLTF(modelUrl, true);
-  const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
-  return <primitive object={scene} dispose={null} />;
-};
+} from "@mui/material";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import LogoutIcon from "@mui/icons-material/Logout";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import CloseIcon from "@mui/icons-material/Close";
+import ViewInArIcon from "@mui/icons-material/ViewInAr";
+import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CameraIcon from "@mui/icons-material/Camera";
+// Removed react-three/fiber and drei imports — using native camera only
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getFoodItems } from "../../services/api";
+// removed three.js imports
 
 // Sphere Animation Loader Component
 const SphereLoader = ({ isDark }) => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '32px' }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "16px",
+        padding: "32px",
+      }}
+    >
       <div className="sphere-loader">
         <div className="sphere"></div>
         <div className="sphere"></div>
         <div className="sphere"></div>
       </div>
-      <Typography variant="body2" sx={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)' }}>
+      <Typography
+        variant="body2"
+        sx={{ color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)" }}
+      >
         Loading menu...
       </Typography>
     </div>
   );
 };
 
-// Interactive GLB Viewer
-const GLBViewer = ({ modelUrl }) => {
-  if (!modelUrl) {
-    return (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#999',
-          fontSize: '0.9rem',
-          background: 'rgba(0,0,0,0.05)',
-          borderRadius: '24px',
-        }}
-      >
-        No 3D model available
-      </div>
+// Camera + 3D GLB Model Overlay Component
+const CameraWith3D = ({ videoRef, glbModelUrl }) => {
+  const canvasRef = useRef(null);
+  const sceneRef = useRef(null);
+  const rendererRef = useRef(null);
+  const modelRef = useRef(null);
+  const controlsRef = useRef(null);
+  const animationIdRef = useRef(null);
+  const [modelLoading, setModelLoading] = useState(true);
+  const [modelError, setModelError] = useState(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !glbModelUrl) {
+      setModelLoading(false);
+      return;
+    }
+
+    setModelLoading(true);
+    setModelError(null);
+
+    // Initialize Three.js Scene
+    const canvas = canvasRef.current;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    // Scene setup
+    const scene = new window.THREE.Scene();
+    scene.background = null; // Transparent background to show camera below
+    sceneRef.current = scene;
+
+    // Camera setup
+    const camera = new window.THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 3);
+
+    // Renderer setup (transparent)
+    const renderer = new window.THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    rendererRef.current = renderer;
+
+    // Lighting
+    const ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+
+    const directionalLight = new window.THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    // Load GLB Model
+    // Use THREE.GLTFLoader if available, fallback to window.GLTFLoader
+    const GLTFLoaderClass = window.THREE?.GLTFLoader || window.GLTFLoader;
+    if (!GLTFLoaderClass) {
+      console.error("GLTFLoader not loaded");
+      setModelError("3D loader not available");
+      setModelLoading(false);
+      return;
+    }
+    const loader = new GLTFLoaderClass();
+
+    // Shared success handler for parsed GLTF
+    const handleGltfLoad = (gltf) => {
+      const model = gltf.scene;
+
+      // Compute bounding box and center the model
+      const bbox = new window.THREE.Box3().setFromObject(model);
+      const size = bbox.getSize(new window.THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+
+      // If the model has a size of 0 (edge case), fall back to a reasonable scale
+      const safeMax = maxDim > 0 ? maxDim : 1;
+
+      // Determine a scale so model fits comfortably in view. Adjust factor for mobile.
+      const isMobile = Math.min(window.innerWidth, window.innerHeight) < 600;
+      const fitFactor = isMobile ? 1.0 : 1.6;
+      const scale = (1.0 / safeMax) * fitFactor;
+      model.scale.multiplyScalar(scale);
+
+      // Recalculate bbox after scaling
+      const bboxScaled = new window.THREE.Box3().setFromObject(model);
+      const center = bboxScaled.getCenter(new window.THREE.Vector3());
+      // Move model so its center is at origin
+      model.position.sub(center);
+
+      scene.add(model);
+      modelRef.current = model;
+
+      // Position camera to fit the model
+      const newBBox = new window.THREE.Box3().setFromObject(model);
+      const newSize = newBBox.getSize(new window.THREE.Vector3());
+      const newMax = Math.max(newSize.x, newSize.y, newSize.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let cameraZ = Math.abs(newMax / 2 / Math.tan(fov / 2));
+      cameraZ *= 2.0; // add some padding
+      camera.position.set(0, 0, cameraZ);
+      camera.lookAt(0, 0, 0);
+
+      setModelLoading(false);
+
+      // OrbitControls
+      const OrbitControlsClass = window.THREE?.OrbitControls || window.OrbitControls;
+      if (!OrbitControlsClass) {
+        console.warn("OrbitControls not loaded, continuing without controls");
+      } else {
+        const controls = new OrbitControlsClass(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 2.5;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        // Map touch gestures: one-finger rotate, two-finger pan
+        try {
+          if (window.THREE && window.THREE.TOUCH) {
+            controls.touches = {
+              ONE: window.THREE.TOUCH.ROTATE,
+              TWO: window.THREE.TOUCH.PAN,
+            };
+          }
+        } catch (e) {
+          // ignore if not supported
+        }
+        controlsRef.current = controls;
+      }
+
+      // Animation loop with controls update
+      const mainAnimate = () => {
+        animationIdRef.current = requestAnimationFrame(mainAnimate);
+        if (controlsRef.current) {
+          controlsRef.current.update();
+        }
+        renderer.render(scene, camera);
+      };
+      mainAnimate();
+    };
+
+    // Try loader.load first; if it errors, attempt fetching ArrayBuffer and parsing manually
+    loader.load(
+      glbModelUrl,
+      handleGltfLoad,
+      undefined,
+      async (error) => {
+        console.error("GLB loading error:", error);
+        try {
+          const resp = await fetch(glbModelUrl, { mode: "cors" });
+          if (!resp.ok) throw new Error(`Fetch failed: ${resp.status}`);
+          const arrayBuffer = await resp.arrayBuffer();
+          // Parse manually using loader.parse
+          loader.parse(
+            arrayBuffer,
+            "",
+            (gltf) => {
+              handleGltfLoad(gltf);
+            },
+            (parseErr) => {
+              console.error("GLTF parse error after manual fetch:", parseErr);
+              setModelError("Failed to parse 3D model");
+              setModelLoading(false);
+            }
+          );
+        } catch (e) {
+          console.error("Manual fetch/parse failed:", e);
+          setModelError("Failed to load 3D model (CORS or network error)");
+          setModelLoading(false);
+        }
+      }
     );
-  }
+
+    // Handle window resize
+    const handleResize = () => {
+      const newWidth = canvas.clientWidth;
+      const newHeight = canvas.clientHeight;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newWidth, newHeight);
+    };
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      renderer.dispose();
+    };
+  }, [glbModelUrl]);
 
   return (
-    <Canvas 
-      style={{ width: '100%', height: '100%', touchAction: 'none' }} 
-      camera={{ position: [0, 1, 4], fov: 50 }}
-      gl={{ preserveDrawingBuffer: true, antialias: true }}
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "16px",
+      }}
     >
-      <color attach="background" args={['#1a1a1a']} />
-      <ambientLight intensity={1.2} />
-      <directionalLight position={[5, 5, 5]} intensity={2} castShadow />
-      <directionalLight position={[-5, 3, -5]} intensity={0.8} />
-      <spotLight position={[0, 10, 0]} intensity={1.5} angle={0.3} penumbra={1} />
-      <Suspense
-        fallback={
-          <mesh>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="#667eea" wireframe />
-          </mesh>
-        }
-      >
-        <Model modelUrl={modelUrl} />
-        <Environment preset="city" />
-      </Suspense>
-      <OrbitControls 
-        enablePan={true} 
-        enableZoom={true} 
-        enableRotate={true}
-        minDistance={1.5} 
-        maxDistance={10}
-        minPolarAngle={0}
-        maxPolarAngle={Math.PI}
-        enableDamping
-        dampingFactor={0.05}
-        rotateSpeed={0.8}
-        zoomSpeed={1.2}
+      {/* Camera Feed - Background */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        autoPlay
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 1,
+        }}
       />
-    </Canvas>
+
+      {/* Three.js Canvas - Overlay */}
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: 2,
+        }}
+      />
+
+      {/* Loading indicator */}
+      {modelLoading && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 3,
+          }}
+        >
+          <div
+            style={{
+              textAlign: "center",
+              color: "#fff",
+            }}
+          >
+            <div className="sphere-loader">
+              <div className="sphere"></div>
+              <div className="sphere"></div>
+              <div className="sphere"></div>
+            </div>
+            <Typography variant="caption" sx={{ color: "#fff", marginTop: "8px", display: "block" }}>
+              Loading 3D Model...
+            </Typography>
+          </div>
+        </div>
+      )}
+
+      {/* Error indicator */}
+      {modelError && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 3,
+          }}
+        >
+          <div style={{ textAlign: "center", color: "#ff6b6b" }}>
+            <Typography variant="body2">{modelError}</Typography>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
+  
+
 
 const CustomerHome = () => {
   const navigate = useNavigate();
@@ -122,18 +360,90 @@ const CustomerHome = () => {
 
   const [foodItems, setFoodItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [activePreviewFood, setActivePreviewFood] = useState(null);
   const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [allItemsDrawerOpen, setAllItemsDrawerOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [vegFilter, setVegFilter] = useState('all');
-  const [themeMode, setThemeMode] = useState('light');
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [vegFilter, setVegFilter] = useState("all");
+  const [themeMode, setThemeMode] = useState("light");
   const [quantity, setQuantity] = useState(0);
   const [showSplash, setShowSplash] = useState(true);
   const [loadingFoods, setLoadingFoods] = useState(false);
   const [cartVersion, setCartVersion] = useState(0);
+  const [glbModelUrl, setGlbModelUrl] = useState("/models/Burger.glb"); // GLB model URL for 3D display
+  const [showModel, setShowModel] = useState(false); // only show 3D viewer when an item is explicitly clicked
+
+  // Resolve model URL and handle common CORS issues (e.g. GitHub blob links)
+  const convertGithubBlobUrls = (url) => {
+    try {
+      const m = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)$/);
+      if (m) {
+        const [, owner, repo, branch, path] = m;
+        return [
+          // raw.githubusercontent is fastest for direct file access
+          `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`,
+          // jsDelivr as fallback with better CORS headers
+          `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`,
+        ];
+      }
+    } catch (e) {}
+    return [];
+  };
+
+  useEffect(() => {
+    let mounted = true;
+
+    const tryFetch = async (url, method = "HEAD") => {
+      try {
+        const res = await fetch(url, { method, mode: "cors" });
+        return res && res.ok;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    const resolveModel = async () => {
+      if (!activePreviewFood?.modelPath) {
+        if (mounted) setGlbModelUrl("/models/Burger.glb");
+        return;
+      }
+
+      const orig = activePreviewFood.modelPath;
+      const candidates = [];
+      
+      // Try GitHub conversions first (raw.githubusercontent then jsDelivr)
+      const githubConversions = convertGithubBlobUrls(orig);
+      candidates.push(...githubConversions);
+      
+      // Try original URL as fallback
+      candidates.push(orig);
+
+      for (const c of candidates) {
+        // prefer HEAD to avoid downloading the whole GLB, but fallback to GET if HEAD not allowed
+        if (await tryFetch(c, "HEAD") || (await tryFetch(c, "GET"))) {
+          if (!mounted) return;
+          setGlbModelUrl(c);
+          return;
+        }
+      }
+
+      // If none worked, fall back to local model and hide the 3D view
+      if (mounted) {
+        console.warn(
+          `Model URL "${orig}" could not be resolved due to CORS or network restrictions. Falling back to local model. Consider hosting GLB in public/models or using a CORS-enabled CDN.`
+        );
+        setGlbModelUrl("/models/Burger.glb");
+        setShowModel(false);
+      }
+    };
+
+    resolveModel();
+    return () => {
+      mounted = false;
+    };
+  }, [activePreviewFood]);
 
   // Hide splash after 10s
   useEffect(() => {
@@ -154,7 +464,7 @@ const CustomerHome = () => {
           setActivePreviewFood(items[0]);
         }
       } catch (error) {
-        console.error('Failed to load foods', error);
+        console.error("Failed to load foods", error);
       } finally {
         setLoadingFoods(false);
       }
@@ -166,39 +476,39 @@ const CustomerHome = () => {
   // Filter by category
   useEffect(() => {
     let filtered = foodItems;
-    
+
     // Filter by category
-    if (selectedCategory !== 'All') {
+    if (selectedCategory !== "All") {
       filtered = filtered.filter((item) => item.category === selectedCategory);
     }
-    
+
     // Filter by veg/non-veg
-    if (vegFilter === 'veg') {
+    if (vegFilter === "veg") {
       filtered = filtered.filter((item) => item.isVeg === true);
-    } else if (vegFilter === 'non-veg') {
+    } else if (vegFilter === "non-veg") {
       filtered = filtered.filter((item) => item.isVeg === false);
     }
-    
+
     setFilteredItems(filtered);
   }, [foodItems, selectedCategory, vegFilter]);
 
   // Theme palette
   const palette = useMemo(
     () =>
-      themeMode === 'dark'
+      themeMode === "dark"
         ? {
-            background: '#0a0a0a',
-            surface: 'rgba(255,255,255,0.06)',
-            border: 'rgba(255,255,255,0.08)',
-            textPrimary: '#FFFFFF',
-            textSecondary: 'rgba(255,255,255,0.7)',
+            background: "#0a0a0a",
+            surface: "rgba(255,255,255,0.06)",
+            border: "rgba(255,255,255,0.08)",
+            textPrimary: "#FFFFFF",
+            textSecondary: "rgba(255,255,255,0.7)",
           }
         : {
-            background: '#f8f9fb',
-            surface: '#FFFFFF',
-            border: '#e5e7eb',
-            textPrimary: '#1f2937',
-            textSecondary: '#6b7280',
+            background: "#f8f9fb",
+            surface: "#FFFFFF",
+            border: "#e5e7eb",
+            textPrimary: "#1f2937",
+            textSecondary: "#6b7280",
           },
     [themeMode]
   );
@@ -206,44 +516,49 @@ const CustomerHome = () => {
   // Categories
   const categories = useMemo(() => {
     const uniqueCategories = new Set();
-    foodItems.forEach((item) => uniqueCategories.add(item.category || 'General'));
-    return ['All', ...Array.from(uniqueCategories)];
+    foodItems.forEach((item) =>
+      uniqueCategories.add(item.category || "General")
+    );
+    return ["All", ...Array.from(uniqueCategories)];
   }, [foodItems]);
 
   // Displayed food items based on active category filter
   const displayedFoodItems = useMemo(() => {
-    if (activeCategory === 'All') return foodItems;
+    if (activeCategory === "All") return foodItems;
     return foodItems.filter((item) => item.category === activeCategory);
   }, [foodItems, activeCategory]);
 
   // Cart count
   const cartCount = useMemo(() => {
-    const saved = localStorage.getItem('cart');
+    const saved = localStorage.getItem("cart");
     if (!saved) return 0;
     try {
       const cart = JSON.parse(saved);
-      return Object.values(cart).reduce((sum, qty) => sum + Number(qty || 0), 0);
+      return Object.values(cart).reduce(
+        (sum, qty) => sum + Number(qty || 0),
+        0
+      );
     } catch {
       return 0;
     }
   }, [cartVersion]);
 
   const toggleTheme = useCallback(() => {
-    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
   }, []);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const addToCart = useCallback(
     (foodId, amount = 1) => {
       if (!foodId || amount <= 0) return;
-      const saved = localStorage.getItem('cart');
+      const saved = localStorage.getItem("cart");
       const cart = saved ? JSON.parse(saved) : {};
       cart[foodId] = (cart[foodId] || 0) + amount;
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem("cart", JSON.stringify(cart));
       setCartVersion((prev) => prev + 1);
       // Update quantity state if the current item is being added
       if (activePreviewFood?._id === foodId) {
@@ -255,8 +570,10 @@ const CustomerHome = () => {
 
   const handleFoodSelection = useCallback((food) => {
     setActivePreviewFood(food);
+    // Show the 3D model area only when a user explicitly clicks/selects an item
+    setShowModel(true);
     // Check if item is already in cart and set quantity accordingly
-    const saved = localStorage.getItem('cart');
+    const saved = localStorage.getItem("cart");
     if (saved) {
       try {
         const cart = JSON.parse(saved);
@@ -273,20 +590,27 @@ const CustomerHome = () => {
   // Auto-scroll carousel to center selected item
   useEffect(() => {
     if (activePreviewFood) {
-      const carousel = document.getElementById('food-carousel-container');
-      const selectedItem = document.getElementById(`carousel-item-${activePreviewFood._id}`);
+      const carousel = document.getElementById("food-carousel-container");
+      const selectedItem = document.getElementById(
+        `carousel-item-${activePreviewFood._id}`
+      );
       if (carousel && selectedItem) {
         const carouselRect = carousel.getBoundingClientRect();
         const itemRect = selectedItem.getBoundingClientRect();
-        const scrollLeft = itemRect.left - carouselRect.left - (carouselRect.width / 2) + (itemRect.width / 2) + carousel.scrollLeft;
-        carousel.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        const scrollLeft =
+          itemRect.left -
+          carouselRect.left -
+          carouselRect.width / 2 +
+          itemRect.width / 2 +
+          carousel.scrollLeft;
+        carousel.scrollTo({ left: scrollLeft, behavior: "smooth" });
       }
     }
   }, [activePreviewFood]);
 
   // Auto-select centered item on scroll
   useEffect(() => {
-    const carousel = document.getElementById('food-carousel-container');
+    const carousel = document.getElementById("food-carousel-container");
     if (!carousel) return;
 
     const handleScroll = () => {
@@ -297,7 +621,9 @@ const CustomerHome = () => {
       let closestDistance = Infinity;
 
       filteredItems.forEach((food) => {
-        const itemElement = document.getElementById(`carousel-item-${food._id}`);
+        const itemElement = document.getElementById(
+          `carousel-item-${food._id}`
+        );
         if (itemElement) {
           const itemRect = itemElement.getBoundingClientRect();
           const itemCenter = itemRect.left + itemRect.width / 2;
@@ -311,11 +637,11 @@ const CustomerHome = () => {
       });
 
       if (closestItem) {
-        const foodId = closestItem.id.replace('carousel-item-', '');
+        const foodId = closestItem.id.replace("carousel-item-", "");
         const food = filteredItems.find((f) => f._id === foodId);
         if (food && food._id !== activePreviewFood?._id) {
           setActivePreviewFood(food);
-          const saved = localStorage.getItem('cart');
+          const saved = localStorage.getItem("cart");
           if (saved) {
             try {
               const cart = JSON.parse(saved);
@@ -337,20 +663,60 @@ const CustomerHome = () => {
       scrollTimeout = setTimeout(handleScroll, 20);
     };
 
-    carousel.addEventListener('scroll', debouncedScroll);
+    carousel.addEventListener("scroll", debouncedScroll);
     return () => {
-      carousel.removeEventListener('scroll', debouncedScroll);
+      carousel.removeEventListener("scroll", debouncedScroll);
       clearTimeout(scrollTimeout);
     };
   }, [filteredItems, activePreviewFood]);
+
+  // CAMERA LOGIC
+  const videoRef = useRef(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+
+  const stopCamera = () => {
+    const v = videoRef.current;
+    if (v && v.srcObject) {
+      try {
+        v.srcObject.getTracks().forEach((t) => t.stop());
+      } catch (e) {}
+      v.srcObject = null;
+    }
+    setCameraActive(false);
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera not supported");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const v = videoRef.current;
+      if (!v) return;
+
+      v.srcObject = stream;
+      await v.play().catch(() => {});
+      setCameraActive(true);
+    } catch (err) {
+      setCameraError(err?.message || "Camera error");
+    }
+  };
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => stopCamera();
+  }, []);
 
   return (
     <div
       style={{
         backgroundColor: palette.background,
-        minHeight: '100vh',
-        transition: 'background-color 0.3s ease',
-        overflow: 'hidden',
+        minHeight: "100vh",
+        transition: "background-color 0.3s ease",
+        overflow: "hidden",
       }}
     >
       {/* Splash Screen */}
@@ -366,8 +732,8 @@ const CustomerHome = () => {
             <Typography className="splash-subtitle" variant="h4">
               and have fun!
             </Typography>
-            <div style={{ marginTop: '24px' }}>
-              <SphereLoader isDark={themeMode === 'dark'} />
+            <div style={{ marginTop: "24px" }}>
+              <SphereLoader isDark={themeMode === "dark"} />
             </div>
           </div>
         </div>
@@ -378,14 +744,22 @@ const CustomerHome = () => {
         style={{
           background: palette.background,
           color: palette.textPrimary,
-          padding: '16px 20px',
-          position: 'sticky',
+          padding: "16px 20px",
+          position: "sticky",
           top: 0,
           zIndex: 120,
           borderBottom: `1px solid ${palette.border}`,
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            maxWidth: "1200px",
+            margin: "0 auto",
+          }}
+        >
           <div>
             <Typography variant="h6" fontWeight={800}>
               AR Food Menu
@@ -394,26 +768,30 @@ const CustomerHome = () => {
               Explore dishes in 3D
             </Typography>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             <IconButton
               onClick={toggleTheme}
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: '8px',
-                '&:hover': { backgroundColor: palette.surface, opacity: 0.8 },
+                padding: "8px",
+                "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Toggle theme"
             >
-              {themeMode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+              {themeMode === "dark" ? (
+                <LightModeIcon fontSize="small" />
+              ) : (
+                <DarkModeIcon fontSize="small" />
+              )}
             </IconButton>
             <IconButton
               onClick={() => setMenuDrawerOpen(true)}
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: '8px',
-                '&:hover': { backgroundColor: palette.surface, opacity: 0.8 },
+                padding: "8px",
+                "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Menu card"
             >
@@ -424,8 +802,8 @@ const CustomerHome = () => {
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: '8px',
-                '&:hover': { backgroundColor: palette.surface, opacity: 0.8 },
+                padding: "8px",
+                "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Logout"
             >
@@ -436,40 +814,68 @@ const CustomerHome = () => {
       </div>
 
       {/* Main Content - Full Screen 3D Viewer */}
-      <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 80px - 130px)' }}>
-        {activePreviewFood && (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "calc(100vh - 80px - 130px)",
+        }}
+      >
+        {activePreviewFood && showModel && (
           <>
-            {/* 3D GLB Viewer - Full Screen */}
-            <div style={{ width: '100%', height: '100%' }}>
-              <GLBViewer modelUrl={activePreviewFood.modelUrl} />
+            {/* 3D GLB Viewer with Camera - Full Screen */}
+            <div style={{ width: "100%", height: "100%" }}>
+              <CameraWith3D videoRef={videoRef} glbModelUrl={glbModelUrl} />
               {/* Food Info Overlay - Top Left */}
               <div
                 style={{
-                  position: 'absolute',
-                  top: '12px',
-                  left: '12px',
-                  background: themeMode === 'dark' ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: '12px',
-                  padding: '8px 12px',
-                  maxWidth: '200px',
-                  boxShadow: themeMode === 'dark' ? '0 4px 16px rgba(0,0,0,0.6)' : '0 2px 8px rgba(0,0,0,0.2)',
+                  position: "absolute",
+                  top: "12px",
+                  left: "12px",
+                  background:
+                    themeMode === "dark"
+                      ? "rgba(0,0,0,0.85)"
+                      : "rgba(255,255,255,0.95)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "12px",
+                  padding: "8px 12px",
+                  maxWidth: "200px",
+                  boxShadow:
+                    themeMode === "dark"
+                      ? "0 4px 16px rgba(0,0,0,0.6)"
+                      : "0 2px 8px rgba(0,0,0,0.2)",
                 }}
               >
-                <Typography variant="subtitle2" fontWeight={700} sx={{ color: palette.textPrimary, marginBottom: '2px', fontSize: '0.75rem' }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={700}
+                  sx={{
+                    color: palette.textPrimary,
+                    marginBottom: "2px",
+                    fontSize: "0.75rem",
+                  }}
+                >
                   {activePreviewFood.name}
                 </Typography>
-                <Typography variant="caption" sx={{ color: palette.textSecondary, marginBottom: '4px', fontSize: '0.65rem', display: 'block' }}>
-                  {activePreviewFood.description || 'Interactive 3D Model'}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: palette.textSecondary,
+                    marginBottom: "4px",
+                    fontSize: "0.65rem",
+                    display: "block",
+                  }}
+                >
+                  {activePreviewFood.description || "Interactive 3D Model"}
                 </Typography>
                 <Typography
                   variant="subtitle1"
                   fontWeight={800}
                   sx={{
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontSize: '0.9rem',
+                    background: "linear-gradient(135deg, #667eea, #764ba2)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    fontSize: "0.9rem",
                   }}
                 >
                   ₹{activePreviewFood.price}
@@ -481,361 +887,390 @@ const CustomerHome = () => {
 
         {/* Loading State */}
         {loadingFoods && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
-            <SphereLoader isDark={themeMode === 'dark'} />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "48px 0",
+              alignItems: "center",
+              height: "calc(100vh - 200px)",
+            }}
+          >
+            <SphereLoader isDark={themeMode === "dark"} />
           </div>
         )}
       </div>
 
-    {/* Bottom Footer with Scrolling Carousel */}
-{!loadingFoods && filteredItems.length > 0 && (
-  <div
-    style={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: '130px',
-      background:
-        themeMode === 'dark'
-          ? 'rgba(10, 10, 10, 0.98)'
-          : 'rgba(255, 255, 255, 0.98)',
-      backdropFilter: 'blur(30px)',
-      borderTop: `1px solid ${palette.border}`,
-      zIndex: 100,
-      boxShadow:
-        themeMode === 'dark'
-          ? '0 -8px 32px rgba(0,0,0,0.6)'
-          : '0 -4px 16px rgba(0,0,0,0.1)',
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: '0 16px',
-      gap: '16px',
-    }}
-  >
-    {/* LEFT: Minus Placeholder / Button */}
-    <div
-      style={{
-        width: '32px',
-        height: '32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      {activePreviewFood && quantity > 0 ? (
-        <IconButton
-          onClick={() => {
-            if (quantity > 1) {
-              const newQty = quantity - 1;
-              setQuantity(newQty);
-              const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-              cart[activePreviewFood._id] = newQty;
-              localStorage.setItem('cart', JSON.stringify(cart));
-              setCartVersion((prev) => prev + 1);
-            } else if (quantity === 1) {
-              const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-              delete cart[activePreviewFood._id];
-              localStorage.setItem('cart', JSON.stringify(cart));
-              setQuantity(0);
-              setCartVersion((prev) => prev + 1);
-            }
-          }}
-          sx={{
-            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-            color: '#fff',
-            width: '32px',
-            height: '32px',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-              transform: 'scale(1.1)',
-            },
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
-            transition: 'all 0.3s ease',
+      {/* Bottom Footer with Scrolling Carousel */}
+      {!loadingFoods && filteredItems.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "130px",
+            background:
+              themeMode === "dark"
+                ? "rgba(10, 10, 10, 0.98)"
+                : "rgba(255, 255, 255, 0.98)",
+            backdropFilter: "blur(30px)",
+            borderTop: `1px solid ${palette.border}`,
+            zIndex: 100,
+            boxShadow:
+              themeMode === "dark"
+                ? "0 -8px 32px rgba(0,0,0,0.6)"
+                : "0 -4px 16px rgba(0,0,0,0.1)",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            padding: "0 16px",
+            gap: "16px",
           }}
         >
-          <RemoveIcon sx={{ fontSize: '16px' }} />
-        </IconButton>
-      ) : (
-        // Placeholder when minus hidden
-        <div style={{ width: '32px', height: '32px' }}></div>
-      )}
-    </div>
-
-    {/* CENTER: Food Scrolling Carousel */}
-    <div
-      id="food-carousel-container"
-      style={{
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        whiteSpace: 'nowrap',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        flex: 1,
-        scrollBehavior: 'smooth',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'thin',
-        scrollbarColor:
-          themeMode === 'dark'
-            ? '#667eea rgba(255,255,255,0.1)'
-            : '#667eea rgba(0,0,0,0.1)',
-      }}
-      className="food-carousel-scroll"
-    >
-      {filteredItems.map((food) => {
-        const isActive = activePreviewFood?._id === food._id;
-        
-        // Get quantity for this food item from cart
-        const saved = localStorage.getItem('cart');
-        let itemQuantity = 0;
-        if (saved) {
-          try {
-            const cart = JSON.parse(saved);
-            itemQuantity = cart[food._id] || 0;
-          } catch {
-            itemQuantity = 0;
-          }
-        }
-
-        return (
+          {/* LEFT: Minus Placeholder / Button */}
           <div
-            key={food._id}
-            id={`carousel-item-${food._id}`}
-            onClick={() => handleFoodSelection(food)}
             style={{
-              display: 'inline-flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              minWidth: isActive ? '90px' : '70px',
-              transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              transform: isActive ? 'scale(1.2)' : 'scale(1)',
-              opacity: isActive ? 1 : 0.7,
-              position: 'relative',
+              width: "32px",
+              height: "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            {/* IMAGE CIRCLE */}
-            <div
-              style={{
-                width: isActive ? '70px' : '56px',
-                height: isActive ? '70px' : '56px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: isActive
-                  ? '3px solid transparent'
-                  : `2px solid ${palette.border}`,
-                background: isActive
-                  ? 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea, #764ba2) border-box'
-                  : palette.surface,
-                boxShadow: isActive
-                  ? '0 8px 24px rgba(102, 126, 234, 0.7), 0 0 0 4px rgba(102, 126, 234, 0.2)'
-                  : themeMode === 'dark'
-                  ? '0 3px 10px rgba(0,0,0,0.5)'
-                  : '0 2px 6px rgba(0,0,0,0.15)',
-                position: 'relative',
-                transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
-            >
-              <img
-                src={food.imageUrl || 'https://via.placeholder.com/80?text=Food'}
-                alt={food.name}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
+            {activePreviewFood && quantity > 0 ? (
+              <IconButton
+                onClick={() => {
+                  if (quantity > 1) {
+                    const newQty = quantity - 1;
+                    setQuantity(newQty);
+                    const cart = JSON.parse(
+                      localStorage.getItem("cart") || "{}"
+                    );
+                    cart[activePreviewFood._id] = newQty;
+                    localStorage.setItem("cart", JSON.stringify(cart));
+                    setCartVersion((prev) => prev + 1);
+                  } else if (quantity === 1) {
+                    const cart = JSON.parse(
+                      localStorage.getItem("cart") || "{}"
+                    );
+                    delete cart[activePreviewFood._id];
+                    localStorage.setItem("cart", JSON.stringify(cart));
+                    setQuantity(0);
+                    setCartVersion((prev) => prev + 1);
+                  }
                 }}
-              />
-
-              {/* VEG / NON-VEG MARKER */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '3px',
-                  right: '3px',
-                  width: '14px',
-                  height: '14px',
-                  borderRadius: '4px',
-                  background: 'rgba(0,0,0,0.7)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: `2px solid ${food.isVeg ? '#10b981' : '#ef4444'}`,
+                sx={{
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  color: "#fff",
+                  width: "32px",
+                  height: "32px",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #dc2626, #b91c1c)",
+                    transform: "scale(1.1)",
+                  },
+                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+                  transition: "all 0.3s ease",
                 }}
               >
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: food.isVeg ? '#10b981' : '#ef4444',
-                  }}
-                />
-              </div>
+                <RemoveIcon sx={{ fontSize: "16px" }} />
+              </IconButton>
+            ) : (
+              // Placeholder when minus hidden
+              <div style={{ width: "32px", height: "32px" }}></div>
+            )}
+          </div>
 
-              {/* 3D MODEL BADGE */}
-              {food.modelUrl && (
+          {/* CENTER: Food Scrolling Carousel */}
+          <div
+            id="food-carousel-container"
+            style={{
+              overflowX: "auto",
+              overflowY: "hidden",
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flex: 1,
+              scrollBehavior: "smooth",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "thin",
+              scrollbarColor:
+                themeMode === "dark"
+                  ? "#667eea rgba(255,255,255,0.1)"
+                  : "#667eea rgba(0,0,0,0.1)",
+            }}
+            className="food-carousel-scroll"
+          >
+            {filteredItems.map((food) => {
+              const isActive = activePreviewFood?._id === food._id;
+
+              // Get quantity for this food item from cart
+              const saved = localStorage.getItem("cart");
+              let itemQuantity = 0;
+              if (saved) {
+                try {
+                  const cart = JSON.parse(saved);
+                  itemQuantity = cart[food._id] || 0;
+                } catch {
+                  itemQuantity = 0;
+                }
+              }
+
+              return (
                 <div
+                  key={food._id}
+                  id={`carousel-item-${food._id}`}
+                  onClick={() => handleFoodSelection(food)}
                   style={{
-                    position: 'absolute',
-                    bottom: '4px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'rgba(102, 126, 234, 0.95)',
-                    borderRadius: '50%',
-                    width: '20px',
-                    height: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    display: "inline-flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "6px",
+                    cursor: "pointer",
+                    minWidth: isActive ? "90px" : "70px",
+                    transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    transform: isActive ? "scale(1.2)" : "scale(1)",
+                    opacity: isActive ? 1 : 0.7,
+                    position: "relative",
                   }}
                 >
-                  <ViewInArIcon sx={{ fontSize: '12px', color: '#fff' }} />
-                </div>
-              )}
-              
-              {/* QUANTITY BADGE */}
-              {itemQuantity > 0 && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    borderRadius: '50%',
-                    width: '22px',
-                    height: '22px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.6)',
-                    border: '2px solid white',
-                    zIndex: 10,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#fff',
-                      fontSize: '0.7rem',
-                      fontWeight: 800,
-                      lineHeight: 1,
+                  {/* IMAGE CIRCLE */}
+                  <div
+                    style={{
+                      width: isActive ? "70px" : "56px",
+                      height: isActive ? "70px" : "56px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      border: isActive
+                        ? "3px solid transparent"
+                        : `2px solid ${palette.border}`,
+                      background: isActive
+                        ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea, #764ba2) border-box"
+                        : palette.surface,
+                      boxShadow: isActive
+                        ? "0 8px 24px rgba(102, 126, 234, 0.7), 0 0 0 4px rgba(102, 126, 234, 0.2)"
+                        : themeMode === "dark"
+                        ? "0 3px 10px rgba(0,0,0,0.5)"
+                        : "0 2px 6px rgba(0,0,0,0.15)",
+                      position: "relative",
+                      transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     }}
                   >
-                    {itemQuantity}
+                    <img
+                      src={
+                        food.imageUrl ||
+                        "https://via.placeholder.com/80?text=Food"
+                      }
+                      alt={food.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+
+                    {/* VEG / NON-VEG MARKER */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "3px",
+                        right: "3px",
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "4px",
+                        background: "rgba(0,0,0,0.7)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: `2px solid ${
+                          food.isVeg ? "#10b981" : "#ef4444"
+                        }`,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: food.isVeg ? "#10b981" : "#ef4444",
+                        }}
+                      />
+                    </div>
+
+                    {/* 3D MODEL BADGE */}
+                    {food.modelUrl && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "4px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "rgba(102, 126, 234, 0.95)",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ViewInArIcon
+                          sx={{ fontSize: "12px", color: "#fff" }}
+                        />
+                      </div>
+                    )}
+
+                    {/* QUANTITY BADGE */}
+                    {itemQuantity > 0 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "-6px",
+                          right: "-6px",
+                          background:
+                            "linear-gradient(135deg, #10b981, #059669)",
+                          borderRadius: "50%",
+                          width: "22px",
+                          height: "22px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(16, 185, 129, 0.6)",
+                          border: "2px solid white",
+                          zIndex: 10,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#fff",
+                            fontSize: "0.7rem",
+                            fontWeight: 800,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {itemQuantity}
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* FOOD NAME */}
+                  <Typography
+                    variant="caption"
+                    fontWeight={isActive ? 700 : 600}
+                    noWrap
+                    sx={{
+                      color: isActive
+                        ? themeMode === "dark"
+                          ? "#667eea"
+                          : "#764ba2"
+                        : palette.textPrimary,
+                      fontSize: "0.65rem",
+                      maxWidth: "100%",
+                      textAlign: "center",
+                    }}
+                  >
+                    {food.name}
                   </Typography>
                 </div>
-              )}
-            </div>
+              );
+            })}
+          </div>
 
-            {/* FOOD NAME */}
-            <Typography
-              variant="caption"
-              fontWeight={isActive ? 700 : 600}
-              noWrap
+          {/* RIGHT: PLUS BUTTON */}
+          {activePreviewFood && (
+            <IconButton
+              onClick={() => {
+                const newQty = Math.min(99, quantity + 1);
+                setQuantity(newQty);
+                const cart = JSON.parse(localStorage.getItem("cart") || "{}");
+                cart[activePreviewFood._id] = newQty;
+                localStorage.setItem("cart", JSON.stringify(cart));
+                setCartVersion((prev) => prev + 1);
+              }}
               sx={{
-                color: isActive
-                  ? themeMode === 'dark'
-                    ? '#667eea'
-                    : '#764ba2'
-                  : palette.textPrimary,
-                fontSize: '0.65rem',
-                maxWidth: '100%',
-                textAlign: 'center',
+                background: "linear-gradient(135deg, #10b981, #059669)",
+                color: "#fff",
+                width: "32px",
+                height: "32px",
+                minWidth: "32px",
+                flexShrink: 0,
+                "&:hover": {
+                  background: "linear-gradient(135deg, #059669, #047857)",
+                  transform: "scale(1.1)",
+                },
+                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+                transition: "all 0.3s ease",
               }}
             >
-              {food.name}
-            </Typography>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* RIGHT: PLUS BUTTON */}
-    {activePreviewFood && (
-      <IconButton
-        onClick={() => {
-          const newQty = Math.min(99, quantity + 1);
-          setQuantity(newQty);
-          const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-          cart[activePreviewFood._id] = newQty;
-          localStorage.setItem('cart', JSON.stringify(cart));
-          setCartVersion((prev) => prev + 1);
-        }}
-        sx={{
-          background: 'linear-gradient(135deg, #10b981, #059669)',
-          color: '#fff',
-          width: '32px',
-          height: '32px',
-          minWidth: '32px',
-          flexShrink: 0,
-          '&:hover': {
-            background: 'linear-gradient(135deg, #059669, #047857)',
-            transform: 'scale(1.1)',
-          },
-          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-          transition: 'all 0.3s ease',
-        }}
-      >
-        <AddIcon sx={{ fontSize: '16px' }} />
-      </IconButton>
-    )}
-  </div>
-)}
+              <AddIcon sx={{ fontSize: "16px" }} />
+            </IconButton>
+          )}
+        </div>
+      )}
 
       {/* Floating Cart & Theme Button - Top Right */}
       {!loadingFoods && (
         <div
           style={{
-            position: 'fixed',
-            top: '100px',
-            right: '20px',
+            position: "fixed",
+            top: "100px",
+            right: "20px",
             zIndex: 110,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
           }}
         >
-          {/* Order History Button */}
+          {/* Order Camera Button */}
           <Fab
             size="small"
-            onClick={() => navigate('/customer/orders')}
+            onClick={() => {
+              cameraActive ? stopCamera() : startCamera();
+            }}
             sx={{
-              background: 'linear-gradient(135deg, #f093fb, #f5576c)',
-              color: '#fff',
-              width: '48px',
-              height: '48px',
-              boxShadow: '0 4px 16px rgba(240, 147, 251, 0.5)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #f5576c, #f093fb)',
-                transform: 'scale(1.08)',
-                boxShadow: '0 8px 20px rgba(240, 147, 251, 0.7)',
+              background: cameraActive
+                ? "linear-gradient(135deg, #ff5252, #ff1744)" // RED when camera ON
+                : "linear-gradient(135deg, #f093fb, #f5576c)", // Pink when camera OFF
+              color: "#fff",
+              width: "48px",
+              height: "48px",
+              boxShadow: "0 4px 16px rgba(240, 147, 251, 0.5)",
+              "&:hover": {
+                transform: "scale(1.08)",
+                boxShadow: "0 8px 20px rgba(240, 147, 251, 0.7)",
               },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: "all 0.3s ease",
             }}
           >
-            <HistoryIcon sx={{ fontSize: 20 }} />
+            <CameraIcon sx={{ fontSize: 20 }} />
           </Fab>
 
+
+          {cameraError && (
+            <div style={{ color: "red", textAlign: "center", marginTop: 10 }}>
+              {cameraError}
+            </div>
+          )}
           {/* View Cart Button */}
           <Fab
             size="small"
-            onClick={() => navigate('/customer/cart')}
+            onClick={() => navigate("/customer/cart")}
             sx={{
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              color: '#fff',
-              width: '48px',
-              height: '48px',
-              boxShadow: '0 4px 16px rgba(102, 126, 234, 0.5)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #764ba2, #667eea)',
-                transform: 'scale(1.08)',
-                boxShadow: '0 8px 20px rgba(102, 126, 234, 0.7)',
+              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              color: "#fff",
+              width: "48px",
+              height: "48px",
+              boxShadow: "0 4px 16px rgba(102, 126, 234, 0.5)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #764ba2, #667eea)",
+                transform: "scale(1.08)",
+                boxShadow: "0 8px 20px rgba(102, 126, 234, 0.7)",
               },
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             title="View Cart"
           >
@@ -843,18 +1278,18 @@ const CustomerHome = () => {
               badgeContent={cartCount}
               color="error"
               sx={{
-                '& .MuiBadge-badge': {
-                  fontSize: '0.7rem',
-                  height: '18px',
-                  minWidth: '18px',
-                  borderRadius: '9px',
+                "& .MuiBadge-badge": {
+                  fontSize: "0.7rem",
+                  height: "18px",
+                  minWidth: "18px",
+                  borderRadius: "9px",
                   fontWeight: 700,
                   top: 2,
                   right: 2,
                 },
               }}
             >
-              <ShoppingCartIcon sx={{ fontSize: '24px' }} />
+              <ShoppingCartIcon sx={{ fontSize: "24px" }} />
             </Badge>
           </Fab>
 
@@ -863,20 +1298,20 @@ const CustomerHome = () => {
             size="small"
             onClick={() => setAllItemsDrawerOpen(true)}
             sx={{
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#fff',
-              width: '48px',
-              height: '48px',
-              boxShadow: '0 4px 16px rgba(245, 158, 11, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #d97706, #b45309)',
-                transform: 'scale(1.08)',
+              background: "linear-gradient(135deg, #f59e0b, #d97706)",
+              color: "#fff",
+              width: "48px",
+              height: "48px",
+              boxShadow: "0 4px 16px rgba(245, 158, 11, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #d97706, #b45309)",
+                transform: "scale(1.08)",
               },
-              transition: 'all 0.3s ease',
+              transition: "all 0.3s ease",
             }}
             title="View All Items"
           >
-            <RestaurantMenuIcon sx={{ fontSize: '24px' }} />
+            <RestaurantMenuIcon sx={{ fontSize: "24px" }} />
           </Fab>
 
           {/* Filter Button */}
@@ -884,20 +1319,20 @@ const CustomerHome = () => {
             size="small"
             onClick={() => setFilterDrawerOpen(true)}
             sx={{
-              background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-              color: '#fff',
-              width: '48px',
-              height: '48px',
-              boxShadow: '0 4px 16px rgba(139, 92, 246, 0.4)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #6d28d9, #5b21b6)',
-                transform: 'scale(1.08)',
+              background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+              color: "#fff",
+              width: "48px",
+              height: "48px",
+              boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #6d28d9, #5b21b6)",
+                transform: "scale(1.08)",
               },
-              transition: 'all 0.3s ease',
+              transition: "all 0.3s ease",
             }}
             title="Filter by Category"
           >
-            <FilterListIcon sx={{ fontSize: '24px' }} />
+            <FilterListIcon sx={{ fontSize: "24px" }} />
           </Fab>
         </div>
       )}
@@ -909,30 +1344,50 @@ const CustomerHome = () => {
         onClose={() => setMenuDrawerOpen(false)}
         PaperProps={{
           sx: {
-            width: { xs: '90vw', sm: 420 },
-            backgroundColor: themeMode === 'dark' ? '#0f0f0f' : '#ffffff',
+            width: { xs: "90vw", sm: 420 },
+            backgroundColor: themeMode === "dark" ? "#0f0f0f" : "#ffffff",
             color: palette.textPrimary,
           },
         }}
       >
-        <div style={{ padding: '24px 20px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div
+          style={{
+            padding: "24px 20px",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
             <div>
               <Typography variant="h6" fontWeight={700}>
                 Menu Card
               </Typography>
-              <Typography variant="caption" sx={{ color: palette.textSecondary }}>
+              <Typography
+                variant="caption"
+                sx={{ color: palette.textSecondary }}
+              >
                 {foodItems.length} curated dishes
               </Typography>
             </div>
-            <IconButton onClick={() => setMenuDrawerOpen(false)} sx={{ color: palette.textPrimary }}>
+            <IconButton
+              onClick={() => setMenuDrawerOpen(false)}
+              sx={{ color: palette.textPrimary }}
+            >
               <CloseIcon />
             </IconButton>
           </div>
-          <List sx={{ overflowY: 'auto', flex: 1 }}>
+          <List sx={{ overflowY: "auto", flex: 1 }}>
             {foodItems.map((food, index) => {
               // Get quantity for this food item from cart
-              const saved = localStorage.getItem('cart');
+              const saved = localStorage.getItem("cart");
               let itemQuantity = 0;
               if (saved) {
                 try {
@@ -942,90 +1397,112 @@ const CustomerHome = () => {
                   itemQuantity = 0;
                 }
               }
-              
+
               return (
-              <React.Fragment key={food._id}>
-                <ListItem alignItems="flex-start" sx={{ gap: 1, paddingY: 1.5 }}>
-                  <ListItemAvatar sx={{ position: 'relative' }}>
-                    <Avatar
-                      variant="rounded"
-                      src={food.imageUrl || 'https://via.placeholder.com/80?text=Food'}
-                      alt={food.name}
-                      sx={{ width: 56, height: 56, borderRadius: '12px' }}
-                    />
-                    {itemQuantity > 0 && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '-6px',
-                          right: '-6px',
-                          background: 'linear-gradient(135deg, #10b981, #059669)',
-                          borderRadius: '50%',
-                          width: '22px',
-                          height: '22px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 2px 8px rgba(16, 185, 129, 0.6)',
-                          border: '2px solid white',
-                          zIndex: 10,
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: '#fff',
-                            fontSize: '0.7rem',
-                            fontWeight: 800,
-                            lineHeight: 1,
+                <React.Fragment key={food._id}>
+                  <ListItem
+                    alignItems="flex-start"
+                    sx={{ gap: 1, paddingY: 1.5 }}
+                  >
+                    <ListItemAvatar sx={{ position: "relative" }}>
+                      <Avatar
+                        variant="rounded"
+                        src={
+                          food.imageUrl ||
+                          "https://via.placeholder.com/80?text=Food"
+                        }
+                        alt={food.name}
+                        sx={{ width: 56, height: 56, borderRadius: "12px" }}
+                      />
+                      {itemQuantity > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "-6px",
+                            right: "-6px",
+                            background:
+                              "linear-gradient(135deg, #10b981, #059669)",
+                            borderRadius: "50%",
+                            width: "22px",
+                            height: "22px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 2px 8px rgba(16, 185, 129, 0.6)",
+                            border: "2px solid white",
+                            zIndex: 10,
                           }}
                         >
-                          {itemQuantity}
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#fff",
+                              fontSize: "0.7rem",
+                              fontWeight: 800,
+                              lineHeight: 1,
+                            }}
+                          >
+                            {itemQuantity}
+                          </Typography>
+                        </div>
+                      )}
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle1" fontWeight={600} noWrap>
+                          {food.name}
                         </Typography>
-                      </div>
-                    )}
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle1" fontWeight={600} noWrap>
-                        {food.name}
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography variant="body2" sx={{ color: palette.textSecondary }}>
-                        ₹{food.price} · {food.category}
-                      </Typography>
-                    }
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => {
-                        handleFoodSelection(food);
-                        setMenuDrawerOpen(false);
-                      }}
-                      sx={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => addToCart(food._id)}
-                      sx={{
-                        color: palette.textPrimary,
-                        borderColor: palette.border,
-                        '&:hover': { borderColor: '#667eea' },
+                      }
+                      secondary={
+                        <Typography
+                          variant="body2"
+                          sx={{ color: palette.textSecondary }}
+                        >
+                          ₹{food.price} · {food.category}
+                        </Typography>
+                      }
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
                       }}
                     >
-                      Add
-                    </Button>
-                  </div>
-                </ListItem>
-                {index < foodItems.length - 1 && <Divider sx={{ borderColor: palette.border }} />}
-              </React.Fragment>
-            );
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => {
+                          handleFoodSelection(food);
+                          setMenuDrawerOpen(false);
+                        }}
+                        sx={{
+                          background:
+                            "linear-gradient(135deg, #667eea, #764ba2)",
+                          color: "#fff",
+                        }}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => addToCart(food._id)}
+                        sx={{
+                          color: palette.textPrimary,
+                          borderColor: palette.border,
+                          "&:hover": { borderColor: "#667eea" },
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </ListItem>
+                  {index < foodItems.length - 1 && (
+                    <Divider sx={{ borderColor: palette.border }} />
+                  )}
+                </React.Fragment>
+              );
             })}
           </List>
         </div>
@@ -1038,42 +1515,77 @@ const CustomerHome = () => {
         onClose={() => setAllItemsDrawerOpen(false)}
         PaperProps={{
           sx: {
-            height: '90vh',
-            borderTopLeftRadius: '24px',
-            borderTopRightRadius: '24px',
+            height: "90vh",
+            borderTopLeftRadius: "24px",
+            borderTopRightRadius: "24px",
             background: palette.surface,
           },
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px' }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            padding: "24px",
+          }}
+        >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
             <div>
-              <Typography variant="h5" fontWeight={700} sx={{ color: palette.textPrimary }}>
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                sx={{ color: palette.textPrimary }}
+              >
                 All Menu Items
               </Typography>
-              <Typography variant="body2" sx={{ color: palette.textSecondary, marginTop: '4px' }}>
+              <Typography
+                variant="body2"
+                sx={{ color: palette.textSecondary, marginTop: "4px" }}
+              >
                 {foodItems.length} items available
               </Typography>
             </div>
-            <IconButton onClick={() => setAllItemsDrawerOpen(false)} sx={{ color: palette.textPrimary }}>
+            <IconButton
+              onClick={() => setAllItemsDrawerOpen(false)}
+              sx={{ color: palette.textPrimary }}
+            >
               <CloseIcon />
             </IconButton>
           </div>
 
           {/* Category Filter Chips */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              marginBottom: "20px",
+            }}
+          >
             <Chip
               label="All"
-              onClick={() => setActiveCategory('All')}
+              onClick={() => setActiveCategory("All")}
               sx={{
-                backgroundColor: activeCategory === 'All' ? '#667eea' : palette.surface,
-                color: activeCategory === 'All' ? '#fff' : palette.textPrimary,
-                border: `1px solid ${activeCategory === 'All' ? '#667eea' : palette.border}`,
+                backgroundColor:
+                  activeCategory === "All" ? "#667eea" : palette.surface,
+                color: activeCategory === "All" ? "#fff" : palette.textPrimary,
+                border: `1px solid ${
+                  activeCategory === "All" ? "#667eea" : palette.border
+                }`,
                 fontWeight: 600,
-                fontSize: '0.85rem',
-                '&:hover': {
-                  backgroundColor: activeCategory === 'All' ? '#764ba2' : palette.background,
+                fontSize: "0.85rem",
+                "&:hover": {
+                  backgroundColor:
+                    activeCategory === "All" ? "#764ba2" : palette.background,
                 },
               }}
             />
@@ -1083,13 +1595,17 @@ const CustomerHome = () => {
                 label={cat}
                 onClick={() => setActiveCategory(cat)}
                 sx={{
-                  backgroundColor: activeCategory === cat ? '#667eea' : palette.surface,
-                  color: activeCategory === cat ? '#fff' : palette.textPrimary,
-                  border: `1px solid ${activeCategory === cat ? '#667eea' : palette.border}`,
+                  backgroundColor:
+                    activeCategory === cat ? "#667eea" : palette.surface,
+                  color: activeCategory === cat ? "#fff" : palette.textPrimary,
+                  border: `1px solid ${
+                    activeCategory === cat ? "#667eea" : palette.border
+                  }`,
                   fontWeight: 600,
-                  fontSize: '0.85rem',
-                  '&:hover': {
-                    backgroundColor: activeCategory === cat ? '#764ba2' : palette.background,
+                  fontSize: "0.85rem",
+                  "&:hover": {
+                    backgroundColor:
+                      activeCategory === cat ? "#764ba2" : palette.background,
                   },
                 }}
               />
@@ -1097,16 +1613,18 @@ const CustomerHome = () => {
           </div>
 
           {/* Food Items Grid */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
-            gap: '16px', 
-            overflowY: 'auto',
-            flex: 1,
-          }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+              gap: "16px",
+              overflowY: "auto",
+              flex: 1,
+            }}
+          >
             {displayedFoodItems.map((food) => {
               // Get quantity for this food item from cart
-              const saved = localStorage.getItem('cart');
+              const saved = localStorage.getItem("cart");
               let itemQuantity = 0;
               if (saved) {
                 try {
@@ -1116,120 +1634,146 @@ const CustomerHome = () => {
                   itemQuantity = 0;
                 }
               }
-              
+
               return (
-              <div
-                key={food._id}
-                style={{
-                  background: palette.surface,
-                  border: `1px solid ${palette.border}`,
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                }}
-                onClick={() => {
-                  handleFoodSelection(food);
-                  setAllItemsDrawerOpen(false);
-                }}
-              >
-                <div style={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
-                  <img
-                    src={food.imageUrl || 'https://via.placeholder.com/200?text=Food'}
-                    alt={food.name}
+                <div
+                  key={food._id}
+                  style={{
+                    background: palette.surface,
+                    border: `1px solid ${palette.border}`,
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                  onClick={() => {
+                    handleFoodSelection(food);
+                    setAllItemsDrawerOpen(false);
+                  }}
+                >
+                  <div
                     style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
+                      position: "relative",
+                      paddingTop: "100%",
+                      overflow: "hidden",
                     }}
-                  />
-                  <div className={`veg-indicator ${food.isVeg ? 'veg' : 'non-veg'}`}>
-                    <span></span>
-                  </div>
-                  {food.modelUrl && (
-                    <div className="view-3d-chip">
-                      <ViewInArIcon sx={{ fontSize: '16px' }} />
+                  >
+                    <img
+                      src={
+                        food.imageUrl ||
+                        "https://via.placeholder.com/200?text=Food"
+                      }
+                      alt={food.name}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <div
+                      className={`veg-indicator ${
+                        food.isVeg ? "veg" : "non-veg"
+                      }`}
+                    >
+                      <span></span>
                     </div>
-                  )}
-                  {itemQuantity > 0 && (
+                    {food.modelUrl && (
+                      <div className="view-3d-chip">
+                        <ViewInArIcon sx={{ fontSize: "16px" }} />
+                      </div>
+                    )}
+                    {itemQuantity > 0 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "8px",
+                          right: "8px",
+                          background:
+                            "linear-gradient(135deg, #10b981, #059669)",
+                          borderRadius: "50%",
+                          width: "28px",
+                          height: "28px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(16, 185, 129, 0.6)",
+                          border: "2px solid white",
+                          zIndex: 10,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#fff",
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            lineHeight: 1,
+                          }}
+                        >
+                          {itemQuantity}
+                        </Typography>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "12px" }}>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight={600}
+                      noWrap
+                      sx={{ color: palette.textPrimary, marginBottom: "4px" }}
+                    >
+                      {food.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: palette.textSecondary,
+                        display: "block",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {food.category}
+                    </Typography>
                     <div
                       style={{
-                        position: 'absolute',
-                        top: '8px',
-                        right: '8px',
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        borderRadius: '50%',
-                        width: '28px',
-                        height: '28px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.6)',
-                        border: '2px solid white',
-                        zIndex: 10,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
                       <Typography
-                        variant="caption"
+                        variant="subtitle2"
+                        fontWeight={700}
+                        sx={{ color: "#667eea" }}
+                      >
+                        ₹{food.price}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(food._id);
+                        }}
                         sx={{
-                          color: '#fff',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                          lineHeight: 1,
+                          background:
+                            "linear-gradient(135deg, #10b981, #059669)",
+                          color: "#fff",
+                          padding: "6px",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(135deg, #059669, #047857)",
+                          },
                         }}
                       >
-                        {itemQuantity}
-                      </Typography>
+                        <AddIcon sx={{ fontSize: "16px" }} />
+                      </IconButton>
                     </div>
-                  )}
-                </div>
-                <div style={{ padding: '12px' }}>
-                  <Typography 
-                    variant="subtitle2" 
-                    fontWeight={600} 
-                    noWrap
-                    sx={{ color: palette.textPrimary, marginBottom: '4px' }}
-                  >
-                    {food.name}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ color: palette.textSecondary, display: 'block', marginBottom: '8px' }}
-                  >
-                    {food.category}
-                  </Typography>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography 
-                      variant="subtitle2" 
-                      fontWeight={700} 
-                      sx={{ color: '#667eea' }}
-                    >
-                      ₹{food.price}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(food._id);
-                      }}
-                      sx={{
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        color: '#fff',
-                        padding: '6px',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #059669, #047857)',
-                        },
-                      }}
-                    >
-                      <AddIcon sx={{ fontSize: '16px' }} />
-                    </IconButton>
                   </div>
                 </div>
-              </div>
-            );
+              );
             })}
           </div>
         </div>
@@ -1242,68 +1786,106 @@ const CustomerHome = () => {
         onClose={() => setFilterDrawerOpen(false)}
         PaperProps={{
           sx: {
-            width: '280px',
+            width: "280px",
             background: palette.surface,
-            padding: '24px',
+            padding: "24px",
           },
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
+        >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <Typography variant="h6" fontWeight={700} sx={{ color: palette.textPrimary }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <Typography
+              variant="h6"
+              fontWeight={700}
+              sx={{ color: palette.textPrimary }}
+            >
               Filters
             </Typography>
-            <IconButton onClick={() => setFilterDrawerOpen(false)} sx={{ color: palette.textPrimary }}>
+            <IconButton
+              onClick={() => setFilterDrawerOpen(false)}
+              sx={{ color: palette.textPrimary }}
+            >
               <CloseIcon />
             </IconButton>
           </div>
 
           {/* Veg/Non-Veg Filter */}
-          <div style={{ marginBottom: '24px' }}>
-            <Typography variant="caption" fontWeight={600} sx={{ color: palette.textSecondary, display: 'block', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ marginBottom: "24px" }}>
+            <Typography
+              variant="caption"
+              fontWeight={600}
+              sx={{
+                color: palette.textSecondary,
+                display: "block",
+                marginBottom: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
               Food Type
             </Typography>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: "flex", gap: "8px" }}>
               <Chip
                 label="All"
-                onClick={() => setVegFilter('all')}
+                onClick={() => setVegFilter("all")}
                 sx={{
                   flex: 1,
-                  backgroundColor: vegFilter === 'all' ? '#667eea' : palette.surface,
-                  color: vegFilter === 'all' ? '#fff' : palette.textPrimary,
-                  border: `1px solid ${vegFilter === 'all' ? '#667eea' : palette.border}`,
+                  backgroundColor:
+                    vegFilter === "all" ? "#667eea" : palette.surface,
+                  color: vegFilter === "all" ? "#fff" : palette.textPrimary,
+                  border: `1px solid ${
+                    vegFilter === "all" ? "#667eea" : palette.border
+                  }`,
                   fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: vegFilter === 'all' ? '#764ba2' : palette.background,
+                  "&:hover": {
+                    backgroundColor:
+                      vegFilter === "all" ? "#764ba2" : palette.background,
                   },
                 }}
               />
               <Chip
                 label="🟢 Veg"
-                onClick={() => setVegFilter('veg')}
+                onClick={() => setVegFilter("veg")}
                 sx={{
                   flex: 1,
-                  backgroundColor: vegFilter === 'veg' ? '#10b981' : palette.surface,
-                  color: vegFilter === 'veg' ? '#fff' : palette.textPrimary,
-                  border: `1px solid ${vegFilter === 'veg' ? '#10b981' : palette.border}`,
+                  backgroundColor:
+                    vegFilter === "veg" ? "#10b981" : palette.surface,
+                  color: vegFilter === "veg" ? "#fff" : palette.textPrimary,
+                  border: `1px solid ${
+                    vegFilter === "veg" ? "#10b981" : palette.border
+                  }`,
                   fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: vegFilter === 'veg' ? '#059669' : palette.background,
+                  "&:hover": {
+                    backgroundColor:
+                      vegFilter === "veg" ? "#059669" : palette.background,
                   },
                 }}
               />
               <Chip
                 label="🔴 Non-Veg"
-                onClick={() => setVegFilter('non-veg')}
+                onClick={() => setVegFilter("non-veg")}
                 sx={{
                   flex: 1,
-                  backgroundColor: vegFilter === 'non-veg' ? '#ef4444' : palette.surface,
-                  color: vegFilter === 'non-veg' ? '#fff' : palette.textPrimary,
-                  border: `1px solid ${vegFilter === 'non-veg' ? '#ef4444' : palette.border}`,
+                  backgroundColor:
+                    vegFilter === "non-veg" ? "#ef4444" : palette.surface,
+                  color: vegFilter === "non-veg" ? "#fff" : palette.textPrimary,
+                  border: `1px solid ${
+                    vegFilter === "non-veg" ? "#ef4444" : palette.border
+                  }`,
                   fontWeight: 600,
-                  '&:hover': {
-                    backgroundColor: vegFilter === 'non-veg' ? '#dc2626' : palette.background,
+                  "&:hover": {
+                    backgroundColor:
+                      vegFilter === "non-veg" ? "#dc2626" : palette.background,
                   },
                 }}
               />
@@ -1311,88 +1893,150 @@ const CustomerHome = () => {
           </div>
 
           {/* Category Filter */}
-          <Typography variant="caption" fontWeight={600} sx={{ color: palette.textSecondary, display: 'block', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <Typography
+            variant="caption"
+            fontWeight={600}
+            sx={{
+              color: palette.textSecondary,
+              display: "block",
+              marginBottom: "12px",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}
+          >
             Category
           </Typography>
           {/* Category List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+          >
             <Button
               fullWidth
-              variant={selectedCategory === 'All' ? 'contained' : 'outlined'}
+              variant={selectedCategory === "All" ? "contained" : "outlined"}
               onClick={() => {
-                setSelectedCategory('All');
+                setSelectedCategory("All");
                 setFilterDrawerOpen(false);
               }}
               sx={{
-                justifyContent: 'flex-start',
-                padding: '12px 16px',
-                background: selectedCategory === 'All' ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
-                color: selectedCategory === 'All' ? '#fff' : palette.textPrimary,
+                justifyContent: "flex-start",
+                padding: "12px 16px",
+                background:
+                  selectedCategory === "All"
+                    ? "linear-gradient(135deg, #667eea, #764ba2)"
+                    : "transparent",
+                color:
+                  selectedCategory === "All" ? "#fff" : palette.textPrimary,
                 borderColor: palette.border,
-                '&:hover': {
-                  background: selectedCategory === 'All' ? 'linear-gradient(135deg, #764ba2, #667eea)' : palette.background,
+                "&:hover": {
+                  background:
+                    selectedCategory === "All"
+                      ? "linear-gradient(135deg, #764ba2, #667eea)"
+                      : palette.background,
                 },
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                fontWeight: selectedCategory === 'All' ? 700 : 500,
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: selectedCategory === "All" ? 700 : 500,
               }}
             >
               All Items
             </Button>
-            {categories.filter(cat => cat !== 'All').map((category) => (
-              <Button
-                key={category}
-                fullWidth
-                variant={selectedCategory === category ? 'contained' : 'outlined'}
-                onClick={() => {
-                  setSelectedCategory(category);
-                  setFilterDrawerOpen(false);
-                }}
-                sx={{
-                  justifyContent: 'flex-start',
-                  padding: '12px 16px',
-                  background: selectedCategory === category ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'transparent',
-                  color: selectedCategory === category ? '#fff' : palette.textPrimary,
-                  borderColor: palette.border,
-                  '&:hover': {
-                    background: selectedCategory === category ? 'linear-gradient(135deg, #764ba2, #667eea)' : palette.background,
-                  },
-                  textTransform: 'none',
-                  fontSize: '0.95rem',
-                  fontWeight: selectedCategory === category ? 700 : 500,
-                }}
-              >
-                {category}
-              </Button>
-            ))}
+            {categories
+              .filter((cat) => cat !== "All")
+              .map((category) => (
+                <Button
+                  key={category}
+                  fullWidth
+                  variant={
+                    selectedCategory === category ? "contained" : "outlined"
+                  }
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setFilterDrawerOpen(false);
+                  }}
+                  sx={{
+                    justifyContent: "flex-start",
+                    padding: "12px 16px",
+                    background:
+                      selectedCategory === category
+                        ? "linear-gradient(135deg, #667eea, #764ba2)"
+                        : "transparent",
+                    color:
+                      selectedCategory === category
+                        ? "#fff"
+                        : palette.textPrimary,
+                    borderColor: palette.border,
+                    "&:hover": {
+                      background:
+                        selectedCategory === category
+                          ? "linear-gradient(135deg, #764ba2, #667eea)"
+                          : palette.background,
+                    },
+                    textTransform: "none",
+                    fontSize: "0.95rem",
+                    fontWeight: selectedCategory === category ? 700 : 500,
+                  }}
+                >
+                  {category}
+                </Button>
+              ))}
           </div>
 
           {/* Active Filter Info */}
-          {(selectedCategory !== 'All' || vegFilter !== 'all') && (
+          {(selectedCategory !== "All" || vegFilter !== "all") && (
             <div
               style={{
-                marginTop: 'auto',
-                padding: '16px',
-                background: themeMode === 'dark' ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.1)',
-                borderRadius: '12px',
-                border: `1px solid ${themeMode === 'dark' ? 'rgba(102, 126, 234, 0.3)' : 'rgba(102, 126, 234, 0.2)'}`,
+                marginTop: "auto",
+                padding: "16px",
+                background:
+                  themeMode === "dark"
+                    ? "rgba(102, 126, 234, 0.15)"
+                    : "rgba(102, 126, 234, 0.1)",
+                borderRadius: "12px",
+                border: `1px solid ${
+                  themeMode === "dark"
+                    ? "rgba(102, 126, 234, 0.3)"
+                    : "rgba(102, 126, 234, 0.2)"
+                }`,
               }}
             >
-              <Typography variant="caption" sx={{ color: palette.textSecondary, display: 'block', marginBottom: '4px' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: palette.textSecondary,
+                  display: "block",
+                  marginBottom: "4px",
+                }}
+              >
                 Active Filters:
               </Typography>
-              {vegFilter !== 'all' && (
-                <Typography variant="body2" fontWeight={600} sx={{ color: palette.textPrimary }}>
-                  {vegFilter === 'veg' ? '🟢 Vegetarian' : '🔴 Non-Vegetarian'}
+              {vegFilter !== "all" && (
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  sx={{ color: palette.textPrimary }}
+                >
+                  {vegFilter === "veg" ? "🟢 Vegetarian" : "🔴 Non-Vegetarian"}
                 </Typography>
               )}
-              {selectedCategory !== 'All' && (
-                <Typography variant="body2" fontWeight={600} sx={{ color: palette.textPrimary }}>
+              {selectedCategory !== "All" && (
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  sx={{ color: palette.textPrimary }}
+                >
                   {selectedCategory}
                 </Typography>
               )}
-              <Typography variant="caption" sx={{ color: palette.textSecondary, marginTop: '8px', display: 'block' }}>
-                {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} found
+              <Typography
+                variant="caption"
+                sx={{
+                  color: palette.textSecondary,
+                  marginTop: "8px",
+                  display: "block",
+                }}
+              >
+                {filteredItems.length} item
+                {filteredItems.length !== 1 ? "s" : ""} found
               </Typography>
             </div>
           )}
