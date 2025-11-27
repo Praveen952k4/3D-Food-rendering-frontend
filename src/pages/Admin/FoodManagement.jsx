@@ -4,9 +4,11 @@ import {
   Typography,
   Button,
   Grid,
+  Pagination,
+  Box,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { getFoodItems, createFoodItem, updateFoodItem, deleteFoodItem } from 'services/api';
+import { getAdminFoodItems, createFoodItem, updateFoodItem, deleteFoodItem } from 'services/api';
 import FoodCard from 'components/food/FoodCard';
 import FoodDialog from 'components/food/FoodDialog';
 
@@ -15,6 +17,8 @@ const AdminFoodManagement = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(12);
   const [currentFood, setCurrentFood] = useState({
     name: '',
     category: 'Starters',
@@ -34,7 +38,7 @@ const AdminFoodManagement = () => {
 
   const fetchFoodItems = async () => {
     try {
-      const response = await getFoodItems();
+      const response = await getAdminFoodItems();
       setFoodItems(response.data.foodItems || []);
     } catch (error) {
       console.error('Failed to fetch food items:', error);
@@ -113,6 +117,18 @@ const AdminFoodManagement = () => {
     }
   };
 
+  const handleChangePage = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Get paginated data
+  const totalPages = Math.ceil(foodItems.length / itemsPerPage);
+  const paginatedItems = foodItems.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
@@ -140,7 +156,7 @@ const AdminFoodManagement = () => {
 
       {/* Food Items Grid */}
       <Grid container spacing={3}>
-        {foodItems.map((food) => (
+        {paginatedItems.map((food) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={food._id}>
             <FoodCard
               food={food}
@@ -151,6 +167,20 @@ const AdminFoodManagement = () => {
           </Grid>
         ))}
       </Grid>
+
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handleChangePage}
+            color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+      )}
 
       {/* Add/Edit Dialog */}
       <FoodDialog

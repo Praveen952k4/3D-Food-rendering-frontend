@@ -16,6 +16,8 @@ import {
   People,
   ExitToApp,
   LocalOffer,
+  Feedback,
+  Star,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -28,6 +30,8 @@ const AdminSidebar = ({ onLogout }) => {
     { text: 'Orders', icon: <ShoppingCart />, path: '/admin/orders' },
     { text: 'Food Items', icon: <Restaurant />, path: '/admin/food' },
     { text: 'Coupons', icon: <LocalOffer />, path: '/admin/coupons' },
+    { text: 'Food Ratings', icon: <Star />, path: '/admin/food-ratings' },
+    // { text: 'Feedback', icon: <Feedback />, path: '/admin/feedback' },
     { text: 'Users', icon: <People />, path: '/admin/users' },
   ];
 

@@ -59,20 +59,28 @@ const DailyReportCharts = ({ dailyReport }) => {
             Daily Summary - {dailyReport.date}
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6} md={3}>
+            <Grid item xs={6} md={2}>
               <Typography color="text.secondary">Total Orders</Typography>
               <Typography variant="h5">{dailyReport.totalOrders}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <Typography color="text.secondary">Successful</Typography>
-              <Typography variant="h5">{dailyReport.successfulOrders}</Typography>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Completed</Typography>
+              <Typography variant="h5" color="success.main">{dailyReport.successfulOrders}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Pending</Typography>
+              <Typography variant="h5" color="warning.main">{dailyReport.pendingOrders || 0}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Incomplete</Typography>
+              <Typography variant="h5" color="error.main">{dailyReport.incompleteOrders || 0}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2}>
               <Typography color="text.secondary">Revenue</Typography>
               <Typography variant="h5">₹{dailyReport.revenue.toFixed(0)}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <Typography color="text.secondary">Avg Order Value</Typography>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Avg Order</Typography>
               <Typography variant="h5">₹{dailyReport.avgOrderValue.toFixed(0)}</Typography>
             </Grid>
           </Grid>

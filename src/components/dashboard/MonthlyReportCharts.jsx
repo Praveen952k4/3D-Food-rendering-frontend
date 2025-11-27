@@ -125,20 +125,28 @@ const MonthlyReportCharts = ({ monthlyReport }) => {
             Monthly Summary
           </Typography>
           <Grid container spacing={3}>
-            <Grid item xs={6} md={3}>
+            <Grid item xs={6} md={2}>
               <Typography color="text.secondary">Total Orders</Typography>
               <Typography variant="h5">{monthlyReport.totalOrders}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <Typography color="text.secondary">Successful</Typography>
-              <Typography variant="h5">{monthlyReport.successfulOrders}</Typography>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Completed</Typography>
+              <Typography variant="h5" color="success.main">{monthlyReport.successfulOrders}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <Typography color="text.secondary">Total Revenue</Typography>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Pending</Typography>
+              <Typography variant="h5" color="warning.main">{monthlyReport.pendingOrders || 0}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Incomplete</Typography>
+              <Typography variant="h5" color="error.main">{monthlyReport.incompleteOrders || 0}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Revenue</Typography>
               <Typography variant="h5">₹{monthlyReport.revenue.toFixed(0)}</Typography>
             </Grid>
-            <Grid item xs={6} md={3}>
-              <Typography color="text.secondary">Avg Order Value</Typography>
+            <Grid item xs={6} md={2}>
+              <Typography color="text.secondary">Avg Order</Typography>
               <Typography variant="h5">₹{monthlyReport.avgOrderValue.toFixed(0)}</Typography>
             </Grid>
           </Grid>

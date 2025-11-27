@@ -19,6 +19,8 @@ import {
   InputLabel,
   CircularProgress,
   Stack,
+  Pagination,
+  Box,
 } from '@mui/material';
 import {
   Add,
@@ -36,6 +38,8 @@ const CouponManagement = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
+  const [page, setPage] = useState(1);
+  const [itemsPerPage] = useState(9);
   const [formData, setFormData] = useState({
     code: '',
     description: '',
@@ -148,6 +152,18 @@ const CouponManagement = () => {
     alert('Coupon code copied!');
   };
 
+  const handleChangePage = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Get paginated data
+  const totalPages = Math.ceil(coupons.length / itemsPerPage);
+  const paginatedCoupons = coupons.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
@@ -175,7 +191,7 @@ const CouponManagement = () => {
       </Stack>
 
       <Grid container spacing={3}>
-        {coupons.map((coupon) => (
+        {paginatedCoupons.map((coupon) => (
           <Grid item xs={12} md={6} lg={4} key={coupon._id}>
             <Card sx={{ height: '100%', position: 'relative' }}>
               <CardContent>
@@ -240,6 +256,20 @@ const CouponManagement = () => {
           </Grid>
         ))}
       </Grid>
+
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handleChangePage}
+            color="primary"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

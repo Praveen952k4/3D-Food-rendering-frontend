@@ -18,6 +18,7 @@ import {
   TableRow,
   CircularProgress,
   Avatar,
+  TablePagination,
 } from '@mui/material';
 import { Person, CheckCircle, History, Phone, Email } from '@mui/icons-material';
 import { getOnlineUsers, getLoginHistory } from '../../services/api';
@@ -37,6 +38,10 @@ const UserManagement = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [onlinePage, setOnlinePage] = useState(0);
+  const [onlineRowsPerPage, setOnlineRowsPerPage] = useState(10);
+  const [historyPage, setHistoryPage] = useState(0);
+  const [historyRowsPerPage, setHistoryRowsPerPage] = useState(10);
 
   useEffect(() => {
     fetchData();
@@ -69,6 +74,35 @@ const UserManagement = () => {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+  const handleChangeOnlinePage = (event, newPage) => {
+    setOnlinePage(newPage);
+  };
+
+  const handleChangeOnlineRowsPerPage = (event) => {
+    setOnlineRowsPerPage(parseInt(event.target.value, 10));
+    setOnlinePage(0);
+  };
+
+  const handleChangeHistoryPage = (event, newPage) => {
+    setHistoryPage(newPage);
+  };
+
+  const handleChangeHistoryRowsPerPage = (event) => {
+    setHistoryRowsPerPage(parseInt(event.target.value, 10));
+    setHistoryPage(0);
+  };
+
+  // Get paginated data
+  const paginatedOnlineUsers = onlineUsers.slice(
+    onlinePage * onlineRowsPerPage,
+    onlinePage * onlineRowsPerPage + onlineRowsPerPage
+  );
+
+  const paginatedLoginHistory = loginHistory.slice(
+    historyPage * historyRowsPerPage,
+    historyPage * historyRowsPerPage + historyRowsPerPage
+  );
 
   if (loading) {
     return (
@@ -161,7 +195,7 @@ const UserManagement = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {onlineUsers.map((user) => (
+                {paginatedOnlineUsers.map((user) => (
                   <TableRow key={user._id}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
@@ -207,6 +241,15 @@ const UserManagement = () => {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={onlineUsers.length}
+              rowsPerPage={onlineRowsPerPage}
+              page={onlinePage}
+              onPageChange={handleChangeOnlinePage}
+              onRowsPerPageChange={handleChangeOnlineRowsPerPage}
+            />
           </TableContainer>
         </TabPanel>
 
@@ -225,7 +268,7 @@ const UserManagement = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {loginHistory.map((user) => (
+                {paginatedLoginHistory.map((user) => (
                   <TableRow key={user._id}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
@@ -262,6 +305,15 @@ const UserManagement = () => {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={loginHistory.length}
+              rowsPerPage={historyRowsPerPage}
+              page={historyPage}
+              onPageChange={handleChangeHistoryPage}
+              onRowsPerPageChange={handleChangeHistoryRowsPerPage}
+            />
           </TableContainer>
         </TabPanel>
       </Paper>

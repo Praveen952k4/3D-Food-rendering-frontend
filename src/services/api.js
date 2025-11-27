@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Force localhost for development - don't use network IP
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 console.log('API Base URL:', API_BASE_URL); // Debug log
 
@@ -65,8 +65,20 @@ export const createOrder = (orderData) => api.post('/orders', orderData);
 export const getOrder = (id) => api.get(`/orders/${id}`);
 export const updateOrder = (id, data) => api.put(`/orders/${id}`, data);
 export const getOrderHistory = (phone) => api.get(`/orders/history/${phone}`);
+export const getActiveOrders = () => api.get('/orders/active/notifications');
 export const submitFeedback = (orderId, rating, feedback) => 
   api.post(`/orders/${orderId}/feedback`, { rating, feedback });
+
+// Feedback APIs
+export const submitDetailedFeedback = (feedbackData) => api.post('/feedback/submit', feedbackData);
+export const getFeedbackByOrder = (orderId) => api.get(`/feedback/order/${orderId}`);
+export const getAllFeedback = () => api.get('/feedback/all');
+export const getFeedbackStats = () => api.get('/feedback/stats');
+
+// Item Feedback APIs (per-food ratings)
+export const submitItemFeedback = (feedbackData) => api.post('/item-feedback/submit', feedbackData);
+export const getItemsWithRatings = () => api.get('/item-feedback/items-with-ratings');
+export const getItemRatings = (foodId) => api.get(`/item-feedback/item/${foodId}`);
 
 // Admin APIs
 export const getAdminOrders = (status, date) => 
@@ -90,6 +102,7 @@ export const getMonthlyReport = (year, month) =>
   api.get('/analytics/monthly-report', { params: { year, month } });
 
 // Coupon APIs
+export const getAvailableCoupons = () => api.get('/coupons/available');
 export const validateCoupon = (code, orderValue) => 
   api.get(`/coupons/validate/${code}`, { params: { orderValue } });
 export const applyCoupon = (code, orderValue) => 
@@ -99,5 +112,11 @@ export const createCoupon = (data) => api.post('/coupons', data);
 export const updateCoupon = (id, data) => api.put(`/coupons/${id}`, data);
 export const deleteCoupon = (id) => api.delete(`/coupons/${id}`);
 export const toggleCoupon = (id) => api.patch(`/coupons/${id}/toggle`);
+
+// Chef APIs
+export const getChefOrders = () => api.get('/chef/orders');
+export const markOrderDelivered = (orderId) => api.put(`/chef/orders/${orderId}/deliver`);
+export const updateChefOrderStatus = (orderId, status) => 
+  api.patch(`/chef/orders/${orderId}/status`, { status });
 
 export default api;

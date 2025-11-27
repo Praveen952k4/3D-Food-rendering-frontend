@@ -72,8 +72,10 @@ const Login = () => {
         const user = JSON.parse(userStr);
         if (user.role === 'admin') {
           navigate('/admin/dashboard');
+        } else if (user.role === 'chef') {
+          navigate('/chef/dashboard');
         } else {
-          navigate('/customer/menu');
+          navigate('/customer/home');
         }
       }
     } catch (err) {

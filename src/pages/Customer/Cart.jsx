@@ -24,6 +24,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
+  Box,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -35,12 +36,18 @@ import ShoppingCart from '@mui/icons-material/ShoppingCart';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import { useNavigate } from 'react-router-dom';
-import { getFoodItems, createOrder } from '../../services/api';
+import { getFoodItems, createOrder, validateCoupon, getAvailableCoupons } from '../../services/api';
+import { useThemeMode } from '../../context/ThemeContext';
 import FoodViewer3D from '../../components/FoodViewer3D';
 
 const CustomerCart = () => {
+  const { themeMode } = useThemeMode();
   const [cartItems, setCartItems] = useState([]);
   const [promoCode, setPromoCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
@@ -73,7 +80,17 @@ const CustomerCart = () => {
 
   useEffect(() => {
     loadCart();
+    loadAvailableCoupons();
   }, []);
+
+  const loadAvailableCoupons = async () => {
+    try {
+      const response = await getAvailableCoupons();
+      setAvailableCoupons(response.data || []);
+    } catch (error) {
+      console.error('Failed to load available coupons:', error);
+    }
+  };
 
   const loadCart = async () => {
     try {
@@ -199,6 +216,61 @@ const CustomerCart = () => {
     return customization.extras.reduce((sum, extra) => sum + (extrasPricing[extra] || 0), 0);
   };
 
+  const handleApplyCoupon = async () => {
+    if (!promoCode.trim()) return;
+
+    setCouponLoading(true);
+    try {
+      const subtotal = getSubtotal();
+      const response = await validateCoupon(promoCode, subtotal);
+      
+      if (response.data.success) {
+        const { coupon } = response.data;
+        const discount = coupon.discount || 0;
+        setAppliedCoupon(coupon);
+        setCouponDiscount(discount);
+        alert(`✓ Coupon applied! You saved ₹${discount.toFixed(2)}`);
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Invalid or expired coupon';
+      alert(message);
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleQuickApplyCoupon = async (couponCode) => {
+    setPromoCode(couponCode);
+    setCouponLoading(true);
+    try {
+      const subtotal = getSubtotal();
+      const response = await validateCoupon(couponCode, subtotal);
+      
+      if (response.data.success) {
+        const { coupon } = response.data;
+        const discount = coupon.discount || 0;
+        setAppliedCoupon(coupon);
+        setCouponDiscount(discount);
+        alert(`✓ Coupon applied! You saved ₹${discount.toFixed(2)}`);
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Invalid or expired coupon';
+      alert(message);
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setPromoCode('');
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+  };
+
   const getSubtotal = () => {
     let total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     
@@ -223,7 +295,7 @@ const CustomerCart = () => {
   };
 
   const getTotal = () => {
-    return getSubtotal() + getTax();
+    return getSubtotal() + getTax() - couponDiscount;
   };
 
   const handleCheckout = async () => {
@@ -265,6 +337,8 @@ const CustomerCart = () => {
         subtotal: getSubtotal(),
         tax: getTax(),
         discount: 0,
+        couponCode: appliedCoupon ? appliedCoupon.code : '',
+        couponDiscount: couponDiscount,
         grandTotal: getTotal(),
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
@@ -285,6 +359,23 @@ const CustomerCart = () => {
       setOrderNumber(response.data.orderNumber);
       setCheckoutDialogOpen(false);
       setSuccessDialogOpen(true);
+      
+      // Trigger notification refresh
+      window.dispatchEvent(new CustomEvent('orderPlaced', { 
+        detail: { 
+          orderNumber: response.data.orderNumber,
+          order: response.data.order 
+        } 
+      }));
+      
+      // Show browser notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Order Placed Successfully! 🎉', {
+          body: `Order ${response.data.orderNumber} has been placed and is pending confirmation.`,
+          icon: '/logo192.png',
+          badge: '/logo192.png',
+        });
+      }
     } catch (error) {
       console.error('❌ Checkout failed:', error);
       console.error('Error response:', error.response);
@@ -324,7 +415,7 @@ const CustomerCart = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: themeMode === 'dark' ? '#0f0f0f' : '#f5f5f5',
         gap: '16px',
       }}>
         <div style={{ position: 'relative', display: 'inline-flex' }}>
@@ -351,7 +442,7 @@ const CustomerCart = () => {
             <ShoppingCart style={{ fontSize: 28, color: '#667eea' }} />
           </div>
         </div>
-        <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
+        <Typography variant="body2" sx={{ color: themeMode === 'dark' ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
           Loading your cart...
         </Typography>
       </div>
@@ -359,7 +450,7 @@ const CustomerCart = () => {
   }
 
   return (
-    <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', paddingBottom: '200px' }}>
+    <div style={{ backgroundColor: themeMode === 'dark' ? '#0f0f0f' : '#f8f9fa', minHeight: '100vh', paddingBottom: '200px' }}>
       {/* Header */}
       <Paper
         elevation={3}
@@ -386,7 +477,12 @@ const CustomerCart = () => {
 
       <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3 }, px: { xs: 1, sm: 2 }, pb: { xs: '250px', sm: '220px' } }}>
         {cartItems.length === 0 ? (
-          <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Paper sx={{ 
+            p: 4, 
+            textAlign: 'center',
+            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+            color: themeMode === 'dark' ? 'white' : 'inherit',
+          }}>
             <Typography variant="h6" color="text.secondary">
               Your cart is empty
             </Typography>
@@ -409,6 +505,7 @@ const CustomerCart = () => {
                     mb: { xs: 1.5, sm: 2 },
                     borderRadius: { xs: '8px', sm: '12px' },
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
                     '&:hover': {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     }
@@ -506,16 +603,19 @@ const CustomerCart = () => {
                           sx={{ 
                             marginTop: '12px',
                             boxShadow: 'none',
-                            border: '1px solid #e5e7eb',
+                            border: `1px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
+                            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
                             '&:before': { display: 'none' },
                             borderRadius: '8px !important',
                           }}
                           defaultExpanded={false}
                         >
                           <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
+                            expandIcon={<ExpandMoreIcon sx={{ color: themeMode === 'dark' ? 'white' : 'inherit' }} />}
                             sx={{
-                              backgroundColor: '#f0f9ff',
+                              backgroundColor: themeMode === 'dark' 
+                                ? 'rgba(102, 126, 234, 0.15)'
+                                : '#f0f9ff',
                               borderRadius: '8px',
                               minHeight: '48px',
                               '&.Mui-expanded': {
@@ -527,7 +627,7 @@ const CustomerCart = () => {
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
                               <span style={{ fontSize: '1.2rem' }}>🎨</span>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e40af', flex: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: themeMode === 'dark' ? 'white' : '#1e40af', flex: 1 }}>
                                 Customizations
                               </Typography>
                               <Chip 
@@ -542,7 +642,12 @@ const CustomerCart = () => {
                               />
                             </div>
                           </AccordionSummary>
-                          <AccordionDetails sx={{ padding: '16px', maxHeight: '400px', overflowY: 'auto' }}>
+                          <AccordionDetails sx={{ 
+                            padding: '16px', 
+                            maxHeight: '400px', 
+                            overflowY: 'auto',
+                            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+                          }}>
                             {item.customizations.map((custom, idx) => (
                               <Paper
                                 key={idx}
@@ -550,8 +655,8 @@ const CustomerCart = () => {
                                 sx={{
                                   marginBottom: idx < item.customizations.length - 1 ? '12px' : '0',
                                   padding: '12px',
-                                  background: '#f9fafb',
-                                  border: '1px solid #e5e7eb',
+                                  background: themeMode === 'dark' ? '#0f0f0f' : '#f9fafb',
+                                  border: `1px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
                                   borderRadius: '8px',
                                 }}
                               >
@@ -729,6 +834,80 @@ const CustomerCart = () => {
               ))}
             </div>
 
+            {/* Available Coupons */}
+            {!appliedCoupon && availableCoupons.length > 0 && (
+              <Paper 
+                sx={{ 
+                  p: 2.5, 
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  mb: 2,
+                  background: themeMode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(254, 243, 199, 0.15) 0%, rgba(253, 230, 138, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  border: '2px solid #fbbf24',
+                }}
+              >
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: '#92400e',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '1.2rem' }}>🎁</span>
+                  Available Coupons
+                </Typography>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {availableCoupons.map((coupon) => (
+                    <Chip
+                      key={coupon._id}
+                      label={
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong>{coupon.code}</strong>
+                          <span style={{ fontSize: '0.85rem' }}>
+                            {coupon.discountType === 'percentage' 
+                              ? `${coupon.discountValue}% OFF`
+                              : `₹${coupon.discountValue} OFF`}
+                          </span>
+                        </span>
+                      }
+                      onClick={() => handleQuickApplyCoupon(coupon.code)}
+                      disabled={couponLoading}
+                      sx={{
+                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                        color: 'white',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #764ba2, #667eea)',
+                          transform: 'scale(1.05)',
+                        },
+                        transition: 'all 0.2s',
+                      }}
+                    />
+                  ))}
+                </div>
+                {availableCoupons.length > 0 && (
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#92400e',
+                      display: 'block',
+                      mt: 1,
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    💡 Tap any coupon to apply instantly
+                  </Typography>
+                )}
+              </Paper>
+            )}
+
             {/* Promo Code */}
             <Paper 
               sx={{ 
@@ -736,13 +915,15 @@ const CustomerCart = () => {
                 borderRadius: '12px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 mb: 3,
+                backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+                border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
               }}
             >
               <Typography 
                 variant="subtitle2" 
                 sx={{ 
                   fontWeight: 700, 
-                  color: '#1f2937',
+                  color: themeMode === 'dark' ? 'white' : '#1f2937',
                   marginBottom: '12px',
                   display: 'flex',
                   alignItems: 'center',
@@ -775,7 +956,8 @@ const CustomerCart = () => {
                 />
                 <Button
                   variant="contained"
-                  disabled={!promoCode.trim()}
+                  disabled={!promoCode.trim() || couponLoading || appliedCoupon}
+                  onClick={handleApplyCoupon}
                   sx={{
                     background: 'linear-gradient(135deg, #667eea, #764ba2)',
                     whiteSpace: 'nowrap',
@@ -790,15 +972,45 @@ const CustomerCart = () => {
                       color: '#9ca3af',
                     }
                   }}
-                  onClick={() => {
-                    // Add promo code logic here
-                    alert(`Promo code "${promoCode}" applied!`);
-                  }}
                 >
-                  Apply
+                  {couponLoading ? <CircularProgress size={20} color="inherit" /> : (appliedCoupon ? 'Applied' : 'Apply')}
                 </Button>
               </div>
             </Paper>
+            
+            {/* Applied Coupon Display */}
+            {appliedCoupon && (
+              <Paper
+                sx={{
+                  p: 2,
+                  mt: 2,
+                  background: themeMode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(212, 252, 121, 0.15) 0%, rgba(150, 230, 161, 0.15) 100%)'
+                    : 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)',
+                  border: '2px dashed #10b981',
+                  borderRadius: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <Typography variant="body2" fontWeight="bold" color="success.dark">
+                      ✓ Coupon Applied: {appliedCoupon.code}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {appliedCoupon.description}
+                    </Typography>
+                  </div>
+                  <Button
+                    size="small"
+                    color="error"
+                    onClick={handleRemoveCoupon}
+                    sx={{ minWidth: 'auto' }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </Paper>
+            )}
           </>
         )}
       </Container>
@@ -816,25 +1028,32 @@ const CustomerCart = () => {
             borderTopLeftRadius: { xs: 16, sm: 20 },
             borderTopRightRadius: { xs: 16, sm: 20 },
             boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
           }}
         >
           <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2 } }}>
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <Typography>Subtotal</Typography>
-                <Typography fontWeight="bold">Rs. {getSubtotal().toFixed(2)}</Typography>
+                <Typography fontWeight="bold">₹{getSubtotal().toFixed(2)}</Typography>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <Typography>Tax and fees</Typography>
-                <Typography fontWeight="bold">Rs. {getTax().toFixed(2)}</Typography>
+                <Typography fontWeight="bold">₹{getTax().toFixed(2)}</Typography>
               </div>
+              {appliedCoupon && couponDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <Typography color="success.main">Coupon Discount ({appliedCoupon.code})</Typography>
+                  <Typography fontWeight="bold" color="success.main">-₹{couponDiscount.toFixed(2)}</Typography>
+                </div>
+              )}
               <Divider sx={{ my: 2 }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <Typography variant="h6" fontWeight="bold">
                   Total ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)
                 </Typography>
                 <Typography variant="h6" fontWeight="bold" color="primary">
-                  Rs. {getTotal().toFixed(2)}
+                  ₹{getTotal().toFixed(2)}
                 </Typography>
               </div>
 
@@ -872,13 +1091,15 @@ const CustomerCart = () => {
           sx: {
             m: { xs: 0, sm: 2 },
             borderRadius: { xs: 0, sm: '12px' },
+            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+            border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
           }
         }}
       >
         <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
           Complete Your Order
         </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
+        <DialogContent sx={{ mt: 2, backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white' }}>
           <TextField
             fullWidth
             label="Your Name"
@@ -887,6 +1108,16 @@ const CustomerCart = () => {
             margin="normal"
             required
             placeholder="Enter your full name"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#667eea',
+                },
+              },
+              '& label.Mui-focused': {
+                color: '#667eea',
+              },
+            }}
           />
           <TextField
             fullWidth
@@ -897,34 +1128,125 @@ const CustomerCart = () => {
             required
             placeholder="Enter 10-digit phone number"
             inputProps={{ maxLength: 10 }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                '&.Mui-focused fieldset': {
+                  borderColor: '#667eea',
+                },
+              },
+              '& label.Mui-focused': {
+                color: '#667eea',
+              },
+            }}
           />
 
           <FormControl component="fieldset" sx={{ mt: 2, mb: 2, width: '100%' }}>
-            <FormLabel component="legend" sx={{ fontWeight: 600 }}>Order Type</FormLabel>
+            <FormLabel 
+              component="legend" 
+              sx={{ 
+                fontWeight: 700,
+                fontSize: '1rem',
+                color: themeMode === 'dark' ? 'white' : '#1f2937',
+                mb: 1.5,
+              }}
+            >
+              Order Type
+            </FormLabel>
             <RadioGroup
               value={orderType}
               onChange={(e) => setOrderType(e.target.value)}
+              sx={{ gap: 1.5 }}
             >
-              <FormControlLabel
-                value="dine-in"
-                control={<Radio />}
-                label={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <RestaurantIcon />
-                    <span>Dine In</span>
-                  </div>
-                }
-              />
-              <FormControlLabel
-                value="takeaway"
-                control={<Radio />}
-                label={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <TakeoutDiningIcon />
-                    <span>Takeaway</span>
-                  </div>
-                }
-              />
+              <Paper
+                elevation={orderType === 'dine-in' ? 3 : 0}
+                sx={{
+                  p: 2,
+                  border: orderType === 'dine-in' ? '2px solid #667eea' : `2px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
+                  borderRadius: '12px',
+                  background: orderType === 'dine-in' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)' : themeMode === 'dark' ? '#1a1a1a' : 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: '#667eea',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                  },
+                }}
+                onClick={() => setOrderType('dine-in')}
+              >
+                <FormControlLabel
+                  value="dine-in"
+                  control={
+                    <Radio 
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                      <RestaurantIcon sx={{ color: orderType === 'dine-in' ? '#667eea' : '#9ca3af' }} />
+                      <Box>
+                        <Typography variant="body1" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'white' : '#1f2937' }}>
+                          Dine In
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Enjoy your meal at the restaurant
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                  sx={{ m: 0, width: '100%' }}
+                />
+              </Paper>
+              <Paper
+                elevation={orderType === 'takeaway' ? 3 : 0}
+                sx={{
+                  p: 2,
+                  border: orderType === 'takeaway' ? '2px solid #667eea' : `2px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
+                  borderRadius: '12px',
+                  background: orderType === 'takeaway' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)' : themeMode === 'dark' ? '#1a1a1a' : 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: '#667eea',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                  },
+                }}
+                onClick={() => setOrderType('takeaway')}
+              >
+                <FormControlLabel
+                  value="takeaway"
+                  control={
+                    <Radio 
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                      <TakeoutDiningIcon sx={{ color: orderType === 'takeaway' ? '#667eea' : '#9ca3af' }} />
+                      <Box>
+                        <Typography variant="body1" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'white' : '#1f2937' }}>
+                          Takeaway
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Pick up your order to go
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                  sx={{ m: 0, width: '100%' }}
+                />
+              </Paper>
             </RadioGroup>
           </FormControl>
 
@@ -937,47 +1259,181 @@ const CustomerCart = () => {
               margin="normal"
               required
               placeholder="Enter table number"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#667eea',
+                  },
+                },
+                '& label.Mui-focused': {
+                  color: '#667eea',
+                },
+              }}
             />
           )}
 
           <FormControl component="fieldset" sx={{ mt: 2, mb: 2, width: '100%' }}>
-            <FormLabel component="legend" sx={{ fontWeight: 600 }}>Payment Method</FormLabel>
+            <FormLabel 
+              component="legend" 
+              sx={{ 
+                fontWeight: 700,
+                fontSize: '1rem',
+                color: themeMode === 'dark' ? 'white' : '#1f2937',
+                mb: 1.5,
+              }}
+            >
+              Payment Method
+            </FormLabel>
             <RadioGroup
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
+              sx={{ gap: 1.5 }}
             >
-              <FormControlLabel
-                value="cash"
-                control={<Radio />}
-                label="Cash on Delivery"
-              />
-              <FormControlLabel
-                value="online"
-                control={<Radio />}
-                label="Online Payment (UPI/Card/Net Banking)"
-              />
+              <Paper
+                elevation={paymentMethod === 'cash' ? 3 : 0}
+                sx={{
+                  p: 2,
+                  border: paymentMethod === 'cash' ? '2px solid #667eea' : `2px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
+                  borderRadius: '12px',
+                  background: paymentMethod === 'cash' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)' : themeMode === 'dark' ? '#1a1a1a' : 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: '#667eea',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                  },
+                }}
+                onClick={() => setPaymentMethod('cash')}
+              >
+                <FormControlLabel
+                  value="cash"
+                  control={
+                    <Radio 
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ ml: 1 }}>
+                      <Typography variant="body1" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'white' : '#1f2937' }}>
+                        💵 Cash on Delivery
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Pay with cash when your order arrives
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0, width: '100%' }}
+                />
+              </Paper>
+              <Paper
+                elevation={paymentMethod === 'online' ? 3 : 0}
+                sx={{
+                  p: 2,
+                  border: paymentMethod === 'online' ? '2px solid #667eea' : `2px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
+                  borderRadius: '12px',
+                  background: paymentMethod === 'online' ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)' : themeMode === 'dark' ? '#1a1a1a' : 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: '#667eea',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
+                  },
+                }}
+                onClick={() => setPaymentMethod('online')}
+              >
+                <FormControlLabel
+                  value="online"
+                  control={
+                    <Radio 
+                      sx={{
+                        color: '#667eea',
+                        '&.Mui-checked': {
+                          color: '#667eea',
+                        },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ ml: 1 }}>
+                      <Typography variant="body1" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'white' : '#1f2937' }}>
+                        💳 Online Payment
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        UPI • Card • Net Banking • Wallet
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ m: 0, width: '100%' }}
+                />
+              </Paper>
             </RadioGroup>
           </FormControl>
 
-          <Paper sx={{ p: 2, mt: 3, background: '#f5f5f5' }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Order Summary
+          <Paper 
+            sx={{ 
+              p: 3, 
+              mt: 3, 
+              background: themeMode === 'dark' 
+                ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
+                : 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+              border: '2px solid rgba(102, 126, 234, 0.2)',
+              borderRadius: '12px',
+            }}
+          >
+            <Typography 
+              variant="h6" 
+              fontWeight="bold" 
+              gutterBottom
+              sx={{ 
+                color: '#667eea',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              🧾 Order Summary
             </Typography>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <Typography>Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})</Typography>
-              <Typography>₹{getSubtotal().toFixed(2)}</Typography>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <Typography>Tax (5%)</Typography>
-              <Typography>₹{getTax().toFixed(2)}</Typography>
-            </div>
-            <Divider sx={{ my: 1 }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6" fontWeight="bold">Total</Typography>
-              <Typography variant="h6" fontWeight="bold" color="primary">
-                ₹{getTotal().toFixed(2)}
-              </Typography>
-            </div>
+            <Box sx={{ mt: 2 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <Typography variant="body1" color="text.secondary">
+                  Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})
+                </Typography>
+                <Typography variant="body1" fontWeight="600">₹{getSubtotal().toFixed(2)}</Typography>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <Typography variant="body1" color="text.secondary">Tax (5%)</Typography>
+                <Typography variant="body1" fontWeight="600">₹{getTax().toFixed(2)}</Typography>
+              </div>
+              {couponDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <Typography variant="body1" sx={{ color: '#10b981' }}>Coupon Discount</Typography>
+                  <Typography variant="body1" fontWeight="600" sx={{ color: '#10b981' }}>-₹{couponDiscount.toFixed(2)}</Typography>
+                </div>
+              )}
+              <Divider sx={{ my: 2, borderColor: 'rgba(102, 126, 234, 0.3)' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'white' : '#1f2937' }}>Total Amount</Typography>
+                <Typography 
+                  variant="h5" 
+                  fontWeight="bold" 
+                  sx={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  ₹{getTotal().toFixed(2)}
+                </Typography>
+              </div>
+            </Box>
           </Paper>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
@@ -989,25 +1445,59 @@ const CustomerCart = () => {
             onClick={handlePlaceOrder}
             disabled={loading}
             sx={{
-              background: 'linear-gradient(45deg, #ff9a56 30%, #ff6b6b 90%)',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+              fontWeight: 700,
+              borderRadius: '10px',
+              boxShadow: '0 4px 14px rgba(102, 126, 234, 0.4)',
               '&:hover': {
-                background: 'linear-gradient(45deg, #ff6b6b 30%, #ff9a56 90%)',
+                background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.6)',
+                transform: 'translateY(-2px)',
               },
+              '&:disabled': {
+                background: '#e5e7eb',
+                color: '#9ca3af',
+              },
+              transition: 'all 0.3s ease',
             }}
           >
-            {loading ? 'Placing Order...' : 'Place Order'}
+            {loading ? '⏳ Placing Order...' : '🛒 Place Order'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Success Dialog */}
-      <Dialog open={successDialogOpen} onClose={handleSuccessClose}>
-        <DialogContent sx={{ textAlign: 'center', p: 4 }}>
+      <Dialog 
+        open={successDialogOpen} 
+        onClose={handleSuccessClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+            border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
+            borderRadius: '12px',
+          }
+        }}
+      >
+        <DialogContent sx={{ 
+          textAlign: 'center', 
+          p: 4,
+          backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+        }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+          <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: themeMode === 'dark' ? 'white' : 'inherit' }}>
             Order Placed Successfully!
           </Typography>
-          <Paper sx={{ p: 2, mt: 2, background: '#f0f7ff' }}>
+          <Paper sx={{ 
+            p: 2, 
+            mt: 2, 
+            background: themeMode === 'dark' 
+              ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
+              : '#f0f7ff',
+            border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
+          }}>
             <Typography variant="caption" color="text.secondary">
               Your Order Number
             </Typography>
@@ -1024,7 +1514,7 @@ const CustomerCart = () => {
               : 'Your order will be ready for pickup soon'}
           </Typography>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white' }}>
           <Button fullWidth variant="contained" onClick={handleSuccessClose}>
             Back to Menu
           </Button>
@@ -1042,6 +1532,8 @@ const CustomerCart = () => {
           sx: {
             borderRadius: { xs: 0, sm: '16px' },
             m: { xs: 0, sm: 2 },
+            backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+            border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
           }
         }}
       >
@@ -1058,10 +1550,10 @@ const CustomerCart = () => {
             </div>
           </div>
         </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
+        <DialogContent sx={{ mt: 2, backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white' }}>
           {/* Spice Level */}
           <FormControl fullWidth sx={{ mb: 3 }}>
-            <FormLabel sx={{ fontWeight: 600, color: '#1f2937', mb: 1 }}>
+            <FormLabel sx={{ fontWeight: 600, color: themeMode === 'dark' ? 'white' : '#1f2937', mb: 1 }}>
               🌶️ Spice Level
             </FormLabel>
             <RadioGroup
@@ -1093,7 +1585,7 @@ const CustomerCart = () => {
 
           {/* Extras */}
           <div style={{ marginBottom: '24px' }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1f2937', mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: themeMode === 'dark' ? 'white' : '#1f2937', mb: 2 }}>
               ➕ Add Extras
             </Typography>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1108,10 +1600,12 @@ const CustomerCart = () => {
                   key={extra.id}
                   sx={{
                     p: 2,
-                    border: customization.extras.includes(extra.id) ? '2px solid #667eea' : '1px solid #e5e7eb',
+                    border: customization.extras.includes(extra.id) ? '2px solid #667eea' : `1px solid ${themeMode === 'dark' ? '#2d2d2d' : '#e5e7eb'}`,
                     borderRadius: '12px',
                     cursor: 'pointer',
-                    background: customization.extras.includes(extra.id) ? 'rgba(102, 126, 234, 0.05)' : '#fff',
+                    background: customization.extras.includes(extra.id) 
+                      ? 'rgba(102, 126, 234, 0.05)' 
+                      : themeMode === 'dark' ? '#1a1a1a' : '#fff',
                     transition: 'all 0.2s ease',
                     '&:hover': {
                       borderColor: '#667eea',
@@ -1137,7 +1631,7 @@ const CustomerCart = () => {
                       }}>
                         {customization.extras.includes(extra.id) && '✓'}
                       </div>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1f2937' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: themeMode === 'dark' ? 'white' : '#1f2937' }}>
                         {extra.label}
                       </Typography>
                     </div>
@@ -1159,7 +1653,14 @@ const CustomerCart = () => {
 
           {/* Extras Total */}
           {customization.extras.length > 0 && (
-            <Paper sx={{ p: 2, mb: 3, background: '#f0f9ff', border: '1px solid #3b82f6' }}>
+            <Paper sx={{ 
+              p: 2, 
+              mb: 3, 
+              background: themeMode === 'dark' 
+                ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'
+                : '#f0f9ff', 
+              border: `1px solid ${themeMode === 'dark' ? '#2d2d2d' : '#3b82f6'}`,
+            }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="body2" sx={{ color: '#1e40af', fontWeight: 600 }}>
                   Extras Total:
@@ -1192,7 +1693,7 @@ const CustomerCart = () => {
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 2 }}>
+        <DialogActions sx={{ p: 3, gap: 2, backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white' }}>
           <Button 
             onClick={() => setCustomizeDialogOpen(false)}
             sx={{ 
@@ -1235,6 +1736,8 @@ const CustomerCart = () => {
               m: { xs: 0, sm: 2 },
               borderRadius: { xs: 0, sm: '12px' },
               height: { xs: '100%', sm: '85vh' },
+              backgroundColor: themeMode === 'dark' ? '#1a1a1a' : 'white',
+              border: themeMode === 'dark' ? '1px solid #2d2d2d' : 'none',
             }
           }}
         >
@@ -1258,7 +1761,7 @@ const CustomerCart = () => {
               <ArrowBackIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent sx={{ p: 0, height: '100%' }}>
+          <DialogContent sx={{ p: 0, height: '100%', backgroundColor: themeMode === 'dark' ? '#0f0f0f' : 'white' }}>
             <FoodViewer3D foodItem={selectedFood} />
           </DialogContent>
         </Dialog>

@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+// eslint-disable-next-line no-unused-vars
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -39,19 +40,24 @@ import CloseIcon from '@mui/icons-material/Close';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import FilterListIcon from '@mui/icons-material/FilterList';
+// eslint-disable-next-line no-unused-vars
 import HistoryIcon from '@mui/icons-material/History';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CameraIcon from '@mui/icons-material/Camera';
-import { Canvas } from '@react-three/fiber';
-import { Environment, OrbitControls, useGLTF } from '@react-three/drei';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import { useGLTF } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getFoodItems } from '../../services/api';
+import { useThemeMode } from '../../context/ThemeContext';
+import OrderNotifications from '../../components/OrderNotifications';
+import FeedbackOverlay from '../../components/FeedbackOverlay';
+import { getFoodItems, submitItemFeedback } from '../../services/api';
 
-// 3D Model Component
+// 3D Model Component (currently unused - kept for future use)
+// eslint-disable-next-line no-unused-vars
 const Model = ({ modelUrl }) => {
   const gltf = useGLTF(modelUrl, true);
   const scene = useMemo(() => gltf.scene.clone(), [gltf.scene]);
@@ -388,12 +394,19 @@ const CustomerHome = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activePreviewFood, setActivePreviewFood] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(null);
   const [menuDrawerOpen, setMenuDrawerOpen] = useState(false);
   const [allItemsDrawerOpen, setAllItemsDrawerOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
+  const [unviewedNotificationsCount, setUnviewedNotificationsCount] = useState(0);
+  const [feedbackOverlayOpen, setFeedbackOverlayOpen] = useState(false);
+  const [deliveredOrder, setDeliveredOrder] = useState(null);
   const [vegFilter, setVegFilter] = useState("all");
-  const [themeMode, setThemeMode] = useState("light");
+  const { themeMode, toggleTheme } = useThemeMode();
   const [quantity, setQuantity] = useState(0);
   const [showSplash, setShowSplash] = useState(() => {
     return sessionStorage.getItem('splashShown') ? false : true;
@@ -430,6 +443,7 @@ const CustomerHome = () => {
     extras: [],
     specialInstructions: '',
   });
+  // eslint-disable-next-line no-unused-vars
   const [ingredientsExpanded, setIngredientsExpanded] = useState(false);
 
   // Hide splash after 10s, and persist splashShown
@@ -535,13 +549,28 @@ const CustomerHome = () => {
     }
   }, [cartVersion]);
 
-  const toggleTheme = useCallback(() => {
-    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
-  }, []);
-
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  // Feedback handlers
+  const handleOrderDelivered = (order) => {
+    console.log('📦 Order delivered, showing feedback overlay:', order);
+    setDeliveredOrder(order);
+    setFeedbackOverlayOpen(true);
+  };
+
+  const handleFeedbackSubmit = async (feedbackData) => {
+    try {
+      const response = await submitItemFeedback(feedbackData);
+      console.log('✅ Feedback submitted:', response.data);
+      setFeedbackOverlayOpen(false);
+      setDeliveredOrder(null);
+    } catch (error) {
+      console.error('❌ Failed to submit feedback:', error);
+      throw error;
+    }
   };
 
   const addToCart = useCallback(
@@ -570,6 +599,39 @@ const CustomerHome = () => {
       // Update quantity state if the current item is being added
       if (activePreviewFood?._id === foodId) {
         setQuantity(cart[foodId]);
+      }
+    },
+    [activePreviewFood]
+  );
+
+  const removeFromCart = useCallback(
+    (foodId) => {
+      if (!foodId) return;
+      const saved = localStorage.getItem("cart");
+      const cart = saved ? JSON.parse(saved) : {};
+      
+      if (cart[foodId]) {
+        if (cart[foodId] > 1) {
+          cart[foodId] = cart[foodId] - 1;
+        } else {
+          delete cart[foodId];
+          
+          // Also remove customizations for this item
+          const customizationData = localStorage.getItem('cartCustomization');
+          if (customizationData) {
+            const cartCustomization = JSON.parse(customizationData);
+            delete cartCustomization[foodId];
+            localStorage.setItem('cartCustomization', JSON.stringify(cartCustomization));
+          }
+        }
+        
+        localStorage.setItem("cart", JSON.stringify(cart));
+        setCartVersion((prev) => prev + 1);
+        
+        // Update quantity state if the current item is being removed
+        if (activePreviewFood?._id === foodId) {
+          setQuantity(cart[foodId] || 0);
+        }
       }
     },
     [activePreviewFood]
@@ -726,7 +788,11 @@ const CustomerHome = () => {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: "environment" // Use back camera on mobile devices
+        } 
+      });
       const v = videoRef.current;
       if (!v) return;
 
@@ -819,6 +885,35 @@ const CustomerHome = () => {
               )}
             </IconButton>
             <IconButton
+              onClick={() => {
+                setNotificationDrawerOpen(true);
+                // Mark all notifications as viewed when drawer opens
+                setUnviewedNotificationsCount(0);
+              }}
+              sx={{
+                backgroundColor: palette.surface,
+                color: palette.textPrimary,
+                padding: "8px",
+                "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
+              }}
+              title="Notifications"
+            >
+              <Badge 
+                badgeContent={unviewedNotificationsCount} 
+                color="error"
+                sx={{
+                  '& .MuiBadge-badge': {
+                    fontSize: '0.65rem',
+                    minWidth: '16px',
+                    height: '16px',
+                    padding: '0 4px',
+                  }
+                }}
+              >
+                <NotificationsIcon fontSize="small" />
+              </Badge>
+            </IconButton>
+            {/* <IconButton
               onClick={() => setMenuDrawerOpen(true)}
               sx={{
                 backgroundColor: palette.surface,
@@ -829,7 +924,7 @@ const CustomerHome = () => {
               title="Menu card"
             >
               <MenuBookIcon fontSize="small" />
-            </IconButton>
+            </IconButton> */}
             <IconButton
               onClick={handleLogout}
               sx={{
@@ -844,6 +939,16 @@ const CustomerHome = () => {
             </IconButton>
           </div>
         </div>
+      </div>
+
+      {/* Order Notifications - Hidden but still running for feedback triggers */}
+      <div style={{ display: "none" }}>
+        <OrderNotifications 
+          onCountChange={setActiveOrdersCount}
+          onUnviewedCountChange={setUnviewedNotificationsCount}
+          onOrderDelivered={handleOrderDelivered}
+          isDrawerOpen={false}
+        />
       </div>
 
       {/* Main Content - Full Screen 3D Viewer */}
@@ -1080,6 +1185,7 @@ const CustomerHome = () => {
                     transform: isActive ? "scale(1.2)" : "scale(1)",
                     opacity: isActive ? 1 : 0.7,
                     position: "relative",
+                    overflow: "visible",
                   }}
                 >
                   {/* IMAGE CIRCLE */}
@@ -1167,44 +1273,45 @@ const CustomerHome = () => {
                         />
                       </div>
                     )}
-
-                    {/* QUANTITY BADGE */}
-                    {itemQuantity > 0 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-6px",
-                          background:
-                            "linear-gradient(135deg, #10b981, #059669)",
-                          borderRadius: "50%",
-                          width: "22px",
-                          height: "22px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 2px 8px rgba(16, 185, 129, 0.6)",
-                          border: "2px solid white",
-                          zIndex: 10,
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "#fff",
-                            fontSize: "0.7rem",
-                            fontWeight: 800,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {itemQuantity}
-                        </Typography>
-                      </div>
-                    )}
                   </div>
 
+                  {/* QUANTITY BADGE - Outside image circle to avoid overflow clipping */}
+                  {itemQuantity > 0 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: isActive ? "0px" : "4px",
+                        right: isActive ? "8px" : "4px",
+                        background:
+                          "linear-gradient(135deg, #10b981, #059669)",
+                        borderRadius: "50%",
+                        width: "26px",
+                        height: "26px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 3px 12px rgba(16, 185, 129, 0.6), inset 0 1px 2px rgba(255,255,255,0.2)",
+                        border: "2.5px solid white",
+                        zIndex: 20,
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: "#fff",
+                          fontSize: "0.8rem",
+                          fontWeight: 900,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {itemQuantity}
+                      </Typography>
+                    </div>
+                  )}
+
                   {/* FOOD NAME */}
-                  <Typography
+                  {/* <Typography
                     variant="caption"
                     fontWeight={isActive ? 700 : 600}
                     noWrap
@@ -1220,7 +1327,7 @@ const CustomerHome = () => {
                     }}
                   >
                     {food.name}
-                  </Typography>
+                  </Typography> */}
                 </div>
               );
             })}
@@ -1799,23 +1906,73 @@ const CustomerHome = () => {
                     >
                       ₹{food.price}
                     </Typography>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(food._id);
-                      }}
-                      sx={{
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                        color: '#fff',
-                        padding: '6px',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #059669, #047857)',
-                        },
-                      }}
-                    >
-                      <AddIcon sx={{ fontSize: '16px' }} />
-                    </IconButton>
+                    {itemQuantity === 0 ? (
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(food._id);
+                        }}
+                        sx={{
+                          background: 'linear-gradient(135deg, #10b981, #059669)',
+                          color: '#fff',
+                          padding: '6px',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #059669, #047857)',
+                          },
+                        }}
+                      >
+                        <AddIcon sx={{ fontSize: '16px' }} />
+                      </IconButton>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromCart(food._id);
+                          }}
+                          sx={{
+                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                            color: '#fff',
+                            padding: '4px',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                            },
+                          }}
+                        >
+                          <RemoveIcon sx={{ fontSize: '14px' }} />
+                        </IconButton>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight={700} 
+                          sx={{ 
+                            color: palette.textPrimary,
+                            minWidth: '20px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          {itemQuantity}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(food._id);
+                          }}
+                          sx={{
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            color: '#fff',
+                            padding: '4px',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #059669, #047857)',
+                            },
+                          }}
+                        >
+                          <AddIcon sx={{ fontSize: '14px' }} />
+                        </IconButton>
+                      </div>
+                    )}
                   </div>
                   {/* Details Button */}
                   <Button
@@ -2669,6 +2826,59 @@ const CustomerHome = () => {
           }
         }
       `}</style>
+
+      {/* Notification Drawer */}
+      <Drawer
+        anchor="right"
+        open={notificationDrawerOpen}
+        onClose={() => setNotificationDrawerOpen(false)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '100%', sm: '400px' },
+            maxWidth: '100%',
+          },
+        }}
+      >
+        <div
+          style={{
+            padding: '16px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Order Notifications
+          </Typography>
+          <IconButton
+            onClick={() => setNotificationDrawerOpen(false)}
+            sx={{ color: 'white' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </div>
+        <OrderNotifications 
+          onCountChange={setActiveOrdersCount}
+          onUnviewedCountChange={setUnviewedNotificationsCount}
+          showInDrawer={true}
+          onOrderDelivered={handleOrderDelivered}
+          isDrawerOpen={notificationDrawerOpen}
+        />
+      </Drawer>
+
+      {/* Feedback Overlay */}
+      {feedbackOverlayOpen && deliveredOrder && (
+        <FeedbackOverlay
+          order={deliveredOrder}
+          onClose={() => {
+            setFeedbackOverlayOpen(false);
+            setDeliveredOrder(null);
+          }}
+          onSubmit={handleFeedbackSubmit}
+        />
+      )}
     </div>
   );
 };
