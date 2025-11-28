@@ -141,13 +141,25 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
     renderer.setPixelRatio(window.devicePixelRatio);
     rendererRef.current = renderer;
 
-    // Lighting
+    // Balanced Lighting Setup
+    // 1. Ambient Light - soft base illumination
     const ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const directionalLight = new window.THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
+    // 2. Key Light (Main directional light from front-top-right)
+    const keyLight = new window.THREE.DirectionalLight(0xffffff, 0.11);
+    keyLight.position.set(5, 8, 5);
+    scene.add(keyLight);
+
+    // 3. Fill Light (Front-left to fill shadows)
+    const fillLight = new window.THREE.DirectionalLight(0xffffff, 0.7);
+    fillLight.position.set(-5, 3, 5);
+    scene.add(fillLight);
+
+    // 4. Back Light (Behind and above for rim lighting)
+    const backLight = new window.THREE.DirectionalLight(0xffffff, 0.6);
+    backLight.position.set(0, 5, -8);
+    scene.add(backLight);
 
     // Load GLB Model
     // Use THREE.GLTFLoader if available, fallback to window.GLTFLoader
@@ -291,7 +303,6 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
         height: "100%",
         position: "relative",
         overflow: "hidden",
-        borderRadius: "16px",
       }}
     >
       {/* Camera Feed - Background */}
@@ -971,6 +982,7 @@ const CustomerHome = () => {
                   top: "12px",
                   left: "12px",
                   display: "flex",
+                  marginLeft: "20px",
                   flexDirection: "column",
                   gap: "8px",
                   maxWidth: "220px",
@@ -983,7 +995,8 @@ const CustomerHome = () => {
                     background: themeMode === "dark" ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.95)",
                     backdropFilter: "blur(20px)",
                     borderRadius: "12px",
-                    padding: "8px 12px",
+                    
+                    padding: "10px 14px",
                     boxShadow: themeMode === "dark" ? "0 4px 16px rgba(0,0,0,0.6)" : "0 2px 8px rgba(0,0,0,0.2)",
                     border: `2px solid ${themeMode === "dark" ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"}`,
                   }}
