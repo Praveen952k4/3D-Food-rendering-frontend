@@ -368,13 +368,17 @@ const CustomerCart = () => {
         } 
       }));
       
-      // Show browser notification
+      // Show browser notification (with error handling for mobile)
       if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Order Placed Successfully! 🎉', {
-          body: `Order ${response.data.orderNumber} has been placed and is pending confirmation.`,
-          icon: '/logo192.png',
-          badge: '/logo192.png',
-        });
+        try {
+          new Notification('Order Placed Successfully! 🎉', {
+            body: `Order ${response.data.orderNumber} has been placed and is pending confirmation.`,
+            icon: '/logo192.png',
+            badge: '/logo192.png',
+          });
+        } catch (err) {
+          console.log('Browser notification not supported:', err);
+        }
       }
     } catch (error) {
       console.error('❌ Checkout failed:', error);

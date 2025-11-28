@@ -169,13 +169,17 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
         playNotificationSound();
         showNotification(message || `Order ${order.orderNumber} placed successfully!`, 'success');
         
-        // Show browser notification
+        // Show browser notification (with error handling for mobile)
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Order Placed! 🎉', {
-            body: message || `Order ${order.orderNumber} has been placed`,
-            icon: '/logo192.png',
-            badge: '/logo192.png',
-          });
+          try {
+            new Notification('Order Placed! 🎉', {
+              body: message || `Order ${order.orderNumber} has been placed`,
+              icon: '/logo192.png',
+              badge: '/logo192.png',
+            });
+          } catch (err) {
+            console.log('Browser notification not supported:', err);
+          }
         }
       } else if (type === 'statusChange') {
         // Order status changed
@@ -186,13 +190,17 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
           getNotificationSeverity(newStatus)
         );
         
-        // Show browser notification
+        // Show browser notification (with error handling for mobile)
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Order Update 📦', {
-            body: `Order ${order.orderNumber} is now ${config?.label || newStatus}`,
-            icon: '/logo192.png',
-            badge: '/logo192.png',
-          });
+          try {
+            new Notification('Order Update 📦', {
+              body: `Order ${order.orderNumber} is now ${config?.label || newStatus}`,
+              icon: '/logo192.png',
+              badge: '/logo192.png',
+            });
+          } catch (err) {
+            console.log('Browser notification not supported:', err);
+          }
         }
 
         // Check for delivered orders for feedback
@@ -330,13 +338,17 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
             updatedViewed.delete(order._id);
             viewedChanged = true;
             
-            // Request browser notification permission
+            // Request browser notification permission (with error handling for mobile)
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('Order Update', {
-                body: `Order ${order.orderNumber} is now ${config.label}`,
-                icon: '/logo192.png',
-                badge: '/logo192.png',
-              });
+              try {
+                new Notification('Order Update', {
+                  body: `Order ${order.orderNumber} is now ${config.label}`,
+                  icon: '/logo192.png',
+                  badge: '/logo192.png',
+                });
+              } catch (err) {
+                console.log('Browser notification not supported:', err);
+              }
             }
           } else if (!previousOrder && !isFirstLoad) {
             // New order - mark as unviewed ONLY if it's not the first load
