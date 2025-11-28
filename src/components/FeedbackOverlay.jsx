@@ -92,6 +92,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
         zIndex: 9999,
         padding: 2,
       }}
+      onClick={onClose}
     >
       <Paper
         elevation={24}
@@ -102,6 +103,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
           overflow: 'auto',
           borderRadius: 3,
           position: 'relative',
+          pointerEvents: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -226,16 +228,30 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
                     variant="outlined"
                     size="small"
                     autoComplete="off"
+                    inputProps={{
+                      style: { 
+                        cursor: 'text',
+                        WebkitUserSelect: 'text',
+                        userSelect: 'text',
+                      }
+                    }}
                     InputProps={{
-                      style: { cursor: 'text' }
+                      style: { 
+                        cursor: 'text',
+                        pointerEvents: 'auto',
+                      }
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 1.5,
                         cursor: 'text',
+                        pointerEvents: 'auto',
                       },
                       '& .MuiInputBase-input': {
                         cursor: 'text',
+                        pointerEvents: 'auto',
+                        WebkitUserSelect: 'text',
+                        userSelect: 'text',
                       },
                     }}
                   />
