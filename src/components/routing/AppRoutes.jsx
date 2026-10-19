@@ -1,9 +1,12 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, defaultRouteFor } from '../../context/AuthContext';
 import PrivateRoute from './PrivateRoute';
-import Login from '../../pages/Login';
 import Landing from '../../pages/Landing';
+import LoginChooser from '../../pages/auth/LoginChooser';
+import GuestLogin from '../../pages/auth/GuestLogin';
+import CustomerLogin from '../../pages/auth/CustomerLogin';
+import ChefLogin from '../../pages/auth/ChefLogin';
 import AdminDashboard from '../../pages/Admin/Dashboard';
 import OrderManagement from '../../pages/Admin/OrderManagement';
 import GstReport from '../../pages/Admin/GstReport';
@@ -20,35 +23,29 @@ import AdminLayout from '../AdminLayout';
 import ChefLayout from '../../pages/Chef/ChefLayout';
 import CustomerLayout from '../CustomerLayout';
 
-const AppRoutes = () => {
-  const { isAuthenticated, isAdmin, user } = useAuth();
-  const isChef = user?.role === 'chef';
+/** Guests order alongside customers; admins may look in. */
+const DINERS = ['guest', 'customer', 'admin'];
 
-  const getDefaultRoute = () => {
-    if (!isAuthenticated) return '/login';
-    if (isAdmin) return '/admin/dashboard';
-    if (isChef) return '/chef/dashboard';
-    return '/customer/home';
-  };
+const AppRoutes = () => {
+  const { isAuthenticated, role } = useAuth();
+
+  // An already-signed-in person has no business on a sign-in page.
+  const signedInRedirect = (element) =>
+    isAuthenticated ? <Navigate to={defaultRouteFor(role)} replace /> : element;
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
-        element={
-          isAuthenticated ? (
-            <Navigate to={getDefaultRoute()} />
-          ) : (
-            <Login />
-          )
-        } 
-      />
+      {/* Three doors, each with its own credential */}
+      <Route path="/login" element={signedInRedirect(<LoginChooser />)} />
+      <Route path="/login/guest" element={signedInRedirect(<GuestLogin />)} />
+      <Route path="/login/customer" element={signedInRedirect(<CustomerLogin />)} />
+      <Route path="/login/chef" element={signedInRedirect(<ChefLogin />)} />
 
-      {/* Admin Routes */}
-      <Route 
-        path="/admin" 
+      {/* Admin */}
+      <Route
+        path="/admin"
         element={
-          <PrivateRoute adminOnly>
+          <PrivateRoute allow={['admin']}>
             <AdminLayout />
           </PrivateRoute>
         }
@@ -60,27 +57,27 @@ const AppRoutes = () => {
         <Route path="coupons" element={<CouponManagement />} />
         <Route path="food-ratings" element={<FoodRatings />} />
         <Route path="users" element={<UserManagement />} />
-        <Route index element={<Navigate to="/admin/dashboard" />} />
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
 
-      {/* Chef Routes */}
-      <Route 
-        path="/chef" 
+      {/* Kitchen */}
+      <Route
+        path="/chef"
         element={
-          <PrivateRoute chefOnly>
+          <PrivateRoute allow={['chef', 'admin']}>
             <ChefLayout />
           </PrivateRoute>
         }
       >
         <Route path="dashboard" element={<ChefDashboard />} />
-        <Route index element={<Navigate to="/chef/dashboard" />} />
+        <Route index element={<Navigate to="/chef/dashboard" replace />} />
       </Route>
 
-      {/* Customer Routes */}
-      <Route 
-        path="/customer" 
+      {/* Diners — guests and customers alike */}
+      <Route
+        path="/customer"
         element={
-          <PrivateRoute>
+          <PrivateRoute allow={DINERS}>
             <CustomerLayout />
           </PrivateRoute>
         }
@@ -89,11 +86,11 @@ const AppRoutes = () => {
         <Route path="menu" element={<CustomerMenu />} />
         <Route path="cart" element={<CustomerCart />} />
         <Route path="orders" element={<OrderHistory />} />
-        <Route index element={<Navigate to="/customer/home" />} />
+        <Route index element={<Navigate to="/customer/home" replace />} />
       </Route>
 
       <Route path="/" element={<Landing />} />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

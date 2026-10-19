@@ -1,7 +1,19 @@
 import React, { createContext, useContext, useState } from 'react';
-import { verifyOTP as verifyOTPApi } from '../services/api';
+import {
+  verifyOTP as verifyOTPApi,
+  guestLogin as guestLoginApi,
+  staffLogin as staffLoginApi,
+} from '../services/api';
 
 const AuthContext = createContext(undefined);
+
+/** Where each role lands once signed in. */
+export const defaultRouteFor = (role) => {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'chef') return '/chef/dashboard';
+  if (role === 'guest' || role === 'customer') return '/customer/home';
+  return '/login';
+};
 
 // Read the saved session before the first render. Restoring it in an effect
 // instead meant the first render always looked signed out, so opening or
@@ -22,19 +34,33 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(session.user);
   const [token, setToken] = useState(session.token);
 
+  const persist = (newToken, newUser) => {
+    setToken(newToken);
+    setUser(newUser);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    return newUser;
+  };
+
+  /** Customer (and admin) sign-in: phone + OTP. */
   const login = async (phone, otp) => {
-    try {
-      const response = await verifyOTPApi(phone, otp);
-      const { token: newToken, user: newUser } = response.data;
+    const response = await verifyOTPApi(phone, otp);
+    const { token: newToken, user: newUser } = response.data;
+    return persist(newToken, newUser);
+  };
 
-      setToken(newToken);
-      setUser(newUser);
+  /** Guest sign-in: a table number, validated against the tables collection. */
+  const loginGuest = async (tableNumber, name) => {
+    const response = await guestLoginApi(tableNumber, name);
+    const { token: newToken, user: newUser } = response.data;
+    return persist(newToken, newUser);
+  };
 
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-    } catch (error) {
-      throw error;
-    }
+  /** Staff sign-in: staff ID + password. */
+  const loginStaff = async (staffId, password) => {
+    const response = await staffLoginApi(staffId, password);
+    const { token: newToken, user: newUser } = response.data;
+    return persist(newToken, newUser);
   };
 
   const logout = () => {
@@ -52,9 +78,15 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     token,
+    role: user?.role || null,
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'admin',
+    isChef: user?.role === 'chef',
+    isGuest: user?.role === 'guest',
+    isCustomer: user?.role === 'customer',
     login,
+    loginGuest,
+    loginStaff,
     logout,
     updateUser,
   };

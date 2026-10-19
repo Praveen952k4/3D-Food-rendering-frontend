@@ -38,6 +38,7 @@ import CheckCircle from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import { getFoodItems, createOrder, validateCoupon, getAvailableCoupons } from '../../services/api';
 import { useThemeMode } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { useMessage } from '../../components/ui/MessageDialog';
 import ThemeToggle from '../../components/ui/ThemeToggle';
 import ClimateLabel from '../../components/food/ClimateLabel';
@@ -48,6 +49,7 @@ import FoodViewer3D from '../../components/FoodViewer3D';
 
 const CustomerCart = () => {
   const { themeMode } = useThemeMode();
+  const { user, isGuest } = useAuth();
   const { showError, showSuccess, showInfo } = useMessage();
   const [cartItems, setCartItems] = useState([]);
   const [promoCode, setPromoCode] = useState('');
@@ -89,6 +91,15 @@ const CustomerCart = () => {
     loadCart();
     loadAvailableCoupons();
   }, []);
+
+  // A guest already told us their table and name when they signed in, and a
+  // customer's phone is on their account — don't make them type it twice.
+  useEffect(() => {
+    if (!user) return;
+    if (user.tableNumber) setTableNumber(user.tableNumber);
+    if (user.name) setCustomerName((current) => current || user.name);
+    if (!isGuest && user.phone) setCustomerPhone((current) => current || user.phone);
+  }, [user, isGuest]);
 
   const loadAvailableCoupons = async () => {
     try {

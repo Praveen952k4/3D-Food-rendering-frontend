@@ -1,21 +1,25 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, defaultRouteFor } from '../../context/AuthContext';
 
-const PrivateRoute = ({ children, adminOnly = false, chefOnly = false }) => {
-  const { isAuthenticated, isAdmin, user } = useAuth();
-  const isChef = user?.role === 'chef';
+/**
+ * Gate a route on the signed-in role.
+ *
+ *   <PrivateRoute allow={['chef', 'admin']}>…</PrivateRoute>
+ *
+ * Someone signed in with the wrong role is sent to their own landing page
+ * rather than to the sign-in screen, which would otherwise bounce them
+ * straight back here.
+ */
+const PrivateRoute = ({ children, allow }) => {
+  const { isAuthenticated, role } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !isAdmin) {
-    return <Navigate to="/customer/menu" />;
-  }
-
-  if (chefOnly && !isChef) {
-    return <Navigate to="/customer/menu" />;
+  if (allow && !allow.includes(role)) {
+    return <Navigate to={defaultRouteFor(role)} replace />;
   }
 
   return children;

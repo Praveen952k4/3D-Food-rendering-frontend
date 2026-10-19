@@ -50,6 +50,12 @@ export const sendOTP = (phone) => api.post('/auth/send-otp', { phone });
 export const verifyOTP = (phone, otp) => api.post('/auth/verify-otp', { phone, otp });
 export const updateProfile = (phone, name, email) => 
   api.post('/auth/update-profile', { phone, name, email });
+// Role-scoped sign-in: guests by table, staff by staff ID + password.
+export const guestLogin = (tableNumber, name) =>
+  api.post('/auth/guest/login', { tableNumber, name });
+export const staffLogin = (staffId, password) =>
+  api.post('/auth/staff/login', { staffId, password });
+export const getTables = () => api.get('/auth/tables');
 
 // Food APIs
 export const getFoodItems = (category, isVeg) => 
