@@ -4,6 +4,7 @@ import {
   Paper,
   Typography,
   Alert,
+  Button,
 } from '@mui/material';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import { useNavigate } from 'react-router-dom';
@@ -98,7 +99,7 @@ const Login = () => {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'radial-gradient(900px 420px at 80% 0%, rgba(212,177,90,0.18), transparent 55%), #0b0a09',
         padding: '32px 0',
       }}
     >
@@ -113,12 +114,12 @@ const Login = () => {
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <RestaurantIcon style={{ fontSize: 60, color: '#667eea', marginBottom: 16 }} />
+            <RestaurantIcon style={{ fontSize: 60, color: '#b8892d', marginBottom: 16 }} />
             <Typography variant="h4" fontWeight="bold" gutterBottom>
-              AR Food Ordering
+              Palate3D
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {step === 'phone' ? 'Enter your phone number' : 'Enter OTP sent to your phone'}
+              {step === 'phone' ? 'Sign in with your phone to order or open the kitchen studio.' : 'Enter the OTP sent to your phone'}
             </Typography>
           </div>
 
@@ -137,6 +138,15 @@ const Login = () => {
               </Typography>
             </Alert>
           )}
+
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <Button
+              onClick={() => navigate('/')}
+              sx={{ color: '#b8892d', textTransform: 'none' }}
+            >
+              Back to Palate3D
+            </Button>
+          </div>
 
           {step === 'phone' ? (
             <PhoneForm 

@@ -1,46 +1,125 @@
+/* ==========================================================================
+   AR Automated Dining — global design tokens
+   One accent hue (jade) + a single neutral ramp. Nothing else.
+   Light is the default; [data-theme="dark"] on <html> flips the ramp.
+   ========================================================================== */
+
+:root {
+  /* --- the one accent --- */
+  --accent: #0b6e5f;
+  --accent-hover: #095a4e;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(11, 110, 95, 0.1);
+  --accent-line: rgba(11, 110, 95, 0.28);
+
+  /* --- neutral ramp --- */
+  --bg: #f4f6f4;
+  --bg-tint: #eceeeb;
+  --surface: #ffffff;
+  --surface-2: #f0f2ef;
+  --line: #dde1dd;
+  --line-strong: #c6ccc7;
+  --ink: #0e1512;
+  --ink-2: #4a5651;
+  --ink-3: #7b8781;
+
+  --shadow-sm: 0 1px 2px rgba(14, 21, 18, 0.05);
+  --shadow-md: 0 10px 30px -12px rgba(14, 21, 18, 0.18);
+  --shadow-lg: 0 30px 60px -24px rgba(14, 21, 18, 0.26);
+
+  /* --- type --- */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-body: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* --- geometry --- */
+  --radius: 4px;
+  --radius-lg: 10px;
+  --maxw: 1180px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --accent: #3fbfa6;
+  --accent-hover: #55d0b7;
+  --accent-ink: #04120f;
+  --accent-soft: rgba(63, 191, 166, 0.12);
+  --accent-line: rgba(63, 191, 166, 0.3);
+
+  --bg: #080c0b;
+  --bg-tint: #0c1211;
+  --surface: #0f1513;
+  --surface-2: #161e1b;
+  --line: #222c29;
+  --line-strong: #32403c;
+  --ink: #eaf0ed;
+  --ink-2: #94a39d;
+  --ink-3: #6b7873;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 30px 60px -24px rgba(0, 0, 0, 0.75);
+
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Reduced motion respect, globally */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Smooth scrolling for food carousel */
 .food-carousel-scroll {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
 }
 
-/* Custom scrollbar styling for carousel */
 .food-carousel-scroll::-webkit-scrollbar {
   height: 6px;
 }
 
 .food-carousel-scroll::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--surface-2);
   border-radius: 10px;
 }
 
 .food-carousel-scroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--accent);
   border-radius: 10px;
-  transition: background 0.3s ease;
-}
-
-.food-carousel-scroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2, #667eea);
-}
-
-/* Smooth scroll snap for better UX */
-.food-carousel-scroll {
-  scroll-snap-type: x proximity;
 }
 
 .food-carousel-scroll > div {

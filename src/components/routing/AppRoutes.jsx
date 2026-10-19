@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import PrivateRoute from './PrivateRoute';
 import Login from '../../pages/Login';
+import Landing from '../../pages/Landing';
 import AdminDashboard from '../../pages/Admin/Dashboard';
 import OrderManagement from '../../pages/Admin/OrderManagement';
 import AdminFoodManagement from '../../pages/Admin/FoodManagement';
@@ -91,10 +92,8 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/customer/home" />} />
       </Route>
 
-      <Route 
-        path="/" 
-        element={<Navigate to={getDefaultRoute()} />} 
-      />
+      <Route path="/" element={<Landing />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 };

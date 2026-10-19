@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AR Automated Dining — Landing Concept</title>
+<style>
+/* ============================================================
+   THEME TOKENS — "Ember & Basil"
+   ============================================================ */
+:root{
+  --ember:#E2552B;      /* primary action / brand */
+  --ember-soft:#FF7A4D;
+  --saffron:#F2A541;    /* secondary highlight */
+  --basil:#2F7D62;      /* climate / eco signals */
+  --basil-soft:#4FA683;
+  --radius:18px;
+  --radius-lg:28px;
+  --maxw:1180px;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --display:'Playfair Display','Iowan Old Style',Georgia,serif;
+}
+html[data-theme="dark"]{
+  --bg:#141110;
+  --bg-2:#1C1816;
+  --surface:#221D1A;
+  --surface-2:#2B2521;
+  --line:rgba(255,255,255,.09);
+  --line-strong:rgba(255,255,255,.16);
+  --text:#F5EFE9;
+  --text-2:#B7ABA2;
+  --text-3:#857A72;
+  --glow:radial-gradient(60% 60% at 70% 20%, rgba(226,85,43,.26), transparent 70%);
+  --card-shadow:0 24px 60px -24px rgba(0,0,0,.8);
+}
+html[data-theme="light"]{
+  --bg:#FBF7F2;
+  --bg-2:#F4EDE4;
+  --surface:#FFFFFF;
+  --surface-2:#FBF5EE;
+  --line:rgba(30,20,14,.10);
+  --line-strong:rgba(30,20,14,.18);
+  --text:#1E1714;
+  --text-2:#6B5C52;
+  --text-3:#9A8A7E;
+  --glow:radial-gradient(60% 60% at 70% 20%, rgba(226,85,43,.14), transparent 70%);
+  --card-shadow:0 24px 50px -28px rgba(63,38,22,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;line-height:1.55;
+  transition:background .35s ease,color .35s ease;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+.eyebrow{
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ember);font-weight:700;
+}
+.eyebrow.basil{color:var(--basil-soft)}
+h1,h2,h3{line-height:1.12;letter-spacing:-.02em;font-weight:700}
+.serif{font-family:var(--display);font-weight:600;letter-spacing:-.01em}
+
+/* ---------- NAV ---------- */
+nav{
+  position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  border-bottom:1px solid var(--line);
+}
+.nav-in{display:flex;align-items:center;gap:30px;height:72px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.01em}
+.mark{
+  width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+  background:linear-gradient(145deg,var(--ember),var(--saffron));
+  box-shadow:0 8px 20px -8px rgba(226,85,43,.8);
+}
+.brand small{display:block;font-size:10px;letter-spacing:.16em;color:var(--text-3);font-weight:600;text-transform:uppercase}
+.nav-links{display:flex;gap:26px;margin-left:12px;font-size:14px;color:var(--text-2);font-weight:500}
+.nav-links span:first-child{color:var(--text)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.toggle{
+  display:flex;align-items:center;gap:6px;border:1px solid var(--line-strong);
+  border-radius:999px;padding:5px;background:var(--surface);
+}
+.toggle b{
+  font-size:12px;padding:5px 11px;border-radius:999px;color:var(--text-3);cursor:pointer;font-weight:600;
+}
+.toggle b.on{background:var(--ember);color:#fff}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;border-radius:999px;
+  padding:11px 20px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer;
+}
+.btn-primary{background:var(--ember);color:#fff;box-shadow:0 14px 30px -14px rgba(226,85,43,.9)}
+.btn-ghost{border-color:var(--line-strong);color:var(--text);background:transparent}
+
+/* ---------- HERO ---------- */
+header{position:relative;overflow:hidden;padding:84px 0 96px}
+header:before{content:"";position:absolute;inset:-20% -10% auto -10%;height:120%;background:var(--glow);pointer-events:none}
+.hero{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line-strong);
+  background:var(--surface);border-radius:999px;padding:7px 15px 7px 8px;font-size:12.5px;color:var(--text-2);
+}
+.pill i{width:20px;height:20px;border-radius:7px;background:var(--basil);display:grid;place-items:center;font-style:normal;font-size:11px;color:#fff}
+.hero h1{font-size:62px;margin:22px 0 18px;font-family:var(--display);font-weight:600}
+.hero h1 em{font-style:normal;color:var(--ember);position:relative}
+.hero p.lead{font-size:17.5px;color:var(--text-2);max-width:500px}
+.hero-cta{display:flex;gap:13px;margin:30px 0 34px;flex-wrap:wrap}
+.trust{display:flex;gap:30px;border-top:1px solid var(--line);padding-top:22px;max-width:520px}
+.trust div b{display:block;font-size:24px;font-family:var(--display)}
+.trust div span{font-size:12px;color:var(--text-3)}
+
+/* phone */
+.stage{position:relative;display:grid;place-items:center;min-height:540px}
+.halo{
+  position:absolute;width:420px;height:420px;border-radius:50%;
+  background:conic-gradient(from 210deg,var(--ember),var(--saffron),var(--basil),var(--ember));
+  filter:blur(70px);opacity:.30;
+}
+.phone{
+  position:relative;width:286px;height:570px;border-radius:44px;padding:11px;
+  background:linear-gradient(170deg,var(--surface-2),var(--surface));
+  border:1px solid var(--line-strong);box-shadow:var(--card-shadow);
+}
+.screen{
+  position:relative;height:100%;border-radius:34px;overflow:hidden;
+  background:
+    radial-gradient(90% 60% at 50% 8%, rgba(242,165,65,.22), transparent 60%),
+    var(--bg-2);
+  border:1px solid var(--line);
+}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:9px;width:86px;height:6px;border-radius:99px;background:var(--line-strong)}
+.scr-top{padding:30px 18px 0;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-3)}
+.tag-table{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--text-2)}
+.dish{margin:14px 16px 0;border-radius:22px;height:216px;position:relative;overflow:hidden;
+  background:radial-gradient(70% 70% at 50% 45%, #3A2A20, #1A1412);border:1px solid var(--line)}
+html[data-theme="light"] .dish{background:radial-gradient(70% 70% at 50% 45%, #FFF2E2, #F0E2D1)}
+.plate{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:170px;height:170px;border-radius:50%;
+  background:conic-gradient(from 20deg,#E2552B,#F2A541,#C8451F,#E2552B);filter:saturate(1.05);
+  box-shadow:0 26px 50px -18px rgba(0,0,0,.65), inset 0 0 0 10px rgba(255,255,255,.07)}
+.plate:after{content:"";position:absolute;inset:34px;border-radius:50%;background:radial-gradient(circle at 36% 30%, rgba(255,255,255,.5), rgba(255,255,255,0) 58%)}
+.ar-frame{position:absolute;inset:14px;border-radius:16px;border:1.5px dashed rgba(255,255,255,.28)}
+.ar-corner{position:absolute;width:18px;height:18px;border:2px solid var(--saffron)}
+.scr-meta{padding:14px 18px 0}
+.scr-meta h4{font-size:16px}
+.scr-meta .row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.chip{font-size:10.5px;border-radius:999px;padding:4px 9px;border:1px solid var(--line-strong);color:var(--text-2)}
+.chip.eco{background:rgba(47,125,98,.16);border-color:rgba(47,125,98,.45);color:var(--basil-soft)}
+.scr-bar{position:absolute;left:14px;right:14px;bottom:14px;display:flex;gap:9px;align-items:center;
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:11px 13px}
+.scr-bar b{font-size:15px}
+.scr-bar .add{margin-left:auto;background:var(--ember);color:#fff;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:600}
+.float{
+  position:absolute;background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:16px;padding:12px 14px;box-shadow:var(--card-shadow);font-size:12px;
+}
+.float b{display:block;font-size:13px;margin-bottom:2px}
+.float.a{top:52px;left:-6px}
+.float.b{bottom:118px;right:-24px}
+.float.c{bottom:22px;left:-26px;display:flex;gap:10px;align-items:center}
+.qr{width:38px;height:38px;border-radius:9px;background:
+  repeating-conic-gradient(var(--text) 0% 25%, transparent 0% 50%) 0 0/9px 9px;opacity:.85}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--basil-soft);display:inline-block;margin-right:6px}
+
+/* ---------- SECTIONS ---------- */
+section{padding:92px 0;border-top:1px solid var(--line)}
+.sec-head{max-width:640px;margin-bottom:46px}
+.sec-head h2{font-size:40px;margin:14px 0 14px;font-family:var(--display);font-weight:600}
+.sec-head p{color:var(--text-2);font-size:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+  padding:26px;position:relative;overflow:hidden;
+}
+.card .n{font-family:var(--display);font-size:30px;color:var(--ember);opacity:.9}
+.card h3{font-size:18px;margin:12px 0 9px}
+.card p{font-size:14px;color:var(--text-2)}
+.card.lift{box-shadow:var(--card-shadow)}
+.icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:rgba(226,85,43,.14);border:1px solid rgba(226,85,43,.3);font-size:19px}
+.icon.basil{background:rgba(47,125,98,.14);border-color:rgba(47,125,98,.35)}
+.icon.saffron{background:rgba(242,165,65,.16);border-color:rgba(242,165,65,.38)}
+
+/* portals */
+.portal{display:flex;flex-direction:column;gap:14px;min-height:268px}
+.portal ul{list-style:none;font-size:13.5px;color:var(--text-2);display:grid;gap:8px;margin-top:4px}
+.portal ul li:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ember);display:inline-block;margin-right:9px;vertical-align:middle}
+.portal .go{margin-top:auto;font-size:13px;font-weight:600;color:var(--ember)}
+
+/* climate */
+.climate{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+.eco-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--card-shadow)}
+.eco-top{display:flex;align-items:center;gap:14px}
+.eco-score{width:66px;height:66px;border-radius:20px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--basil),var(--basil-soft));color:#fff;font-size:26px;font-weight:700;font-family:var(--display)}
+.bar{height:8px;border-radius:99px;background:var(--bg-2);overflow:hidden;margin-top:7px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--basil),var(--basil-soft))}
+.bar.warm i{background:linear-gradient(90deg,var(--saffron),var(--ember))}
+.eco-row{margin-top:18px;font-size:13px;color:var(--text-2)}
+.eco-row span{display:flex;justify-content:space-between;font-size:12.5px}
+
+/* pricing */
+.billing{display:inline-flex;gap:5px;margin-top:24px;padding:5px;border-radius:999px;
+  border:1px solid var(--line-strong);background:var(--surface)}
+.billing b{font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:999px;color:var(--text-3);cursor:pointer}
+.billing b.on{background:var(--ember);color:#fff}
+.billing b i{font-style:normal;opacity:.8}
+.plans{align-items:stretch}
+.plan{display:flex;flex-direction:column;padding:30px 28px 28px}
+.plan h3{font-size:20px}
+.plan-for{font-size:13px;color:var(--text-3);margin-top:6px;min-height:36px}
+.price{display:flex;align-items:baseline;gap:8px;margin:16px 0 20px;
+  padding-bottom:20px;border-bottom:1px solid var(--line)}
+.price b{font-family:var(--display);font-size:38px;font-weight:600;letter-spacing:-.02em}
+.price span{font-size:12.5px;color:var(--text-3)}
+.plan ul{list-style:none;display:grid;gap:11px;font-size:13.5px;color:var(--text-2)}
+.plan ul li{display:flex;gap:10px;align-items:flex-start}
+.plan ul li:before{content:"✓";color:var(--basil-soft);font-size:12px;font-weight:700;flex:none;margin-top:1px}
+.plan ul li b{color:var(--text);font-weight:600}
+.plan ul li i{font-style:normal;color:var(--text-3)}
+.plan-note{margin:22px 0 16px;font-size:11.5px;color:var(--text-3);
+  padding-top:14px;border-top:1px dashed var(--line-strong)}
+.plan .full{width:100%;justify-content:center;margin-top:auto}
+.plan.featured{
+  border-color:rgba(226,85,43,.45);box-shadow:var(--card-shadow);
+  background:linear-gradient(170deg,color-mix(in srgb,var(--ember) 9%,var(--surface)),var(--surface));
+}
+.ribbon{position:absolute;top:0;right:0;background:var(--ember);color:#fff;
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 14px;border-radius:0 var(--radius-lg) 0 14px}
+.plan-foot{margin-top:26px;text-align:center;font-size:13px;color:var(--text-2)}
+.plan-foot b{color:var(--text)}
+
+/* cta */
+.cta{
+  border-radius:34px;padding:58px;text-align:center;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,rgba(226,85,43,.16),rgba(47,125,98,.14));
+  border:1px solid var(--line-strong);
+}
+.cta h2{font-size:42px;font-family:var(--display);font-weight:600;margin-bottom:14px}
+.cta p{color:var(--text-2);max-width:520px;margin:0 auto 28px}
+footer{padding:40px 0 60px;color:var(--text-3);font-size:13px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer .sp{margin-left:auto}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1040px){
+  .hero,.climate{grid-template-columns:1fr;gap:40px}
+  .grid-4{grid-template-columns:repeat(2,1fr)!important}
+  .grid-3{grid-template-columns:1fr}
+  .hero h1{font-size:46px}
+  .nav-links{display:none}
+  .plan.featured{order:-1}
+}
+@media (max-width:620px){
+  .wrap{padding:0 18px}
+  header{padding:48px 0 64px}
+  .hero h1{font-size:36px}
+  .sec-head h2,.cta h2{font-size:30px}
+  section{padding:62px 0}
+  .grid-4{grid-template-columns:1fr!important}
+  .trust{flex-wrap:wrap;gap:18px}
+  .stage{min-height:460px}
+  .float.a,.float.b,.float.c{display:none}
+  .cta{padding:34px 22px}
+  .nav-right .btn-ghost{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <div class="brand">
+      <div class="mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round">
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>
+        </svg>
+      </div>
+      <div>AR Automated Dining<small>20AIPJ701</small></div>
+    </div>
+    <div class="nav-links"><span>How it works</span><span>Portals</span><span>Climate</span><span>Pricing</span></div>
+    <div class="nav-right">
+      <div class="toggle" id="tg"><b id="t-l">Light</b><b class="on" id="t-d">Dark</b></div>
+      <a class="btn btn-ghost">Sign in</a>
+      <a class="btn btn-primary">Scan a table</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap hero">
+    <div>
+      <div class="pill"><i>✦</i> Paper-free menus · SDG 12 Responsible Consumption</div>
+      <h1>The menu you can <em>walk around.</em></h1>
+      <p class="lead">Guests scan the QR on their table and the dish appears at true scale — ingredients, allergens and climate cost included. The order goes straight to the kitchen screen. No app, no printed card, no miscommunication.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary">Open the AR menu &nbsp;→</a>
+        <a class="btn btn-ghost">See how it works &nbsp;↓</a>
+      </div>
+      <div class="trust">
+        <div><b>0</b><span>reprints per menu change</span></div>
+        <div><b>38%</b><span>faster ticket-to-kitchen</span></div>
+        <div><b>3</b><span>portals: guest · chef · admin</span></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="halo"></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="scr-top"><span>9:41</span><span class="tag-table">Table 12 · Live</span></div>
+          <div class="dish">
+            <div class="ar-frame"></div>
+            <div class="plate"></div>
+          </div>
+          <div class="scr-meta">
+            <h4>Hyderabadi Dum Biryani</h4>
+            <div class="row">
+              <span class="chip">Serves 2</span>
+              <span class="chip">620 kcal</span>
+              <span class="chip eco">● Low impact · A</span>
+            </div>
+          </div>
+          <div class="scr-bar">
+            <b>₹389</b>
+            <span style="font-size:11px;color:var(--text-3)">incl. GST</span>
+            <span class="add">Add to cart</span>
+          </div>
+        </div>
+      </div>
+      <div class="float a"><b>View in your space</b><span style="color:var(--text-3)">Three.js · ARCore / ARKit</span></div>
+      <div class="float b"><b><span class="dot"></span>Kitchen notified</b><span style="color:var(--text-3)">Table 12 · 2 items · 0.4s</span></div>
+      <div class="float c"><div class="qr"></div><div><b>Scan to begin</b><span style="color:var(--text-3)">no install needed</span></div></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Five steps from table to plate.</h2>
+      <p>One flow replaces the printed menu, the order pad and the kitchen shout.</p>
+    </div>
+    <div class="grid-4" style="grid-template-columns:repeat(5,1fr)">
+      <div class="card"><div class="n">01</div><h3>Scan</h3><p>A QR at the table opens the menu in the browser — the table number travels with every order.</p></div>
+      <div class="card"><div class="n">02</div><h3>Browse in 3D</h3><p>Every dish is a model, not a photo. Rotate it, place it on the table, judge the portion.</p></div>
+      <div class="card"><div class="n">03</div><h3>Customise</h3><p>Spice, jain, no-onion, allergens — captured as structured data, not a scribble.</p></div>
+      <div class="card"><div class="n">04</div><h3>Kitchen</h3><p>The chef screen receives the ticket instantly and tracks it through preparing → ready.</p></div>
+      <div class="card"><div class="n">05</div><h3>Serve</h3><p>Waitstaff get the ready alert with the table number. Right dish, right table, first time.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">One system</div>
+      <h2>Three portals, one language.</h2>
+      <p>The same tokens, the same light and dark themes, the same loaders — across guest, kitchen and management.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card lift portal">
+        <div class="icon">🍽</div>
+        <h3>Guest</h3>
+        <ul><li>AR menu & 3D viewer</li><li>Cart, customisation, live status</li><li>Climate label on every dish</li><li>E-receipt with GST</li></ul>
+        <div class="go">Enter the menu →</div>
+      </div>
+      <div class="card lift portal">
+        <div class="icon saffron">👨‍🍳</div>
+        <h3>Kitchen</h3>
+        <ul><li>Live ticket board by table</li><li>Preparing → ready in one tap</li><li>Allergen flags front and centre</li><li>Sound + toast notifications</li></ul>
+        <div class="go">Open chef board →</div>
+      </div>
+      <div class="card lift portal">
+        <div class="icon basil">📊</div>
+        <h3>Admin</h3>
+        <ul><li>Live revenue & GST dashboard</li><li>Orders as tiles, not a list</li><li>Printable e-receipts (PDF)</li><li>Menu, models and staff</li></ul>
+        <div class="go">Open dashboard →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap climate">
+    <div>
+      <div class="eyebrow basil">Climate label</div>
+      <h2 class="serif" style="font-size:40px;margin:14px 0 16px">Every dish carries its footprint.</h2>
+      <p style="color:var(--text-2);font-size:16px">Responsible consumption is the project's primary SDG, so it is on the plate card, not in a footnote. Guests see an A–E grade, water and carbon cost, and how local the sourcing is — before they order.</p>
+      <div class="hero-cta"><a class="btn btn-ghost">See the methodology →</a></div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-top">
+        <div class="eco-score">A</div>
+        <div>
+          <b style="font-size:17px">Hyderabadi Dum Biryani</b>
+          <div style="font-size:13px;color:var(--text-2)">Low climate impact · 1.4 kg CO₂e</div>
+        </div>
+      </div>
+      <div class="eco-row">
+        <span><b style="color:var(--text)">Carbon</b><span>1.4 kg CO₂e</span></span>
+        <div class="bar"><i style="width:28%"></i></div>
+      </div>
+      <div class="eco-row">
+        <span><b style="color:var(--text)">Water</b><span>610 L</span></span>
+        <div class="bar warm"><i style="width:54%"></i></div>
+      </div>
+      <div class="eco-row">
+        <span><b style="color:var(--text)">Local sourcing</b><span>82%</span></span>
+        <div class="bar"><i style="width:82%"></i></div>
+      </div>
+      <div class="eco-row" style="border-top:1px solid var(--line);margin-top:18px;padding-top:14px">
+        <span><span>Paper menus avoided this month</span><b style="color:var(--basil-soft)">1,240 sheets</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head" style="max-width:720px">
+      <div class="eyebrow">Pricing</div>
+      <h2>Simple plans. Per outlet, per month.</h2>
+      <p>One subscription covers all three portals, hosting, 3D model storage and updates. Cancel any time — the QR codes on your tables never change.</p>
+      <div class="billing">
+        <b class="on" id="b-m">Monthly</b><b id="b-a">Annual <i>· 2 months free</i></b>
+      </div>
+    </div>
+
+    <div class="grid-3 plans">
+      <div class="card plan">
+        <h3>Starter</h3>
+        <p class="plan-for">Single café or QSR finding its feet.</p>
+        <div class="price"><b data-m="₹1,499" data-a="₹1,249">₹1,499</b><span class="per">/outlet / month</span></div>
+        <ul>
+          <li>Up to <b>20 dishes</b> in 3D</li>
+          <li>Up to 12 tables &amp; QR codes</li>
+          <li>Guest menu + kitchen board</li>
+          <li>Climate label on every dish</li>
+          <li>GST e-receipts (PDF)</li>
+          <li>Email support</li>
+        </ul>
+        <div class="plan-note">Setup ₹150 per dish for 3D modelling</div>
+        <a class="btn btn-ghost full">Start 14-day trial</a>
+      </div>
+
+      <div class="card plan featured">
+        <div class="ribbon">Most chosen</div>
+        <h3>Growth</h3>
+        <p class="plan-for">Full-service restaurants running a live kitchen.</p>
+        <div class="price"><b data-m="₹3,999" data-a="₹3,332">₹3,999</b><span class="per">/outlet / month</span></div>
+        <ul>
+          <li>Up to <b>75 dishes</b> in 3D</li>
+          <li><b>Unlimited</b> tables &amp; QR codes</li>
+          <li>Admin dashboard, GST reports &amp; graphs</li>
+          <li>Bill printer included <i>(worth ₹1,000)</i></li>
+          <li>Priority 3D modelling queue</li>
+          <li>Order analytics &amp; menu insights</li>
+          <li>WhatsApp + phone support</li>
+        </ul>
+        <div class="plan-note">Setup waived above 20 dishes</div>
+        <a class="btn btn-primary full">Start 14-day trial</a>
+      </div>
+
+      <div class="card plan">
+        <h3>Chain</h3>
+        <p class="plan-for">Multi-outlet brands and franchises.</p>
+        <div class="price"><b>Custom</b><span>from ₹9,999 / month</span></div>
+        <ul>
+          <li><b>Unlimited</b> dishes &amp; outlets</li>
+          <li>Group dashboard across branches</li>
+          <li>POS / billing-software integration</li>
+          <li>Staff roles, SSO &amp; audit log</li>
+          <li>White-labelled menu &amp; domain</li>
+          <li>Dedicated manager + 99.9% SLA</li>
+        </ul>
+        <div class="plan-note">Onboarding and training included</div>
+        <a class="btn btn-ghost full">Talk to sales</a>
+      </div>
+    </div>
+
+    <div class="plan-foot">
+      <span><b>Included in every plan:</b> hosting, unlimited orders, light &amp; dark themes, model updates, and free re-prints of your table QR codes.</span>
+    </div>
+  </div>
+</section>
+
+<section style="border:0">
+  <div class="wrap">
+    <div class="cta">
+      <h2>Ready to put the menu on the table?</h2>
+      <p>Set up a restaurant, upload the models once, and print the QR codes. Everything else updates itself.</p>
+      <div style="display:flex;gap:13px;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn-primary">Start free setup &nbsp;→</a>
+        <a class="btn btn-ghost">Talk to the team</a>
+      </div>
+    </div>
+    <footer>
+      <div class="brand" style="font-size:14px"><div class="mark" style="width:28px;height:28px;border-radius:9px"></div>AR Automated Dining</div>
+      <span class="sp">Project Phase I · 20AIPJ701</span>
+      <span>Privacy</span><span>Terms</span>
+    </footer>
+  </div>
+</section>
+
+<script>
+  const html=document.documentElement;
+  document.getElementById('t-l').onclick=()=>{html.dataset.theme='light';t_l.classList.add('on');t_d.classList.remove('on')};
+  document.getElementById('t-d').onclick=()=>{html.dataset.theme='dark';t_d.classList.add('on');t_l.classList.remove('on')};
+  function bill(mode){
+    document.querySelectorAll('.price b[data-m]').forEach(el=>el.textContent=el.dataset[mode]);
+    document.querySelectorAll('.price .per').forEach(el=>el.textContent= mode==='m' ? '/outlet / month' : '/outlet / month, billed yearly');
+    b_m.classList.toggle('on',mode==='m'); b_a.classList.toggle('on',mode==='a');
+  }
+  b_m.onclick=()=>bill('m'); b_a.onclick=()=>bill('a');
+</script>
+</body>
+</html>

@@ -19,6 +19,10 @@ export const ThemeModeProvider = ({ children }) => {
   useEffect(() => {
     // Save theme to localStorage whenever it changes
     localStorage.setItem('themeMode', themeMode);
+    // Drive the global CSS token ramp in index.css
+    document.documentElement.setAttribute('data-theme', themeMode);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', themeMode === 'dark' ? '#080c0b' : '#f4f6f4');
   }, [themeMode]);
 
   const toggleTheme = () => {
