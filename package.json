@@ -19,6 +19,7 @@
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
+    "jspdf": "^2.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-phone-input-2": "^2.15.1",

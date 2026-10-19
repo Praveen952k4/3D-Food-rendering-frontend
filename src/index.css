@@ -1,67 +1,51 @@
 /* ==========================================================================
-   AR Automated Dining — global design tokens
-   One accent hue (jade) + a single neutral ramp. Nothing else.
-   Light is the default; [data-theme="dark"] on <html> flips the ramp.
+   AR Automated Dining — global stylesheet
+   The design tokens live in styles/theme.css ("Ember & Basil"). This file
+   maps the older generic token names (--accent / --bg / --ink ...) onto that
+   ramp so existing CSS keeps working, and holds the few global resets.
+   Light is the default; ThemeContext sets [data-theme="dark"] on <html>.
    ========================================================================== */
 
+@import "./styles/theme.css";
+
 :root {
-  /* --- the one accent --- */
-  --accent: #0b6e5f;
-  --accent-hover: #095a4e;
+  /* --- the one accent: ember --- */
+  --accent: var(--ad-ember);
+  --accent-hover: var(--ad-ember-soft);
   --accent-ink: #ffffff;
-  --accent-soft: rgba(11, 110, 95, 0.1);
-  --accent-line: rgba(11, 110, 95, 0.28);
+  --accent-soft: var(--ad-ember-wash);
+  --accent-line: rgba(226, 85, 43, 0.3);
 
   /* --- neutral ramp --- */
-  --bg: #f4f6f4;
-  --bg-tint: #eceeeb;
-  --surface: #ffffff;
-  --surface-2: #f0f2ef;
-  --line: #dde1dd;
-  --line-strong: #c6ccc7;
-  --ink: #0e1512;
-  --ink-2: #4a5651;
-  --ink-3: #7b8781;
+  --bg: var(--ad-bg);
+  --bg-tint: var(--ad-bg-2);
+  --surface: var(--ad-surface);
+  --surface-2: var(--ad-surface-2);
+  --line: var(--ad-line);
+  --line-strong: var(--ad-line-strong);
+  --ink: var(--ad-text);
+  --ink-2: var(--ad-text-2);
+  --ink-3: var(--ad-text-3);
 
-  --shadow-sm: 0 1px 2px rgba(14, 21, 18, 0.05);
-  --shadow-md: 0 10px 30px -12px rgba(14, 21, 18, 0.18);
-  --shadow-lg: 0 30px 60px -24px rgba(14, 21, 18, 0.26);
+  --shadow-sm: var(--ad-shadow-sm);
+  --shadow-md: 0 10px 30px -14px rgba(63, 38, 22, 0.3);
+  --shadow-lg: var(--ad-shadow);
 
   /* --- type --- */
-  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --font-body: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--ad-display);
+  --font-body: var(--ad-font);
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
 
   /* --- geometry --- */
-  --radius: 4px;
-  --radius-lg: 10px;
-  --maxw: 1180px;
-
-  color-scheme: light;
+  --radius: var(--ad-radius-sm);
+  --radius-lg: var(--ad-radius);
+  --maxw: var(--ad-maxw);
 }
 
-[data-theme="dark"] {
-  --accent: #3fbfa6;
-  --accent-hover: #55d0b7;
-  --accent-ink: #04120f;
-  --accent-soft: rgba(63, 191, 166, 0.12);
-  --accent-line: rgba(63, 191, 166, 0.3);
-
-  --bg: #080c0b;
-  --bg-tint: #0c1211;
-  --surface: #0f1513;
-  --surface-2: #161e1b;
-  --line: #222c29;
-  --line-strong: #32403c;
-  --ink: #eaf0ed;
-  --ink-2: #94a39d;
-  --ink-3: #6b7873;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+html[data-theme="dark"] {
+  --accent-ink: #ffffff;
+  --accent-line: rgba(255, 122, 77, 0.38);
   --shadow-md: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 30px 60px -24px rgba(0, 0, 0, 0.75);
-
-  color-scheme: dark;
 }
 
 html {
@@ -85,6 +69,28 @@ code {
 ::selection {
   background: var(--accent);
   color: var(--accent-ink);
+}
+
+/* Scrollbars follow the ramp in both modes */
+* {
+  scrollbar-color: var(--ad-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ad-line-strong);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ad-ember);
+  background-clip: content-box;
 }
 
 /* Reduced motion respect, globally */

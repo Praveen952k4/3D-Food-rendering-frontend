@@ -1,0 +1,170 @@
+/* ==========================================================================
+   AR Automated Dining — shared design tokens: "Ember & Basil"
+     ember   #E2552B  primary action / brand
+     saffron #F2A541  highlight
+     basil   #2F7D62  climate, eco, success
+     ink     #141110  dark base        paper #FBF7F2  light base
+
+   These are the same tokens the landing page declares locally on `.ad`
+   (src/pages/Landing.css) — hoisted to :root so the Admin, Chef and Customer
+   portals can share them. Light is the default ramp; ThemeContext sets
+   html[data-theme="dark"] to flip it.
+   ========================================================================== */
+
+:root {
+  --ad-ember: #e2552b;
+  --ad-ember-soft: #ff7a4d;
+  --ad-ember-deep: #c8451f;
+  --ad-saffron: #f2a541;
+  --ad-saffron-soft: #ffc876;
+  --ad-basil: #2f7d62;
+  --ad-basil-soft: #4fa683;
+  --ad-danger: #c5412f;
+  --ad-warn: #d08700;
+
+  --ad-radius-sm: 10px;
+  --ad-radius: 18px;
+  --ad-radius-lg: 28px;
+  --ad-maxw: 1180px;
+
+  --ad-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ad-display: "Playfair Display", "Iowan Old Style", Georgia, serif;
+
+  /* light ramp */
+  --ad-bg: #fbf7f2;
+  --ad-bg-2: #f4ede4;
+  --ad-surface: #ffffff;
+  --ad-surface-2: #fbf5ee;
+  --ad-line: rgba(30, 20, 14, 0.1);
+  --ad-line-strong: rgba(30, 20, 14, 0.18);
+  --ad-text: #1e1714;
+  --ad-text-2: #6b5c52;
+  --ad-text-3: #9a8a7e;
+  --ad-glow: radial-gradient(60% 60% at 70% 20%, rgba(226, 85, 43, 0.14), transparent 70%);
+  --ad-shadow: 0 24px 50px -28px rgba(63, 38, 22, 0.35);
+  --ad-shadow-sm: 0 2px 10px -6px rgba(63, 38, 22, 0.4);
+
+  /* tint washes, used for soft chips / headers */
+  --ad-ember-wash: rgba(226, 85, 43, 0.12);
+  --ad-saffron-wash: rgba(242, 165, 65, 0.16);
+  --ad-basil-wash: rgba(47, 125, 98, 0.14);
+
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --ad-bg: #141110;
+  --ad-bg-2: #1c1816;
+  --ad-surface: #221d1a;
+  --ad-surface-2: #2b2521;
+  --ad-line: rgba(255, 255, 255, 0.09);
+  --ad-line-strong: rgba(255, 255, 255, 0.16);
+  --ad-text: #f5efe9;
+  --ad-text-2: #b7aba2;
+  --ad-text-3: #857a72;
+  --ad-glow: radial-gradient(60% 60% at 70% 20%, rgba(226, 85, 43, 0.26), transparent 70%);
+  --ad-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+  --ad-shadow-sm: 0 2px 10px -6px rgba(0, 0, 0, 0.7);
+
+  --ad-ember-wash: rgba(226, 85, 43, 0.2);
+  --ad-saffron-wash: rgba(242, 165, 65, 0.18);
+  --ad-basil-wash: rgba(79, 166, 131, 0.18);
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ loaders
+   Same shimmer skeleton and spinner the landing page uses, available to every
+   portal. `.ad-sk` is a shimmering block; size it with width/height.         */
+
+.ad-sk {
+  border-radius: var(--ad-radius-sm);
+  background: var(--ad-bg-2);
+  position: relative;
+  overflow: hidden;
+}
+.ad-sk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(226, 85, 43, 0.14), transparent);
+  animation: ad-shimmer 1.4s infinite;
+}
+@keyframes ad-shimmer {
+  to { transform: translateX(100%); }
+}
+
+.ad-sk-line { height: 11px; margin-top: 11px; }
+.ad-sk-line.is-sm { height: 9px; }
+.ad-sk-card {
+  border-radius: var(--ad-radius-lg);
+  border: 1px solid var(--ad-line);
+  background: var(--ad-surface);
+  padding: 20px;
+}
+
+.ad-spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--ad-line-strong);
+  border-top-color: var(--ad-ember);
+  animation: ad-rotate 0.8s linear infinite;
+  flex: none;
+}
+.ad-spinner.is-lg { width: 30px; height: 30px; border-width: 3px; }
+@keyframes ad-rotate {
+  to { transform: rotate(360deg); }
+}
+
+.ad-loading-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  padding: 26px 0;
+  font-size: 13px;
+  color: var(--ad-text-3);
+  font-family: var(--ad-font);
+}
+
+/* ------------------------------------------------------------- small bits */
+
+.ad-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ad-ember);
+  font-weight: 700;
+  font-family: var(--ad-font);
+}
+.ad-eyebrow.is-basil { color: var(--ad-basil); }
+html[data-theme="dark"] .ad-eyebrow.is-basil { color: var(--ad-basil-soft); }
+
+.ad-serif {
+  font-family: var(--ad-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* a thin progress bar, e.g. inside the climate label */
+.ad-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--ad-bg-2);
+  overflow: hidden;
+  border: 1px solid var(--ad-line);
+}
+.ad-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--ad-basil), var(--ad-basil-soft));
+}
+.ad-bar.is-warm > i { background: linear-gradient(90deg, var(--ad-saffron), var(--ad-ember)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-sk::after,
+  .ad-spinner { animation: none; }
+}
