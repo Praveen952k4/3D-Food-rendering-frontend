@@ -31,6 +31,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useMessage } from '../../components/ui/MessageDialog';
 import { getOrderHistory, submitFeedback } from '../../services/api';
 import ThemeToggle from '../../components/ui/ThemeToggle';
 import ReceiptDialog from '../../components/receipt/ReceiptDialog';
@@ -41,6 +42,7 @@ import { FONT_DISPLAY } from '../../theme/muiTheme';
 const OrderHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showError } = useMessage();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
@@ -108,7 +110,7 @@ const OrderHistory = () => {
       }
     } catch (error) {
       console.error('Failed to submit feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
+      showError('Your feedback could not be sent. Please try again.');
     } finally {
       setSubmittingFeedback(false);
     }

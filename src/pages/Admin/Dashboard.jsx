@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Container,
@@ -29,6 +28,7 @@ import FeedbackSection from 'components/dashboard/FeedbackSection';
 import { formatINR } from 'config/business';
 import { FONT_DISPLAY } from 'theme/muiTheme';
 import { SkeletonText } from 'components/ui/Loaders';
+import { useMessage } from 'components/ui/MessageDialog';
 
 const RANGES = [
   { value: '7d', label: '7 days' },
@@ -96,11 +96,12 @@ const AdminDashboard = () => {
   const [overview, setOverview] = useState(null);
   const [feedbackSummary, setFeedbackSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { confirmAction } = useMessage();
+  const [reloadKey, setReloadKey] = useState(0);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    setError('');
+    let failed = false;
     try {
       const [overviewRes, feedbackRes] = await Promise.allSettled([
         getOverview(range),
@@ -111,7 +112,7 @@ const AdminDashboard = () => {
         setOverview(overviewRes.value.data.overview);
       } else {
         console.error('Failed to fetch overview:', overviewRes.reason);
-        setError('Could not load analytics. Check that the API is reachable, then retry.');
+        failed = true;
       }
 
       if (feedbackRes.status === 'fulfilled') {
@@ -120,11 +121,23 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [range]);
+
+    // Reported in the centred dialog, which offers the retry.
+    if (failed) {
+      const retry = await confirmAction({
+        title: 'Could not load analytics',
+        message: 'Check that the API is reachable, then try again.',
+        confirmLabel: 'Retry',
+        cancelLabel: 'Dismiss',
+      });
+      if (retry) setReloadKey((n) => n + 1);
+    }
+  }, [range, confirmAction]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchData, reloadKey]);
 
   const kpis = overview?.kpis;
   const statusRows = overview?.statusBreakdown || [];
@@ -196,14 +209,6 @@ const AdminDashboard = () => {
           </Tooltip>
         </Box>
       </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 'var(--ad-radius)' }} action={
-          <Button color="inherit" size="small" onClick={fetchData}>Retry</Button>
-        }>
-          {error}
-        </Alert>
-      )}
 
       {/* ------------------------------------------------------------ KPIs */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>

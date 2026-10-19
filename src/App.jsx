@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeModeProvider, useThemeMode } from './context/ThemeContext';
 import AppRoutes from './components/routing/AppRoutes';
 import { buildTheme } from './theme/muiTheme';
+import { MessageProvider } from './components/ui/MessageDialog';
 
 const ThemedApp = () => {
   const { themeMode } = useThemeMode();
@@ -13,11 +14,13 @@ const ThemedApp = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
+      <MessageProvider>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </MessageProvider>
     </ThemeProvider>
   );
 };

@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Container,
@@ -37,6 +36,7 @@ import ReceiptDialog from '../../components/receipt/ReceiptDialog';
 import { SkeletonText } from '../../components/ui/Loaders';
 import business, { formatINR } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
+import { useMessage } from '../../components/ui/MessageDialog';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthsAgo = (n) => {
@@ -96,23 +96,35 @@ const GstReport = () => {
   const [groupBy, setGroupBy] = useState('month');
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { showError, confirmAction } = useMessage();
   const [receiptOrder, setReceiptOrder] = useState(null);
   const [sendingReceipt, setSendingReceipt] = useState(false);
 
   const fetchSummary = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const res = await getGstSummary({ from, to, groupBy });
       setSummary(res.data.gstSummary);
     } catch (err) {
       console.error('Failed to fetch GST summary:', err);
-      setError('Could not load the GST summary. Check that the API is reachable, then retry.');
+      const retry = await confirmAction({
+        title: 'Could not load the GST summary',
+        message: 'Check that the API is reachable, then try again.',
+        confirmLabel: 'Retry',
+        cancelLabel: 'Dismiss',
+      });
+      if (retry) {
+        setLoading(false);
+        return fetchSummaryRef.current?.();
+      }
     } finally {
       setLoading(false);
     }
-  }, [from, to, groupBy]);
+  }, [from, to, groupBy, confirmAction]);
+
+  // Lets the retry above call the latest fetcher without a circular dependency.
+  const fetchSummaryRef = useRef(null);
+  fetchSummaryRef.current = fetchSummary;
 
   useEffect(() => {
     fetchSummary();
@@ -136,7 +148,7 @@ const GstReport = () => {
       );
     } catch (err) {
       console.error('Failed to send receipt:', err);
-      setError('The receipt could not be sent to the customer.');
+      showError('The receipt could not be sent to the customer.');
     } finally {
       setSendingReceipt(false);
     }
@@ -226,20 +238,6 @@ const GstReport = () => {
           </Typography>
         )}
       </Paper>
-
-      {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3 }}
-          action={
-            <Button color="inherit" size="small" onClick={fetchSummary}>
-              Retry
-            </Button>
-          }
-        >
-          {error}
-        </Alert>
-      )}
 
       {/* totals */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>

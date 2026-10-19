@@ -32,8 +32,10 @@ import {
 } from '@mui/icons-material';
 import { getCoupons, createCoupon, updateCoupon, deleteCoupon, toggleCoupon } from '../../services/api';
 import { format } from 'date-fns';
+import { useMessage } from '../../components/ui/MessageDialog';
 
 const CouponManagement = () => {
+  const { showError, showSuccess, confirmAction } = useMessage();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -123,17 +125,23 @@ const CouponManagement = () => {
       fetchCoupons();
       handleCloseDialog();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save coupon');
+      showError(error.response?.data?.message || 'The coupon could not be saved.');
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this coupon?')) {
+    const confirmed = await confirmAction({
+      title: 'Delete this coupon?',
+      message: 'Guests will no longer be able to apply it. This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (confirmed) {
       try {
         await deleteCoupon(id);
         fetchCoupons();
       } catch (error) {
-        alert('Failed to delete coupon');
+        showError('The coupon could not be deleted.');
       }
     }
   };
@@ -143,13 +151,13 @@ const CouponManagement = () => {
       await toggleCoupon(id);
       fetchCoupons();
     } catch (error) {
-      alert('Failed to toggle coupon status');
+      showError('The coupon status could not be changed.');
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('Coupon code copied!');
+    showSuccess('Coupon code copied to your clipboard.', { title: 'Copied' });
   };
 
   const handleChangePage = (event, value) => {

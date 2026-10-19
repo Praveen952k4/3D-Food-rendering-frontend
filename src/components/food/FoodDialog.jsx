@@ -20,6 +20,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useMessage } from '../ui/MessageDialog';
 
 const categories = [
   'Starters',
@@ -35,6 +36,7 @@ const categories = [
 
 const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading }) => {
   const [newIngredient, setNewIngredient] = useState({ name: '', quantity: '' });
+  const { showInfo } = useMessage();
 
   const handleAddIngredient = () => {
     if (newIngredient.name && newIngredient.quantity) {
@@ -215,12 +217,11 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
                   const modelPath = `/models/${file.name}`;
                   setFood({ ...food, modelUrl: modelPath });
                   
-                  // Show instructions to user
-                  alert(
-                    `File selected: ${file.name}\n\n` +
-                    `Please manually copy this file to:\n` +
-                    `public/models/${file.name}\n\n` +
-                    `The model URL has been set to: ${modelPath}`
+                  // The browser cannot write into public/, so say so plainly.
+                  showInfo(
+                    `Copy ${file.name} into public/models/ yourself — the browser cannot write it for you.\n\n` +
+                      `The model URL is set to ${modelPath}.`,
+                    { title: 'One manual step' }
                   );
                 }
               }}

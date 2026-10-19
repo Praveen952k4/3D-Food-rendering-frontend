@@ -38,6 +38,7 @@ import CheckCircle from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import { getFoodItems, createOrder, validateCoupon, getAvailableCoupons } from '../../services/api';
 import { useThemeMode } from '../../context/ThemeContext';
+import { useMessage } from '../../components/ui/MessageDialog';
 import ThemeToggle from '../../components/ui/ThemeToggle';
 import ClimateLabel from '../../components/food/ClimateLabel';
 import { LoadingPanel } from '../../components/ui/Loaders';
@@ -47,6 +48,7 @@ import FoodViewer3D from '../../components/FoodViewer3D';
 
 const CustomerCart = () => {
   const { themeMode } = useThemeMode();
+  const { showError, showSuccess, showInfo } = useMessage();
   const [cartItems, setCartItems] = useState([]);
   const [promoCode, setPromoCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -187,7 +189,7 @@ const CustomerCart = () => {
 
     // Check if we can add more customizations
     if (cartCustomization[selectedItemForCustomization._id].length >= selectedItemForCustomization.quantity) {
-      alert(`You can only customize up to ${selectedItemForCustomization.quantity} items`);
+      showInfo(`You can only customise up to ${selectedItemForCustomization.quantity} of these.`);
       return;
     }
 
@@ -236,11 +238,11 @@ const CustomerCart = () => {
         const discount = coupon.discount || 0;
         setAppliedCoupon(coupon);
         setCouponDiscount(discount);
-        alert(`✓ Coupon applied! You saved ₹${discount.toFixed(2)}`);
+        showSuccess(`You saved ₹${discount.toFixed(2)} on this order.`, { title: 'Coupon applied' });
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Invalid or expired coupon';
-      alert(message);
+      showError(message, { title: 'That coupon did not work' });
       setAppliedCoupon(null);
       setCouponDiscount(0);
     } finally {
@@ -260,11 +262,11 @@ const CustomerCart = () => {
         const discount = coupon.discount || 0;
         setAppliedCoupon(coupon);
         setCouponDiscount(discount);
-        alert(`✓ Coupon applied! You saved ₹${discount.toFixed(2)}`);
+        showSuccess(`You saved ₹${discount.toFixed(2)} on this order.`, { title: 'Coupon applied' });
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Invalid or expired coupon';
-      alert(message);
+      showError(message, { title: 'That coupon did not work' });
       setAppliedCoupon(null);
       setCouponDiscount(0);
     } finally {
@@ -307,7 +309,7 @@ const CustomerCart = () => {
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
-      alert('Cart is empty');
+      showInfo('Your cart is empty — add a dish first.');
       return;
     }
 
@@ -316,17 +318,17 @@ const CustomerCart = () => {
 
   const handlePlaceOrder = async () => {
     if (!customerName.trim()) {
-      alert('Please enter your name');
+      showInfo('Please enter your name.', { title: 'One more thing' });
       return;
     }
 
     if (!customerPhone.trim() || customerPhone.length < 10) {
-      alert('Please enter a valid phone number');
+      showInfo('Please enter a valid 10-digit phone number.', { title: 'One more thing' });
       return;
     }
 
     if (orderType === 'dine-in' && !tableNumber.trim()) {
-      alert('Please enter table number for dine-in orders');
+      showInfo('Please enter your table number for a dine-in order.', { title: 'One more thing' });
       return;
     }
 
@@ -407,7 +409,7 @@ const CustomerCart = () => {
         errorMessage = error.message;
       }
       
-      alert(errorMessage);
+      showError(errorMessage, { title: 'Your order was not placed' });
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -32,6 +31,7 @@ import ReceiptDialog from '../../components/receipt/ReceiptDialog';
 import { SkeletonCards } from '../../components/ui/Loaders';
 import { formatINR, gstForOrder } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
+import { useMessage } from '../../components/ui/MessageDialog';
 
 const PER_PAGE = 12;
 
@@ -205,7 +205,7 @@ const OrderTile = ({ order, onStatus, onPayment, onReceipt }) => {
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { showError, confirmAction } = useMessage();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -220,17 +220,29 @@ const OrderManagement = () => {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const response = await getAdminOrders();
       setOrders(response.data.orders || []);
     } catch (err) {
       console.error('Failed to fetch orders:', err);
-      setError('Could not load orders. Check that the API is reachable, then retry.');
+      const retry = await confirmAction({
+        title: 'Could not load orders',
+        message: 'Check that the API is reachable, then try again.',
+        confirmLabel: 'Retry',
+        cancelLabel: 'Dismiss',
+      });
+      if (retry) {
+        setLoading(false);
+        return fetchOrdersRef.current?.();
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [confirmAction]);
+
+  // Lets the retry above call the latest fetcher without a circular dependency.
+  const fetchOrdersRef = useRef(null);
+  fetchOrdersRef.current = fetchOrders;
 
   useEffect(() => {
     fetchOrders();
@@ -284,7 +296,7 @@ const OrderManagement = () => {
       );
     } catch (err) {
       console.error('Failed to send receipt:', err);
-      setError('The receipt could not be sent to the customer.');
+      showError('The receipt could not be sent to the customer.');
     } finally {
       setSendingReceipt(false);
     }
@@ -302,7 +314,7 @@ const OrderManagement = () => {
       await fetchOrders();
     } catch (err) {
       console.error('Failed to update order:', err);
-      setError('The order could not be updated.');
+      showError('The order could not be updated.');
     } finally {
       setSaving(false);
     }
@@ -368,20 +380,6 @@ const OrderManagement = () => {
           ))}
         </ToggleButtonGroup>
       </Box>
-
-      {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3 }}
-          action={
-            <Button color="inherit" size="small" onClick={fetchOrders}>
-              Retry
-            </Button>
-          }
-        >
-          {error}
-        </Alert>
-      )}
 
       {/* tiles */}
       {loading ? (

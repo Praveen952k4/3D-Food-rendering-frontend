@@ -28,6 +28,7 @@ import FeedbackIcon from '@mui/icons-material/Feedback';
 import { getActiveOrders, submitDetailedFeedback } from '../services/api';
 import io from 'socket.io-client';
 import { FONT_DISPLAY } from '../theme/muiTheme';
+import { useMessage } from '../components/ui/MessageDialog';
 
 // Ticket states. Colours come from the Ember & Basil tokens so the panel
 // reads the same in light and dark.
@@ -94,6 +95,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
   const previousOrdersRef = useRef({});
   const audioRef = useRef(null);
   const socketRef = useRef(null);
+  const { showError } = useMessage();
   // Only the very first fetch shows a loader; the 10s poll should not flicker.
   const [firstFetch, setFirstFetch] = useState(true);
 
@@ -492,7 +494,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
       fetchActiveOrders(); // Refresh to remove the delivered order
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
+      showError('Your feedback could not be sent. Please try again.');
     } finally {
       setLoading(false);
     }

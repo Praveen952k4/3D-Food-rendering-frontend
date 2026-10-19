@@ -25,6 +25,7 @@ import { getChefOrders, markOrderDelivered, updateChefOrderStatus } from '../../
 import { SkeletonCards, LoadingNote } from '../../components/ui/Loaders';
 import { formatINR } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
+import { useMessage } from '../../components/ui/MessageDialog';
 
 /** Ticket states, in the order a dish moves through the kitchen. */
 const STATES = {
@@ -43,6 +44,7 @@ const ChefDashboard = () => {
   const [updating, setUpdating] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const firstLoad = useRef(true);
+  const { showError } = useMessage();
 
   const fetchOrders = useCallback(async () => {
     if (firstLoad.current) setLoading(true);
@@ -52,17 +54,13 @@ const ChefDashboard = () => {
       setOrders(response.data.orders || []);
     } catch (error) {
       console.error('Error fetching chef orders:', error);
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Could not reach the kitchen board.',
-        severity: 'error',
-      });
+      showError(error.response?.data?.message || 'Could not reach the kitchen board.');
     } finally {
       firstLoad.current = false;
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     fetchOrders();
@@ -80,11 +78,7 @@ const ChefDashboard = () => {
       await fetchOrders();
     } catch (error) {
       console.error('Error updating order:', error);
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Could not update the order.',
-        severity: 'error',
-      });
+      showError(error.response?.data?.message || 'Could not update the order.');
     } finally {
       setUpdating(null);
     }

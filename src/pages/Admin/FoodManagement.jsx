@@ -12,8 +12,10 @@ import AddIcon from '@mui/icons-material/Add';
 import { getAdminFoodItems, createFoodItem, updateFoodItem, deleteFoodItem } from 'services/api';
 import FoodCard from 'components/food/FoodCard';
 import FoodDialog from 'components/food/FoodDialog';
+import { useMessage } from '../../components/ui/MessageDialog';
 
 const AdminFoodManagement = () => {
+  const { showError, confirmAction } = useMessage();
   const [foodItems, setFoodItems] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -80,7 +82,7 @@ const AdminFoodManagement = () => {
   const handleSave = async () => {
     // Validation
     if (!currentFood.name || !currentFood.price || !currentFood.calories || currentFood.calories === 0) {
-      alert('Please fill in all required fields: Name, Price, and Calories');
+      showError('Name, price and calories are all required.', { title: 'Missing details' });
       return;
     }
     
@@ -95,20 +97,26 @@ const AdminFoodManagement = () => {
       handleCloseDialog();
     } catch (error) {
       console.error('Failed to save food item:', error);
-      alert('Failed to save food item: ' + (error.response?.data?.message || error.message));
+      showError(error.response?.data?.message || error.message, { title: 'The dish could not be saved' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this food item?')) {
+    const confirmed = await confirmAction({
+      title: 'Delete this dish?',
+      message: 'It will be removed from the menu. This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (confirmed) {
       try {
         await deleteFoodItem(id);
         fetchFoodItems();
       } catch (error) {
         console.error('Failed to delete food item:', error);
-        alert('Failed to delete food item');
+        showError('The dish could not be deleted.');
       }
     }
   };
