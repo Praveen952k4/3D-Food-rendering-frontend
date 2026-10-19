@@ -2861,31 +2861,32 @@ const CustomerHome = () => {
         onClose={() => setNotificationDrawerOpen(false)}
         sx={{
           '& .MuiDrawer-paper': {
-            width: { xs: '100%', sm: '400px' },
+            width: { xs: '100%', sm: '420px' },
             maxWidth: '100%',
+            bgcolor: 'var(--ad-bg)',
           },
         }}
       >
-        <div
-          style={{
-            padding: '16px',
-            background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
-            color: 'white',
+        {/* The panel below carries its own heading, so this bar is just the
+            close affordance. */}
+        <Box
+          sx={{
+            px: 2,
+            py: 1,
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            justifyContent: 'flex-end',
+            borderBottom: '1px solid var(--ad-line)',
+            bgcolor: 'var(--ad-surface)',
           }}
         >
-          <Typography variant="h6" fontWeight={700}>
-            Order Notifications
-          </Typography>
           <IconButton
             onClick={() => setNotificationDrawerOpen(false)}
-            sx={{ color: 'white' }}
+            aria-label="Close notifications"
+            sx={{ color: 'text.secondary' }}
           >
             <CloseIcon />
           </IconButton>
-        </div>
+        </Box>
         <OrderNotifications 
           onCountChange={setActiveOrdersCount}
           onUnviewedCountChange={setUnviewedNotificationsCount}
