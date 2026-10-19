@@ -161,13 +161,13 @@ const AdminDashboard = () => {
             onChange={(e, v) => v && setRange(v)}
             sx={{
               bgcolor: 'var(--ad-surface)',
-              borderRadius: 999,
+              borderRadius: 'var(--ad-radius-sm)',
               p: 0.5,
               border: '1px solid var(--ad-line-strong)',
               flexWrap: 'wrap',
               '& .MuiToggleButton-root': {
                 border: 0,
-                borderRadius: '999px !important',
+                borderRadius: '8px !important',
                 px: 1.75,
                 py: 0.5,
                 fontSize: 12.5,

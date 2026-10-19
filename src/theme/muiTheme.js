@@ -140,19 +140,57 @@ export const buildTheme = (mode) => {
           paper: { backgroundColor: ramp.surface, borderRight: `1px solid ${ramp.line}`, backgroundImage: 'none' },
         },
       },
+      // Buttons are squared-off tablets rather than pills: a 12px radius, a
+      // thin top highlight on the solid ones, and a small lift on hover that
+      // settles on press. Outlined buttons keep a 1.5px rule so they hold
+      // their weight next to a filled button in both modes.
       MuiButton: {
         styleOverrides: {
-          root: { borderRadius: 999, paddingInline: 20 },
-          containedPrimary: {
-            boxShadow: '0 12px 26px -16px rgba(226,85,43,.95)',
-            '&:hover': { backgroundColor: isDark ? palette.ember : palette.emberSoft, boxShadow: '0 14px 28px -14px rgba(226,85,43,.95)' },
+          root: {
+            borderRadius: 12,
+            paddingInline: 18,
+            paddingBlock: 8,
+            letterSpacing: '0.005em',
+            transition: 'transform .16s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease',
+            '&:hover': { transform: 'translateY(-1px)' },
+            '&:active': { transform: 'translateY(0)' },
+            '&.Mui-disabled': { transform: 'none' },
+            '&:focus-visible': { outline: `2px solid ${accent}`, outlineOffset: 2 },
           },
-          outlined: { borderColor: ramp.lineStrong },
+          sizeSmall: { borderRadius: 10, paddingInline: 13, paddingBlock: 5, fontSize: 13 },
+          sizeLarge: { borderRadius: 14, paddingInline: 24, paddingBlock: 11, fontSize: 15.5 },
+          contained: {
+            boxShadow: `0 1px 0 rgba(255,255,255,.22) inset, 0 8px 18px -12px ${isDark ? 'rgba(0,0,0,.9)' : 'rgba(63,38,22,.65)'}`,
+            '&:hover': {
+              transform: 'translateY(-1px)',
+              boxShadow: `0 1px 0 rgba(255,255,255,.22) inset, 0 12px 22px -12px ${isDark ? 'rgba(0,0,0,.95)' : 'rgba(63,38,22,.7)'}`,
+            },
+          },
+          containedPrimary: {
+            '&:hover': { backgroundColor: isDark ? palette.ember : palette.emberDeep },
+          },
+          outlined: {
+            borderWidth: 1.5,
+            borderColor: ramp.lineStrong,
+            '&:hover': { borderWidth: 1.5, borderColor: accent, color: accent, backgroundColor: 'transparent' },
+          },
+          text: {
+            paddingInline: 10,
+            '&:hover': { backgroundColor: isDark ? 'rgba(255,122,77,.10)' : 'rgba(226,85,43,.08)' },
+          },
         },
-        defaultProps: { disableElevation: true },
+        defaultProps: { disableElevation: true, disableRipple: false },
       },
       MuiIconButton: {
-        styleOverrides: { root: { borderRadius: 12 } },
+        styleOverrides: {
+          root: {
+            borderRadius: 10,
+            transition: 'color .16s ease, border-color .16s ease, background-color .16s ease',
+          },
+        },
+      },
+      MuiToggleButton: {
+        styleOverrides: { root: { borderRadius: 10, textTransform: 'none', fontWeight: 600 } },
       },
       MuiChip: {
         styleOverrides: {

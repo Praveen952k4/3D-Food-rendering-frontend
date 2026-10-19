@@ -23,11 +23,12 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import { format } from 'date-fns';
-import { getAdminOrders, updateAdminOrder } from '../../services/api';
-import ReceiptDialog from '../../components/admin/ReceiptDialog';
+import { getAdminOrders, updateAdminOrder, sendOrderReceipt } from '../../services/api';
+import ReceiptDialog from '../../components/receipt/ReceiptDialog';
 import { SkeletonCards } from '../../components/ui/Loaders';
 import { formatINR, gstForOrder } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
@@ -153,16 +154,30 @@ const OrderTile = ({ order, onStatus, onPayment, onReceipt }) => {
             incl. {formatINR(gst.total)} GST
           </Typography>
         </Box>
-        <Chip
-          label={order.paymentStatus}
-          size="small"
-          sx={{
-            ml: 'auto',
-            textTransform: 'capitalize',
-            bgcolor: paid ? 'var(--ad-basil-wash)' : 'var(--ad-ember-wash)',
-            color: paid ? 'var(--ad-basil)' : 'var(--ad-ember)',
-          }}
-        />
+        <Box sx={{ ml: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+          <Chip
+            label={order.paymentStatus}
+            size="small"
+            sx={{
+              textTransform: 'capitalize',
+              bgcolor: paid ? 'var(--ad-basil-wash)' : 'var(--ad-ember-wash)',
+              color: paid ? 'var(--ad-basil)' : 'var(--ad-ember)',
+            }}
+          />
+          {order.receiptSent && (
+            <Chip
+              size="small"
+              icon={<TaskAltIcon />}
+              label="Receipt shared"
+              variant="outlined"
+              sx={{
+                borderColor: 'var(--ad-basil)',
+                color: 'var(--ad-basil)',
+                '& .MuiChip-icon': { color: 'inherit', fontSize: 14 },
+              }}
+            />
+          )}
+        </Box>
       </Box>
 
       {/* actions */}
@@ -201,6 +216,7 @@ const OrderManagement = () => {
   const [newPaymentStatus, setNewPaymentStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState(null);
+  const [sendingReceipt, setSendingReceipt] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -252,6 +268,26 @@ const OrderManagement = () => {
     setUpdateType('');
     setNewStatus('');
     setNewPaymentStatus('');
+  };
+
+  // Releasing the receipt is what lets the customer see it at all, so the
+  // order list is refreshed afterwards and the open dialog follows suit.
+  const handleSendReceipt = async () => {
+    if (!receiptOrder) return;
+    setSendingReceipt(true);
+    try {
+      const res = await sendOrderReceipt(receiptOrder._id, true);
+      const updated = res.data.order;
+      setReceiptOrder((current) => (current ? { ...current, receiptSent: true, receiptSentAt: updated?.receiptSentAt } : current));
+      setOrders((list) =>
+        list.map((o) => (o._id === receiptOrder._id ? { ...o, receiptSent: true, receiptSentAt: updated?.receiptSentAt } : o))
+      );
+    } catch (err) {
+      console.error('Failed to send receipt:', err);
+      setError('The receipt could not be sent to the customer.');
+    } finally {
+      setSendingReceipt(false);
+    }
   };
 
   const handleUpdate = async () => {
@@ -309,13 +345,13 @@ const OrderManagement = () => {
           onChange={(e, v) => v && setFilter(v)}
           sx={{
             bgcolor: 'var(--ad-surface)',
-            borderRadius: 999,
+            borderRadius: 'var(--ad-radius-sm)',
             p: 0.5,
             border: '1px solid var(--ad-line-strong)',
             flexWrap: 'wrap',
             '& .MuiToggleButton-root': {
               border: 0,
-              borderRadius: '999px !important',
+              borderRadius: '8px !important',
               px: 1.75,
               py: 0.5,
               fontSize: 12.5,
@@ -452,7 +488,15 @@ const OrderManagement = () => {
         </DialogActions>
       </Dialog>
 
-      <ReceiptDialog order={receiptOrder} open={!!receiptOrder} onClose={() => setReceiptOrder(null)} />
+      <ReceiptDialog
+        order={receiptOrder}
+        open={!!receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+        canSend
+        sent={!!receiptOrder?.receiptSent}
+        sending={sendingReceipt}
+        onSend={handleSendReceipt}
+      />
     </Container>
   );
 };

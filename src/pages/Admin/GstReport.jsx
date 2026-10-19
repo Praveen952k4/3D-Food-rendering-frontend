@@ -29,11 +29,11 @@ import {
   Legend,
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
-import { getGstSummary } from '../../services/api';
+import { getGstSummary, sendOrderReceipt } from '../../services/api';
 import StatCard from '../../components/dashboard/StatCard';
 import { Panel } from '../../components/dashboard/OverviewCharts';
 import { useChartTheme, ChartTooltip } from '../../components/dashboard/chartTheme';
-import ReceiptDialog from '../../components/admin/ReceiptDialog';
+import ReceiptDialog from '../../components/receipt/ReceiptDialog';
 import { SkeletonText } from '../../components/ui/Loaders';
 import business, { formatINR } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
@@ -98,6 +98,7 @@ const GstReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [receiptOrder, setReceiptOrder] = useState(null);
+  const [sendingReceipt, setSendingReceipt] = useState(false);
 
   const fetchSummary = useCallback(async () => {
     setLoading(true);
@@ -116,6 +117,30 @@ const GstReport = () => {
   useEffect(() => {
     fetchSummary();
   }, [fetchSummary]);
+
+  const handleSendReceipt = async () => {
+    if (!receiptOrder) return;
+    setSendingReceipt(true);
+    try {
+      await sendOrderReceipt(receiptOrder._id, true);
+      setReceiptOrder((current) => (current ? { ...current, receiptSent: true } : current));
+      setSummary((current) =>
+        current
+          ? {
+              ...current,
+              orders: current.orders.map((o) =>
+                o._id === receiptOrder._id ? { ...o, receiptSent: true } : o
+              ),
+            }
+          : current
+      );
+    } catch (err) {
+      console.error('Failed to send receipt:', err);
+      setError('The receipt could not be sent to the customer.');
+    } finally {
+      setSendingReceipt(false);
+    }
+  };
 
   const chartData = useMemo(
     () =>
@@ -175,12 +200,12 @@ const GstReport = () => {
           value={groupBy}
           onChange={(e, v) => v && setGroupBy(v)}
           sx={{
-            borderRadius: 999,
+            borderRadius: 'var(--ad-radius-sm)',
             p: 0.5,
             border: '1px solid var(--ad-line-strong)',
             '& .MuiToggleButton-root': {
               border: 0,
-              borderRadius: '999px !important',
+              borderRadius: '8px !important',
               px: 2,
               py: 0.5,
               fontSize: 12.5,
@@ -427,7 +452,15 @@ const GstReport = () => {
         </Grid>
       </Grid>
 
-      <ReceiptDialog order={receiptOrder} open={!!receiptOrder} onClose={() => setReceiptOrder(null)} />
+      <ReceiptDialog
+        order={receiptOrder}
+        open={!!receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+        canSend
+        sent={!!receiptOrder?.receiptSent}
+        sending={sendingReceipt}
+        onSend={handleSendReceipt}
+      />
     </Container>
   );
 };

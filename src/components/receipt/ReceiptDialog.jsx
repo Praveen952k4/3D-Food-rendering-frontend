@@ -10,7 +10,7 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import { Close, Download, Print } from '@mui/icons-material';
+import { Close, Download, Print, Send, TaskAlt } from '@mui/icons-material';
 import { buildReceiptPdf, receiptFileName } from '../../utils/receipt';
 import { gstForOrder, formatINR } from '../../config/business';
 import { LoadingPanel } from '../ui/Loaders';
@@ -18,8 +18,22 @@ import { LoadingPanel } from '../ui/Loaders';
 /**
  * Shows a GST-inclusive e-receipt for one order: the generated PDF is rendered
  * in-place in an iframe, with Download and Print beneath it.
+ *
+ * The admin also gets "Send to customer", which releases the receipt — the
+ * customer cannot view or download it until that happens. Pass
+ * `allowPrint={false}` for the customer's copy, which is view and download
+ * only.
  */
-const ReceiptDialog = ({ order, open, onClose }) => {
+const ReceiptDialog = ({
+  order,
+  open,
+  onClose,
+  allowPrint = true,
+  canSend = false,
+  sent = false,
+  sending = false,
+  onSend,
+}) => {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const docRef = useRef(null);
@@ -112,15 +126,47 @@ const ReceiptDialog = ({ order, open, onClose }) => {
       </DialogContent>
 
       <DialogActions sx={{ px: 2, py: 1.5, gap: 1, flexWrap: 'wrap' }}>
-        <Typography variant="caption" sx={{ color: 'text.disabled', mr: 'auto', display: { xs: 'none', sm: 'block' } }}>
-          GST 5% · CGST 2.5% + SGST 2.5%
+        <Typography
+          variant="caption"
+          sx={{ color: sent ? 'var(--ad-basil)' : 'text.disabled', mr: 'auto', display: { xs: 'none', sm: 'block' } }}
+        >
+          {sent ? 'Shared with the customer' : 'GST 5% · CGST 2.5% + SGST 2.5%'}
         </Typography>
-        <Button onClick={handleDownload} startIcon={<Download />} variant="outlined" disabled={!url}>
+
+        {canSend && (
+          <Button
+            onClick={onSend}
+            startIcon={sending ? null : sent ? <TaskAlt /> : <Send />}
+            variant="outlined"
+            color={sent ? 'success' : 'primary'}
+            disabled={!url || sending}
+          >
+            {sending ? (
+              <>
+                <span className="ad-spinner" style={{ marginRight: 8 }} aria-hidden="true" />
+                Sending…
+              </>
+            ) : sent ? (
+              'Sent · send again'
+            ) : (
+              'Send to customer'
+            )}
+          </Button>
+        )}
+
+        <Button
+          onClick={handleDownload}
+          startIcon={<Download />}
+          variant={allowPrint ? 'outlined' : 'contained'}
+          disabled={!url}
+        >
           Download
         </Button>
-        <Button onClick={handlePrint} startIcon={<Print />} variant="contained" disabled={!url}>
-          Print
-        </Button>
+        {allowPrint && (
+          <Button onClick={handlePrint} startIcon={<Print />} variant="contained" disabled={!url}>
+            Print
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

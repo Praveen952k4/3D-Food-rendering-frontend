@@ -86,6 +86,8 @@ export const getAdminOrders = (status, date) =>
 export const updateAdminOrder = (id, data) => api.put(`/admin/orders/${id}`, data);
 export const updateAdminOrderFeedback = (id, shopFeedback) =>
   api.put(`/admin/orders/${id}/feedback`, { shopFeedback });
+export const sendOrderReceipt = (id, send = true) =>
+  api.put(`/admin/orders/${id}/send-receipt`, { send });
 export const getFeedbackSummary = () => api.get('/admin/feedback-summary');
 export const getCustomers = () => api.get('/admin/customers');
 export const getOnlineUsers = () => api.get('/admin/users/online');

@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import {
+  Box,
   Container,
   Typography,
   Card,
@@ -26,15 +27,20 @@ import {
   Payment,
   LocationOn,
   Star,
+  ReceiptLong,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { getOrderHistory, submitFeedback } from '../../services/api';
 import ThemeToggle from '../../components/ui/ThemeToggle';
+import ReceiptDialog from '../../components/receipt/ReceiptDialog';
+import { formatINR, gstForOrder } from '../../config/business';
 import { SkeletonCards } from '../../components/ui/Loaders';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
@@ -42,11 +48,14 @@ const OrderHistory = () => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState(null);
 
   const fetchOrderHistory = useCallback(async () => {
     try {
       setLoading(true);
-      const phone = localStorage.getItem('userPhone');
+      // The signed-in user is the source of truth; nothing ever wrote the
+      // 'userPhone' key this used to read, so the page always bounced away.
+      const phone = user?.phone || localStorage.getItem('userPhone');
       if (!phone) {
         navigate('/login');
         return;
@@ -61,7 +70,7 @@ const OrderHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, user]);
 
   useEffect(() => {
     fetchOrderHistory();
@@ -238,6 +247,60 @@ const OrderHistory = () => {
                     </Typography>
                   </div>
 
+                  {/* The receipt is only here once the restaurant has sent it. */}
+                  <Divider sx={{ mb: 2 }} />
+                  {order.receiptSent ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 1.5,
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        border: '1px solid var(--ad-line)',
+                        borderRadius: 'var(--ad-radius)',
+                        bgcolor: 'var(--ad-bg-2)',
+                        p: 1.5,
+                        mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: '10px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          bgcolor: 'var(--ad-basil-wash)',
+                          color: 'var(--ad-basil)',
+                          flex: 'none',
+                          '& svg': { fontSize: 18 },
+                        }}
+                      >
+                        <ReceiptLong />
+                      </Box>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          E-receipt available
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          Includes {formatINR(gstForOrder(order).total)} GST
+                        </Typography>
+                      </Box>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        startIcon={<ReceiptLong />}
+                        onClick={() => setReceiptOrder(order)}
+                      >
+                        View receipt
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 2 }}>
+                      Your e-receipt will appear here once the restaurant sends it.
+                    </Typography>
+                  )}
+
                   {order.status === 'delivered' && (
                     <>
                       <Divider sx={{ mb: 2 }} />
@@ -277,6 +340,13 @@ const OrderHistory = () => {
           </Stack>
         )}
       </Container>
+
+      <ReceiptDialog
+        order={receiptOrder}
+        open={!!receiptOrder}
+        onClose={() => setReceiptOrder(null)}
+        allowPrint={false}
+      />
 
       <Dialog open={feedbackDialogOpen} onClose={handleCloseFeedback} maxWidth="sm" fullWidth>
         <DialogTitle>Rate Your Experience</DialogTitle>
