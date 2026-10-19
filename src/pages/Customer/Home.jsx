@@ -567,6 +567,9 @@ const CustomerHome = () => {
     } catch {
       return 0;
     }
+    // The real input is localStorage, which the linter cannot see, so
+    // cartVersion is the counter that invalidates this on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartVersion]);
 
   const handleLogout = () => {

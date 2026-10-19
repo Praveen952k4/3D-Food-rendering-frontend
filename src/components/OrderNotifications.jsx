@@ -258,6 +258,10 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
         socketRef.current.disconnect();
       }
     };
+    // Deliberately mount-once: this opens the socket, registers the listener
+    // and starts the 10s poll. fetchActiveOrders is re-created every render,
+    // so depending on it would tear all three down and rebuild them each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Mark all current notifications as viewed when drawer opens
@@ -284,7 +288,10 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
         }
       }
     }
-  }, [isDrawerOpen]); // Only depend on isDrawerOpen, not orders
+    // Only when the drawer opens. Depending on `orders` as well would re-run
+    // this on every poll and mark orders viewed before anyone saw them.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDrawerOpen]);
 
   const fetchActiveOrders = async () => {
     try {
