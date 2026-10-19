@@ -43,7 +43,7 @@ const PhoneForm = ({ phone, setPhone, onSendOTP, loading }) => {
         disabled={loading || phone.length < 10}
         style={{
           padding: '12px 0',
-          background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+          background: 'linear-gradient(45deg, #e2552b 30%, #f2a541 90%)',
         }}
       >
         {loading ? <CircularProgress size={24} color="inherit" /> : 'Send OTP'}

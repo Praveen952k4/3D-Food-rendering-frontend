@@ -126,7 +126,7 @@ const FoodRatings = () => {
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)' }}>
             <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
               {stats.totalItems}
             </Typography>
@@ -136,7 +136,7 @@ const FoodRatings = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
+          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
                 {stats.avgRating}
@@ -149,7 +149,7 @@ const FoodRatings = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
+          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #2f7d62 0%, #4fa683 100%)' }}>
             <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
               {stats.totalRatings}
             </Typography>

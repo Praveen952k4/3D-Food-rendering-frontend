@@ -112,7 +112,7 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
           />
 
           {/* Ingredients Section */}
-          <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '8px' }}>
+          <Box sx={{ mb: 2, p: 2, border: '1px solid var(--ad-line)', borderRadius: '8px' }}>
             <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>
               Ingredients
             </Typography>
@@ -129,7 +129,7 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
                       gap: 1, 
                       mb: 1,
                       p: 1,
-                      backgroundColor: '#f5f5f5',
+                      backgroundColor: 'var(--ad-bg-2)',
                       borderRadius: '4px',
                     }}
                   >
@@ -256,7 +256,7 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
           variant="contained"
           disabled={loading}
           sx={{
-            background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+            background: 'linear-gradient(45deg, #e2552b 30%, #f2a541 90%)',
           }}
         >
           {editMode ? 'Update' : 'Add'}

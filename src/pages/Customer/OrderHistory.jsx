@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -29,6 +29,9 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getOrderHistory, submitFeedback } from '../../services/api';
+import ThemeToggle from '../../components/ui/ThemeToggle';
+import { SkeletonCards } from '../../components/ui/Loaders';
+import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
@@ -40,11 +43,7 @@ const OrderHistory = () => {
   const [feedback, setFeedback] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
-  useEffect(() => {
-    fetchOrderHistory();
-  }, []);
-
-  const fetchOrderHistory = async () => {
+  const fetchOrderHistory = useCallback(async () => {
     try {
       setLoading(true);
       const phone = localStorage.getItem('userPhone');
@@ -62,7 +61,11 @@ const OrderHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchOrderHistory();
+  }, [fetchOrderHistory]);
 
   const handleOpenFeedback = (order) => {
     setSelectedOrder(order);
@@ -132,67 +135,34 @@ const OrderHistory = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div style={{ 
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-        gap: '16px',
-      }}>
-        <div style={{ position: 'relative', display: 'inline-flex' }}>
-          <CircularProgress
-            size={60}
-            thickness={4}
-            sx={{
-              color: '#667eea',
-              animationDuration: '1.2s',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Restaurant style={{ fontSize: 28, color: '#667eea' }} />
-          </div>
-        </div>
-        <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
-          Loading your orders...
-        </Typography>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <AppBar position="sticky" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div style={{ background: 'var(--ad-bg)', minHeight: '100vh' }}>
+      <AppBar
+        position="sticky"
+        sx={{
+          backdropFilter: 'blur(14px)',
+          backgroundColor: 'color-mix(in srgb, var(--ad-surface) 90%, transparent)',
+        }}
+      >
         <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={() => navigate('/customer/home')}>
+          <IconButton edge="start" onClick={() => navigate('/customer/home')} aria-label="Back">
             <ArrowBack />
           </IconButton>
-          <Typography variant="h6" sx={{ ml: 2, flexGrow: 1 }}>
-            Order History
+          <Typography sx={{ ml: 1.5, flexGrow: 1, fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 20 }}>
+            Your orders
           </Typography>
+          <ThemeToggle size="small" />
         </Toolbar>
       </AppBar>
 
       <Container maxWidth="md" sx={{ py: 3 }}>
-        {orders.length === 0 ? (
-          <Card sx={{ mt: 4, textAlign: 'center', py: 6 }}>
-            <Restaurant sx={{ fontSize: 80, color: '#ccc', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              No Orders Yet
+        {loading ? (
+          <SkeletonCards count={3} height={200} columns="1fr" />
+        ) : orders.length === 0 ? (
+          <Card sx={{ mt: 4, textAlign: 'center', py: 6, border: '1px dashed var(--ad-line-strong)' }}>
+            <Restaurant sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
+            <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 22, mb: 0.5 }} gutterBottom>
+              No orders yet
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Start ordering to see your order history
@@ -201,7 +171,7 @@ const OrderHistory = () => {
               variant="contained"
               onClick={() => navigate('/customer/home')}
               sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
               }}
             >
               Browse Menu
@@ -346,7 +316,7 @@ const OrderHistory = () => {
             onClick={handleSubmitFeedback}
             disabled={rating === 0 || submittingFeedback}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
             }}
           >
             {submittingFeedback ? <CircularProgress size={24} /> : 'Submit Feedback'}

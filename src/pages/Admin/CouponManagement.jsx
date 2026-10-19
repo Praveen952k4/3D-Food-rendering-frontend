@@ -183,7 +183,7 @@ const CouponManagement = () => {
           startIcon={<Add />}
           onClick={() => handleOpenDialog()}
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
           }}
         >
           Create Coupon
@@ -374,7 +374,7 @@ const CouponManagement = () => {
             variant="contained"
             onClick={handleSubmit}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
             }}
           >
             {editingCoupon ? 'Update' : 'Create'}

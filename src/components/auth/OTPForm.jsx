@@ -43,7 +43,7 @@ const OTPForm = ({ otp, setOtp, onVerifyOTP, onChangePhone, loading }) => {
         style={{
           padding: '12px 0',
           marginBottom: 16,
-          background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+          background: 'linear-gradient(45deg, #e2552b 30%, #f2a541 90%)',
         }}
       >
         {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify OTP'}

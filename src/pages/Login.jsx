@@ -116,7 +116,7 @@ const Login = () => {
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <RestaurantIcon style={{ fontSize: 60, color: '#b8892d', marginBottom: 16 }} />
             <Typography variant="h4" fontWeight="bold" gutterBottom>
-              Palate3D
+              AR Automated Dining
             </Typography>
             <Typography variant="body1" color="text.secondary">
               {step === 'phone' ? 'Sign in with your phone to order or open the kitchen studio.' : 'Enter the OTP sent to your phone'}
@@ -144,7 +144,7 @@ const Login = () => {
               onClick={() => navigate('/')}
               sx={{ color: '#b8892d', textTransform: 'none' }}
             >
-              Back to Palate3D
+              Back to AR Automated Dining
             </Button>
           </div>
 

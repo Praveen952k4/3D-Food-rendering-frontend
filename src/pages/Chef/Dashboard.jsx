@@ -1,102 +1,88 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Container,
-  Typography,
-  Paper,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  Button,
-  Box,
-  CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
   Alert,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Button,
+  Chip,
+  Container,
+  Divider,
+  Grid,
+  Paper,
   Snackbar,
+  Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { getChefOrders, markOrderDelivered, updateChefOrderStatus } from '../../services/api';
+import { SkeletonCards, LoadingNote } from '../../components/ui/Loaders';
+import { formatINR } from '../../config/business';
+import { FONT_DISPLAY } from '../../theme/muiTheme';
+
+/** Ticket states, in the order a dish moves through the kitchen. */
+const STATES = {
+  pending: { label: 'Pending', fg: 'var(--ad-text-3)', wash: 'var(--ad-bg-2)', icon: <AccessTimeIcon /> },
+  confirmed: { label: 'Confirmed', fg: 'var(--ad-saffron)', wash: 'var(--ad-saffron-wash)', icon: <CheckCircleIcon /> },
+  preparing: { label: 'Preparing', fg: 'var(--ad-ember)', wash: 'var(--ad-ember-wash)', icon: <RestaurantIcon /> },
+  ready: { label: 'Ready', fg: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)', icon: <LocalShippingIcon /> },
+};
+
+const COUNTERS = ['pending', 'confirmed', 'preparing', 'ready'];
 
 const ChefDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const firstLoad = useRef(true);
 
-  useEffect(() => {
-    fetchOrders();
-    // Poll for new orders every 10 seconds
-    const interval = setInterval(fetchOrders, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
+    if (firstLoad.current) setLoading(true);
+    else setRefreshing(true);
     try {
       const response = await getChefOrders();
-      console.log('📋 Chef Orders Response:', response.data);
-      console.log('📊 Number of orders:', response.data.orders?.length || 0);
-      
-      // Log customizations for debugging
-      if (response.data.orders && response.data.orders.length > 0) {
-        response.data.orders.forEach((order, idx) => {
-          console.log(`\n  📦 Order ${idx + 1}: ${order.orderNumber}`);
-          order.items.forEach((item, itemIdx) => {
-            console.log(`    🍽️ Item ${itemIdx + 1}: ${item.name} x${item.quantity}`);
-            if (item.customizations && item.customizations.length > 0) {
-              console.log(`      ✨ Customizations (${item.customizations.length}):`, item.customizations);
-            } else {
-              console.log(`      ℹ️  No customizations`);
-            }
-          });
-        });
-      }
-      
       setOrders(response.data.orders || []);
     } catch (error) {
-      console.error('❌ Error fetching orders:', error);
-      console.error('Error details:', error.response?.data);
+      console.error('Error fetching chef orders:', error);
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || 'Failed to fetch orders',
+        message: error.response?.data?.message || 'Could not reach the kitchen board.',
         severity: 'error',
       });
     } finally {
+      firstLoad.current = false;
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 10000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
 
   const updateOrderStatus = async (orderId, newStatus) => {
     setUpdating(orderId);
     try {
-      if (newStatus === 'delivered') {
-        // Use the deliver endpoint for marking as delivered
-        await markOrderDelivered(orderId);
-      } else {
-        // Use the status update endpoint for other status changes
-        await updateChefOrderStatus(orderId, newStatus);
-      }
-      
-      setSnackbar({
-        open: true,
-        message: `Order status updated to ${newStatus}`,
-        severity: 'success',
-      });
-      
-      // Refresh orders
+      if (newStatus === 'delivered') await markOrderDelivered(orderId);
+      else await updateChefOrderStatus(orderId, newStatus);
+
+      setSnackbar({ open: true, message: `Order marked ${newStatus}.`, severity: 'success' });
       await fetchOrders();
     } catch (error) {
-      console.error('❌ Error updating order:', error);
+      console.error('Error updating order:', error);
       setSnackbar({
         open: true,
-        message: error.response?.data?.message || 'Failed to update order',
+        message: error.response?.data?.message || 'Could not update the order.',
         severity: 'error',
       });
     } finally {
@@ -104,356 +90,280 @@ const ChefDashboard = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending':
-        return '#6b7280';
-      case 'confirmed':
-        return '#3b82f6';
-      case 'preparing':
-        return '#f59e0b';
-      case 'ready':
-        return '#10b981';
-      default:
-        return '#6b7280';
+  /** The one action that makes sense for a ticket in this state. */
+  const nextStep = (order) => {
+    if (order.status === 'pending' || order.status === 'confirmed') {
+      return { status: 'preparing', label: 'Start preparing', icon: <RestaurantIcon /> };
     }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'pending':
-        return <AccessTimeIcon />;
-      case 'confirmed':
-        return <CheckCircleIcon />;
-      case 'preparing':
-        return <RestaurantIcon />;
-      case 'ready':
-        return <LocalShippingIcon />;
-      default:
-        return <AccessTimeIcon />;
+    if (order.status === 'preparing') {
+      return { status: 'ready', label: 'Mark as ready', icon: <CheckCircleIcon /> };
     }
+    if (order.status === 'ready') {
+      return { status: 'delivered', label: 'Mark as delivered', icon: <LocalShippingIcon /> };
+    }
+    return null;
   };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress size={60} />
-      </Box>
-    );
-  }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Header */}
-      <Paper
-        elevation={3}
-        sx={{
-          p: 3,
-          mb: 4,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-        }}
-      >
-        <Box display="flex" alignItems="center" gap={2}>
-          <RestaurantIcon sx={{ fontSize: 40 }} />
-          <Box>
-            <Typography variant="h4" fontWeight={700}>
-              Chef Dashboard
-            </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.9 }}>
-              Manage confirmed orders and prepare dishes
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
+    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 } }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography className="ad-eyebrow">Kitchen</Typography>
+        <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: { xs: 28, sm: 36 }, mt: 0.5 }}>
+          Live order board
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Tickets refresh every 10 seconds. Work left to right: confirmed → preparing → ready.
+        </Typography>
+      </Box>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: '#6b7280', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h4" fontWeight={700}>
-                {orders.filter(o => o.status === 'pending').length}
-              </Typography>
-              <Typography variant="body2">Pending Orders</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: '#3b82f6', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h4" fontWeight={700}>
-                {orders.filter(o => o.status === 'confirmed').length}
-              </Typography>
-              <Typography variant="body2">Confirmed Orders</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: '#f59e0b', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h4" fontWeight={700}>
-                {orders.filter(o => o.status === 'preparing').length}
-              </Typography>
-              <Typography variant="body2">Preparing</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: '#10b981', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h4" fontWeight={700}>
-                {orders.filter(o => o.status === 'ready').length}
-              </Typography>
-              <Typography variant="body2">Ready</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* counters */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {COUNTERS.map((key) => {
+          const state = STATES[key];
+          const count = orders.filter((o) => o.status === key).length;
+          return (
+            <Grid item xs={6} md={3} key={key}>
+              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '12px',
+                    display: 'grid',
+                    placeItems: 'center',
+                    bgcolor: state.wash,
+                    color: state.fg,
+                    flex: 'none',
+                    '& svg': { fontSize: 20 },
+                  }}
+                >
+                  {state.icon}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 26, fontWeight: 600, lineHeight: 1.1 }}>
+                    {loading ? '—' : count}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    {state.label}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          );
+        })}
       </Grid>
 
-      {/* Orders List */}
-      {orders.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <RestaurantIcon sx={{ fontSize: 64, color: '#9ca3af', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">
-            No active orders at the moment
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Orders will appear here when customers place them
+      {/* tickets */}
+      {loading ? (
+        <SkeletonCards count={6} height={260} columns="repeat(auto-fill, minmax(320px, 1fr))" />
+      ) : orders.length === 0 ? (
+        <Paper sx={{ p: 6, textAlign: 'center', border: '1px dashed var(--ad-line-strong)' }}>
+          <RestaurantIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1.5 }} />
+          <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 21, mb: 0.5 }}>The pass is clear</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            New tickets appear here the moment a guest places an order.
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={3}>
-          {orders.map((order) => (
-            <Grid item xs={12} md={6} lg={4} key={order._id}>
-              <Card
-                elevation={3}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 2.5 }}>
+          {orders.map((order) => {
+            const state = STATES[order.status] || STATES.pending;
+            const step = nextStep(order);
+            const busy = updating === order._id;
+
+            return (
+              <Paper
+                key={order._id}
                 sx={{
-                  height: '100%',
-                  border: `3px solid ${getStatusColor(order.status)}`,
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6,
+                  p: 2.25,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetInlineStart: 0,
+                    insetBlock: 0,
+                    width: 4,
+                    bgcolor: state.fg,
                   },
                 }}
               >
-                <CardContent>
-                  {/* Order Header */}
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                    <Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        {order.orderNumber}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(order.createdAt).toLocaleTimeString()}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      icon={getStatusIcon(order.status)}
-                      label={order.status.toUpperCase()}
-                      sx={{
-                        backgroundColor: getStatusColor(order.status),
-                        color: 'white',
-                        fontWeight: 700,
-                      }}
-                    />
-                  </Box>
-
-                  <Divider sx={{ mb: 2 }} />
-
-                  {/* Customer Info */}
-                  <Box mb={2}>
-                    <Typography variant="body2" fontWeight={600}>
-                      Customer: {order.customerName}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, pl: 0.75 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 17 }} noWrap>
+                      {order.orderNumber}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Phone: {order.customerPhone}
+                    <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                      {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Typography>
                   </Box>
+                  <Chip
+                    icon={state.icon}
+                    label={state.label}
+                    size="small"
+                    sx={{
+                      ml: 'auto',
+                      flex: 'none',
+                      bgcolor: state.wash,
+                      color: state.fg,
+                      '& .MuiChip-icon': { color: 'inherit', fontSize: 15 },
+                    }}
+                  />
+                </Box>
 
-                  {/* Order Type & Table */}
-                  <Box display="flex" gap={1} mb={2}>
-                    <Chip
-                      label={order.orderType === 'dine-in' ? 'Dine-In' : 'Takeaway'}
-                      size="small"
-                      color={order.orderType === 'dine-in' ? 'primary' : 'secondary'}
-                    />
-                    {order.orderType === 'dine-in' && order.tableNumber && (
-                      <Chip
-                        icon={<TableRestaurantIcon />}
-                        label={`Table ${order.tableNumber}`}
-                        size="small"
-                        color="warning"
-                      />
-                    )}
-                  </Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', pl: 0.75 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                    {order.customerName}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                    {order.customerPhone}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    icon={order.orderType === 'dine-in' ? <TableRestaurantIcon /> : <ShoppingBagIcon />}
+                    label={order.orderType === 'dine-in' ? `Table ${order.tableNumber || '—'}` : 'Takeaway'}
+                    sx={{ ml: 'auto', flex: 'none', '& .MuiChip-icon': { fontSize: 14 } }}
+                  />
+                </Box>
 
-                  {/* Items */}
-                  <Box mb={2}>
-                    <Typography variant="subtitle2" fontWeight={700} mb={1}>
-                      Items ({order.items.length}):
-                    </Typography>
-                    {order.items.map((item, idx) => (
-                      <Box key={idx} mb={1}>
-                        <Box display="flex" justifyContent="space-between">
-                          <Typography variant="body2" fontWeight={600}>
-                            {item.quantity}x {item.name}
-                          </Typography>
-                          <Typography variant="body2" color="primary" fontWeight={600}>
-                            ₹{item.price * item.quantity}
-                          </Typography>
-                        </Box>
+                <Divider />
 
-                        {/* Customizations */}
-                        {item.customizations && item.customizations.length > 0 && (
-                          <Accordion sx={{ mt: 0.5, boxShadow: 'none', border: '1px solid #e5e7eb' }}>
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Typography variant="caption" color="primary" fontWeight={600}>
-                                🎨 View Customizations ({item.customizations.length})
-                              </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              {item.customizations.map((custom, cIdx) => (
-                                <Box
-                                  key={cIdx}
-                                  sx={{
-                                    mb: 1,
-                                    p: 1,
-                                    background: '#f9fafb',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e5e7eb',
-                                  }}
-                                >
-                                  <Typography variant="caption" fontWeight={700} color="primary">
-                                    Item #{cIdx + 1}
-                                  </Typography>
-                                  {custom.spiceLevel && (
-                                    <Typography variant="caption" display="block">
-                                      🌶️ Spice: {custom.spiceLevel.toUpperCase()}
-                                    </Typography>
-                                  )}
-                                  {custom.extras && custom.extras.length > 0 && (
-                                    <Typography variant="caption" display="block">
-                                      ➕ Extras: {custom.extras.map(e => e.replace('extra-', '').replace(/-/g, ' ')).join(', ')}
-                                    </Typography>
-                                  )}
-                                  {custom.specialInstructions && (
-                                    <Typography variant="caption" display="block" sx={{ fontStyle: 'italic' }}>
-                                      📝 Note: {custom.specialInstructions}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              ))}
-                            </AccordionDetails>
-                          </Accordion>
-                        )}
+                {/* items */}
+                <Box sx={{ pl: 0.75 }}>
+                  <Typography
+                    sx={{
+                      fontSize: 10.5,
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      color: 'text.disabled',
+                      mb: 1,
+                    }}
+                  >
+                    {order.items.length} item{order.items.length === 1 ? '' : 's'}
+                  </Typography>
+
+                  {order.items.map((item, idx) => (
+                    <Box key={idx} sx={{ mb: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, flex: 1, minWidth: 0 }}>
+                          <Box component="span" sx={{ color: 'var(--ad-ember)', mr: 0.75 }}>
+                            {item.quantity}×
+                          </Box>
+                          {item.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', flex: 'none' }}>
+                          {formatINR(item.price * item.quantity, false)}
+                        </Typography>
                       </Box>
-                    ))}
-                  </Box>
 
-                  <Divider sx={{ mb: 2 }} />
+                      {item.customizations?.length > 0 && (
+                        <Accordion
+                          disableGutters
+                          sx={{
+                            mt: 0.75,
+                            boxShadow: 'none',
+                            border: '1px solid var(--ad-line)',
+                            borderRadius: 'var(--ad-radius-sm)',
+                            bgcolor: 'var(--ad-bg-2)',
+                            '&::before': { display: 'none' },
+                          }}
+                        >
+                          <AccordionSummary expandIcon={<ExpandMoreIcon fontSize="small" />} sx={{ minHeight: 36 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: 'var(--ad-ember)' }}>
+                              Customisations ({item.customizations.length})
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 0 }}>
+                            {item.customizations.map((custom, cIdx) => (
+                              <Box
+                                key={cIdx}
+                                sx={{
+                                  mb: 1,
+                                  p: 1,
+                                  bgcolor: 'var(--ad-surface)',
+                                  borderRadius: 'var(--ad-radius-sm)',
+                                  border: '1px solid var(--ad-line)',
+                                }}
+                              >
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled' }}>
+                                  Portion {cIdx + 1}
+                                </Typography>
+                                {custom.spiceLevel && (
+                                  <Typography variant="caption" display="block">
+                                    Spice: {custom.spiceLevel}
+                                  </Typography>
+                                )}
+                                {custom.extras?.length > 0 && (
+                                  <Typography variant="caption" display="block">
+                                    Extras: {custom.extras.map((e) => e.replace('extra-', '').replace(/-/g, ' ')).join(', ')}
+                                  </Typography>
+                                )}
+                                {custom.specialInstructions && (
+                                  <Typography variant="caption" display="block" sx={{ fontStyle: 'italic', color: 'var(--ad-ember)' }}>
+                                    “{custom.specialInstructions}”
+                                  </Typography>
+                                )}
+                              </Box>
+                            ))}
+                          </AccordionDetails>
+                        </Accordion>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
 
-                  {/* Total */}
-                  <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography variant="subtitle1" fontWeight={700}>
-                      Total:
-                    </Typography>
-                    <Typography variant="h6" fontWeight={700} color="primary">
-                      ₹{order.grandTotal.toFixed(2)}
-                    </Typography>
-                  </Box>
+                <Divider />
 
-                  {/* Action Buttons */}
-                  <Box display="flex" gap={1} flexDirection="column">
-                    {(order.status === 'pending' || order.status === 'confirmed') && (
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        startIcon={<RestaurantIcon />}
-                        onClick={() => updateOrderStatus(order._id, 'preparing')}
-                        disabled={updating === order._id}
-                        sx={{
-                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                          fontWeight: 700,
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-                          },
-                        }}
-                      >
-                        {updating === order._id ? <CircularProgress size={20} /> : 'Start Preparing'}
-                      </Button>
+                <Box sx={{ display: 'flex', alignItems: 'baseline', pl: 0.75 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Total
+                  </Typography>
+                  <Typography
+                    sx={{ ml: 'auto', fontFamily: FONT_DISPLAY, fontSize: 20, fontWeight: 600, color: 'var(--ad-ember)' }}
+                  >
+                    {formatINR(order.grandTotal)}
+                  </Typography>
+                </Box>
+
+                {step && (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={busy ? null : step.icon}
+                    onClick={() => updateOrderStatus(order._id, step.status)}
+                    disabled={busy}
+                    sx={{ mt: 'auto' }}
+                  >
+                    {busy ? (
+                      <>
+                        <span className="ad-spinner" style={{ marginRight: 8 }} aria-hidden="true" />
+                        Updating…
+                      </>
+                    ) : (
+                      step.label
                     )}
-                    {order.status === 'preparing' && (
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        startIcon={<RestaurantIcon />}
-                        onClick={() => updateOrderStatus(order._id, 'preparing')}
-                        disabled={updating === order._id}
-                        sx={{
-                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                          fontWeight: 700,
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-                          },
-                        }}
-                      >
-                        {updating === order._id ? <CircularProgress size={20} /> : 'Start Preparing'}
-                      </Button>
-                    )}
-                    {order.status === 'preparing' && (
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        startIcon={<CheckCircleIcon />}
-                        onClick={() => updateOrderStatus(order._id, 'ready')}
-                        disabled={updating === order._id}
-                        sx={{
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          fontWeight: 700,
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                          },
-                        }}
-                      >
-                        {updating === order._id ? <CircularProgress size={20} /> : 'Mark as Ready'}
-                      </Button>
-                    )}
-                    {order.status === 'ready' && (
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        startIcon={<LocalShippingIcon />}
-                        onClick={() => updateOrderStatus(order._id, 'delivered')}
-                        disabled={updating === order._id}
-                        sx={{
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          fontWeight: 700,
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-                          },
-                        }}
-                      >
-                        {updating === order._id ? <CircularProgress size={20} /> : 'Mark as Delivered'}
-                      </Button>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                  </Button>
+                )}
+              </Paper>
+            );
+          })}
+        </Box>
       )}
 
-      {/* Snackbar */}
+      {refreshing && !loading && <LoadingNote>Checking for new tickets…</LoadingNote>}
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity={snackbar.severity} variant="filled">
+        <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: 'var(--ad-radius)' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

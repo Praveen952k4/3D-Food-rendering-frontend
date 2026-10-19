@@ -25,51 +25,54 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CancelIcon from '@mui/icons-material/Cancel';
 import FeedbackIcon from '@mui/icons-material/Feedback';
-import { getActiveOrders, submitDetailedFeedback, getFeedbackByOrder } from '../services/api';
+import { getActiveOrders, submitDetailedFeedback } from '../services/api';
 import io from 'socket.io-client';
+import { FONT_DISPLAY } from '../theme/muiTheme';
 
+// Ticket states. Colours come from the Ember & Basil tokens so the panel
+// reads the same in light and dark.
 const statusConfig = {
   pending: {
-    label: 'Order Placed',
-    color: '#fbbf24',
+    label: 'Order placed',
+    color: 'var(--ad-saffron)',
     icon: <HourglassEmptyIcon />,
     progress: 20,
-    bg: '#fef3c7',
+    bg: 'var(--ad-saffron-wash)',
   },
   confirmed: {
     label: 'Confirmed',
-    color: '#3b82f6',
+    color: 'var(--ad-saffron)',
     icon: <CheckCircleIcon />,
     progress: 40,
-    bg: '#dbeafe',
+    bg: 'var(--ad-saffron-wash)',
   },
   preparing: {
     label: 'Preparing',
-    color: '#f59e0b',
+    color: 'var(--ad-ember)',
     icon: <RestaurantIcon />,
     progress: 60,
-    bg: '#fed7aa',
+    bg: 'var(--ad-ember-wash)',
   },
   ready: {
     label: 'Ready',
-    color: '#10b981',
+    color: 'var(--ad-basil)',
     icon: <LocalShippingIcon />,
     progress: 80,
-    bg: '#d1fae5',
+    bg: 'var(--ad-basil-wash)',
   },
   delivered: {
     label: 'Delivered',
-    color: '#059669',
+    color: 'var(--ad-basil)',
     icon: <CheckCircleIcon />,
     progress: 100,
-    bg: '#a7f3d0',
+    bg: 'var(--ad-basil-wash)',
   },
   cancelled: {
     label: 'Cancelled',
-    color: '#ef4444',
+    color: '#c5412f',
     icon: <CancelIcon />,
     progress: 0,
-    bg: '#fee2e2',
+    bg: 'rgba(197, 65, 47, 0.14)',
   },
 };
 
@@ -501,8 +504,11 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
   };
 
   if (orders.length === 0 && notificationHistory.length === 0) return showInDrawer ? (
-    <Box sx={{ p: 3, textAlign: 'center' }}>
-      <Typography color="text.secondary">No notifications</Typography>
+    <Box sx={{ p: 4, textAlign: 'center' }}>
+      <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 19, mb: 0.5 }}>Nothing yet</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Order updates land here as the kitchen works through your dishes.
+      </Typography>
     </Box>
   ) : null;
 
@@ -512,24 +518,47 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
   return (
     <>
       <Paper
-        elevation={3}
         sx={{
           mb: showInDrawer ? 0 : 3,
-          borderRadius: '16px',
+          borderRadius: 'var(--ad-radius-lg)',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          bgcolor: 'var(--ad-surface)',
         }}
       >
-        <Box sx={{ p: 2, color: 'white' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
+          sx={{
+            px: 2.25,
+            py: 1.75,
+            borderBottom: '1px solid var(--ad-line)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+          }}
+        >
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: '11px',
+              display: 'grid',
+              placeItems: 'center',
+              bgcolor: 'var(--ad-ember-wash)',
+              color: 'var(--ad-ember)',
+              flex: 'none',
+              '& svg': { fontSize: 18 },
+            }}
+          >
             <RestaurantIcon />
-            {showInDrawer ? `All Notifications (${displayOrders.length})` : `Active Orders (${displayOrders.length})`}
-          </Typography>
-          {showInDrawer && orders.length > 0 && (
-            <Typography variant="caption" sx={{ opacity: 0.9 }}>
-              {orders.length} active order{orders.length !== 1 ? 's' : ''}
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 17, lineHeight: 1.2 }}>
+              {showInDrawer ? 'Notifications' : 'Active orders'}
             </Typography>
-          )}
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              {displayOrders.length} {showInDrawer ? 'in your history' : `order${displayOrders.length === 1 ? '' : 's'} on the way`}
+              {showInDrawer && orders.length > 0 && ` · ${orders.length} active`}
+            </Typography>
+          </Box>
         </Box>
 
         {displayOrders.map((order) => {
@@ -541,9 +570,11 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
               key={order._id}
               sx={{
                 m: 2,
-                borderRadius: '12px',
+                borderRadius: 'var(--ad-radius)',
                 overflow: 'hidden',
-                border: `2px solid ${config.color}`,
+                border: '1px solid var(--ad-line)',
+                borderLeft: `3px solid ${config.color}`,
+                bgcolor: 'var(--ad-surface)',
               }}
             >
               {/* Order Header */}
@@ -620,7 +651,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
 
                   {/* Status Timeline */}
                   {order.statusHistory && order.statusHistory.length > 0 && (
-                    <Box sx={{ mt: 2, pl: 2, borderLeft: '2px solid #e5e7eb' }}>
+                    <Box sx={{ mt: 2, pl: 2, borderLeft: '2px solid var(--ad-line)' }}>
                       <Typography variant="caption" fontWeight={600} color="text.secondary" display="block" mb={1}>
                         Order Timeline:
                       </Typography>
@@ -662,7 +693,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
         fullWidth
         fullScreen={typeof window !== 'undefined' && window.innerWidth < 600}
       >
-        <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white' }}>
+        <DialogTitle sx={{ background: 'linear-gradient(135deg, #e2552b, #f2a541)', color: 'white' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FeedbackIcon />
             Your Feedback Matters!
@@ -763,9 +794,9 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
             onClick={handleSubmitFeedback}
             disabled={loading}
             sx={{
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
+              background: 'linear-gradient(135deg, #e2552b, #f2a541)',
               '&:hover': {
-                background: 'linear-gradient(135deg, #764ba2, #667eea)',
+                background: 'linear-gradient(135deg, #f2a541, #e2552b)',
               },
             }}
           >

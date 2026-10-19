@@ -145,7 +145,7 @@ const AdminFoodManagement = () => {
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog(null)}
           sx={{
-            background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+            background: 'linear-gradient(45deg, #e2552b 30%, #f2a541 90%)',
             py: 1.5,
             px: 3,
           }}

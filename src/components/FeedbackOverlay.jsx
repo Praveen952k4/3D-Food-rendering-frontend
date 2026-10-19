@@ -110,7 +110,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
         {/* Header */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
             color: 'white',
             p: 3,
             position: 'sticky',
@@ -270,7 +270,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
             onClick={handleSubmit}
             disabled={submitting}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
               color: 'white',
               py: 1.5,
               borderRadius: 2,

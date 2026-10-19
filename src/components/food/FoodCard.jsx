@@ -50,7 +50,7 @@ const FoodCard = ({ food, onEdit, onDelete, onToggleAvailability }) => {
           width: '20px',
           height: '20px',
           border: `2px solid ${food.isVeg ? 'green' : 'red'}`,
-          backgroundColor: 'white',
+          backgroundColor: 'var(--ad-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

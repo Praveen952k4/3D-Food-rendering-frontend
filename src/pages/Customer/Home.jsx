@@ -8,6 +8,7 @@ import React, {
 import {
   Avatar,
   Badge,
+  Box,
   Button,
   Chip,
   Divider,
@@ -30,6 +31,7 @@ import {
 } from '@mui/material';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import ClimateLabel from '../../components/food/ClimateLabel';
 // eslint-disable-next-line no-unused-vars
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -510,22 +512,29 @@ const CustomerHome = () => {
   }, [foodItems, selectedCategory, vegFilter]);
 
   // Theme palette
+  // Mirrors the Ember & Basil ramp in styles/theme.css. The three.js canvas
+  // and a few inline styles need real colour values rather than CSS vars, so
+  // the hexes are repeated here and keyed off the same themeMode.
   const palette = useMemo(
     () =>
       themeMode === "dark"
         ? {
-            background: "#0a0a0a",
-            surface: "rgba(255,255,255,0.06)",
-            border: "rgba(255,255,255,0.08)",
-            textPrimary: "#FFFFFF",
-            textSecondary: "rgba(255,255,255,0.7)",
+            background: "#141110",
+            surface: "#221d1a",
+            surfaceAlt: "#2b2521",
+            border: "rgba(255,255,255,0.09)",
+            textPrimary: "#f5efe9",
+            textSecondary: "#b7aba2",
+            accent: "#ff7a4d",
           }
         : {
-            background: "#f8f9fb",
-            surface: "#FFFFFF",
-            border: "#e5e7eb",
-            textPrimary: "#1f2937",
-            textSecondary: "#6b7280",
+            background: "#fbf7f2",
+            surface: "#ffffff",
+            surfaceAlt: "#fbf5ee",
+            border: "rgba(30,20,14,0.10)",
+            textPrimary: "#1e1714",
+            textSecondary: "#6b5c52",
+            accent: "#e2552b",
           },
     [themeMode]
   );
@@ -998,7 +1007,7 @@ const CustomerHome = () => {
                     
                     padding: "10px 14px",
                     boxShadow: themeMode === "dark" ? "0 4px 16px rgba(0,0,0,0.6)" : "0 2px 8px rgba(0,0,0,0.2)",
-                    border: `2px solid ${themeMode === "dark" ? "rgba(102, 126, 234, 0.3)" : "rgba(102, 126, 234, 0.2)"}`,
+                    border: `2px solid ${themeMode === "dark" ? "rgba(226, 85, 43, 0.3)" : "rgba(226, 85, 43, 0.2)"}`,
                   }}
                 >
                   <Typography
@@ -1017,11 +1026,11 @@ const CustomerHome = () => {
                 {/* Price Box */}
                 <div
                   style={{
-                    background: "linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95))",
+                    background: "linear-gradient(135deg, rgba(226, 85, 43, 0.95), rgba(242, 165, 65, 0.95))",
                     backdropFilter: "blur(20px)",
                     borderRadius: "12px",
                     padding: "10px 12px",
-                    boxShadow: "0 4px 20px rgba(102, 126, 234, 0.5)",
+                    boxShadow: "0 4px 20px rgba(226, 85, 43, 0.5)",
                     border: "2px solid rgba(255, 255, 255, 0.2)",
                     width: "65px",
                   }}
@@ -1212,10 +1221,10 @@ const CustomerHome = () => {
                         ? "3px solid transparent"
                         : `2px solid ${palette.border}`,
                       background: isActive
-                        ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #667eea, #764ba2) border-box"
+                        ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #e2552b, #f2a541) border-box"
                         : palette.surface,
                       boxShadow: isActive
-                        ? "0 8px 24px rgba(102, 126, 234, 0.7), 0 0 0 4px rgba(102, 126, 234, 0.2)"
+                        ? "0 8px 24px rgba(226, 85, 43, 0.7), 0 0 0 4px rgba(226, 85, 43, 0.2)"
                         : themeMode === "dark"
                         ? "0 3px 10px rgba(0,0,0,0.5)"
                         : "0 2px 6px rgba(0,0,0,0.15)",
@@ -1272,7 +1281,7 @@ const CustomerHome = () => {
                           bottom: "4px",
                           left: "50%",
                           transform: "translateX(-50%)",
-                          background: "rgba(102, 126, 234, 0.95)",
+                          background: "rgba(226, 85, 43, 0.95)",
                           borderRadius: "50%",
                           width: "20px",
                           height: "20px",
@@ -1331,8 +1340,8 @@ const CustomerHome = () => {
                     sx={{
                       color: isActive
                         ? themeMode === "dark"
-                          ? "#667eea"
-                          : "#764ba2"
+                          ? "#e2552b"
+                          : "#f2a541"
                         : palette.textPrimary,
                       fontSize: "0.65rem",
                       maxWidth: "100%",
@@ -1400,14 +1409,14 @@ const CustomerHome = () => {
             sx={{
               background: cameraActive
                 ? "linear-gradient(135deg, #ff5252, #ff1744)" // RED when camera ON
-                : "linear-gradient(135deg, #f093fb, #f5576c)", // Pink when camera OFF
+                : "linear-gradient(135deg, #f2a541, #f5576c)", // Pink when camera OFF
               color: "#fff",
               width: "48px",
               height: "48px",
-              boxShadow: "0 4px 16px rgba(240, 147, 251, 0.5)",
+              boxShadow: "0 4px 16px rgba(242, 165, 65, 0.5)",
               "&:hover": {
                 transform: "scale(1.08)",
-                boxShadow: "0 8px 20px rgba(240, 147, 251, 0.7)",
+                boxShadow: "0 8px 20px rgba(242, 165, 65, 0.7)",
               },
               transition: "all 0.3s ease",
             }}
@@ -1425,15 +1434,15 @@ const CustomerHome = () => {
             size="small"
             onClick={() => navigate("/customer/cart")}
             sx={{
-              background: "linear-gradient(135deg, #667eea, #764ba2)",
+              background: "linear-gradient(135deg, #e2552b, #f2a541)",
               color: "#fff",
               width: "48px",
               height: "48px",
-              boxShadow: "0 4px 16px rgba(102, 126, 234, 0.5)",
+              boxShadow: "0 4px 16px rgba(226, 85, 43, 0.5)",
               "&:hover": {
-                background: "linear-gradient(135deg, #764ba2, #667eea)",
+                background: "linear-gradient(135deg, #f2a541, #e2552b)",
                 transform: "scale(1.08)",
-                boxShadow: "0 8px 20px rgba(102, 126, 234, 0.7)",
+                boxShadow: "0 8px 20px rgba(226, 85, 43, 0.7)",
               },
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
@@ -1643,7 +1652,7 @@ const CustomerHome = () => {
                         }}
                         sx={{
                           background:
-                            "linear-gradient(135deg, #667eea, #764ba2)",
+                            "linear-gradient(135deg, #e2552b, #f2a541)",
                           color: "#fff",
                         }}
                       >
@@ -1656,7 +1665,7 @@ const CustomerHome = () => {
                         sx={{
                           color: palette.textPrimary,
                           borderColor: palette.border,
-                          "&:hover": { borderColor: "#667eea" },
+                          "&:hover": { borderColor: "#e2552b" },
                         }}
                       >
                         Add
@@ -1741,16 +1750,16 @@ const CustomerHome = () => {
               onClick={() => setSelectedCategory("All")}
               sx={{
                 backgroundColor:
-                  selectedCategory === "All" ? "#667eea" : palette.surface,
+                  selectedCategory === "All" ? "#e2552b" : palette.surface,
                 color: selectedCategory === "All" ? "#fff" : palette.textPrimary,
                 border: `1px solid ${
-                  selectedCategory === "All" ? "#667eea" : palette.border
+                  selectedCategory === "All" ? "#e2552b" : palette.border
                 }`,
                 fontWeight: 600,
                 fontSize: "0.85rem",
                 "&:hover": {
                   backgroundColor:
-                    selectedCategory === "All" ? "#764ba2" : palette.background,
+                    selectedCategory === "All" ? "#f2a541" : palette.background,
                 },
               }}
             />
@@ -1761,16 +1770,16 @@ const CustomerHome = () => {
                 onClick={() => setSelectedCategory(cat)}
                 sx={{
                   backgroundColor:
-                    selectedCategory === cat ? "#667eea" : palette.surface,
+                    selectedCategory === cat ? "#e2552b" : palette.surface,
                   color: selectedCategory === cat ? "#fff" : palette.textPrimary,
                   border: `1px solid ${
-                    selectedCategory === cat ? "#667eea" : palette.border
+                    selectedCategory === cat ? "#e2552b" : palette.border
                   }`,
                   fontWeight: 600,
                   fontSize: "0.85rem",
                   "&:hover": {
                     backgroundColor:
-                      selectedCategory === cat ? "#764ba2" : palette.background,
+                      selectedCategory === cat ? "#f2a541" : palette.background,
                   },
                 }}
               />
@@ -1903,10 +1912,10 @@ const CustomerHome = () => {
                   </Typography>
                   {/* Calories Badge */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                    <LocalFireDepartmentIcon sx={{ fontSize: '14px', color: '#f59e0b' }} />
+                    <LocalFireDepartmentIcon sx={{ fontSize: '14px', color: 'var(--ad-warn)' }} />
                     <Typography 
                       variant="caption" 
-                      sx={{ color: '#f59e0b', fontWeight: 600, fontSize: '0.7rem' }}
+                      sx={{ color: 'var(--ad-warn)', fontWeight: 600, fontSize: '0.7rem' }}
                     >
                       {food.calories || 0} kcal
                     </Typography>
@@ -1915,7 +1924,7 @@ const CustomerHome = () => {
                     <Typography 
                       variant="subtitle2" 
                       fontWeight={700} 
-                      sx={{ color: '#667eea' }}
+                      sx={{ color: '#e2552b' }}
                     >
                       ₹{food.price}
                     </Typography>
@@ -2004,7 +2013,7 @@ const CustomerHome = () => {
                       borderColor: palette.border,
                       '&:hover': {
                         backgroundColor: palette.background,
-                        borderColor: '#667eea',
+                        borderColor: '#e2552b',
                       },
                     }}
                     variant="outlined"
@@ -2066,12 +2075,17 @@ const CustomerHome = () => {
                 variant="h5" 
                 fontWeight={800} 
                 sx={{ 
-                  color: '#667eea',
+                  color: '#e2552b',
                   marginBottom: '16px',
                 }}
               >
                 ₹{selectedFoodDetails.price}
               </Typography>
+
+              {/* Climate label — responsible consumption is on the plate card */}
+              <Box sx={{ mb: 2 }}>
+                <ClimateLabel food={selectedFoodDetails} variant="card" />
+              </Box>
 
               {/* Description */}
               {selectedFoodDetails.description && (
@@ -2104,7 +2118,7 @@ const CustomerHome = () => {
                       } 
                     }}
                   >
-                    <RestaurantIcon sx={{ fontSize: '20px', color: '#667eea' }} />
+                    <RestaurantIcon sx={{ fontSize: '20px', color: '#e2552b' }} />
                     <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary }}>
                       Ingredients ({selectedFoodDetails.ingredients.length})
                     </Typography>
@@ -2154,7 +2168,7 @@ const CustomerHome = () => {
                     } 
                   }}
                 >
-                  <LocalFireDepartmentIcon sx={{ fontSize: '20px', color: '#f59e0b' }} />
+                  <LocalFireDepartmentIcon sx={{ fontSize: '20px', color: 'var(--ad-warn)' }} />
                   <Typography variant="subtitle2" fontWeight={600} sx={{ color: palette.textPrimary }}>
                     Nutritional Information
                   </Typography>
@@ -2173,7 +2187,7 @@ const CustomerHome = () => {
                       variant="h3" 
                       fontWeight={800} 
                       sx={{ 
-                        color: '#f59e0b',
+                        color: 'var(--ad-warn)',
                         marginBottom: '4px',
                       }}
                     >
@@ -2204,10 +2218,10 @@ const CustomerHome = () => {
                     size="small"
                     icon={<ViewInArIcon sx={{ fontSize: '16px' }} />}
                     sx={{
-                      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                      color: '#667eea',
+                      backgroundColor: 'rgba(226, 85, 43, 0.1)',
+                      color: '#e2552b',
                       fontWeight: 600,
-                      border: '1px solid #667eea',
+                      border: '1px solid #e2552b',
                     }}
                   />
                 )}
@@ -2228,11 +2242,11 @@ const CustomerHome = () => {
                   setDetailsDialogOpen(false);
                 }}
                 sx={{
-                  borderColor: '#667eea',
-                  color: '#667eea',
+                  borderColor: '#e2552b',
+                  color: '#e2552b',
                   '&:hover': {
                     borderColor: '#5568d3',
-                    background: 'rgba(102, 126, 234, 0.05)',
+                    background: 'rgba(226, 85, 43, 0.05)',
                   },
                 }}
               >
@@ -2300,12 +2314,12 @@ const CustomerHome = () => {
                       size="small"
                       sx={{
                         textTransform: 'capitalize',
-                        borderColor: customization.spiceLevel === level ? '#667eea' : palette.border,
-                        background: customization.spiceLevel === level ? '#667eea' : 'transparent',
+                        borderColor: customization.spiceLevel === level ? '#e2552b' : palette.border,
+                        background: customization.spiceLevel === level ? '#e2552b' : 'transparent',
                         color: customization.spiceLevel === level ? '#fff' : palette.textPrimary,
                         '&:hover': {
-                          borderColor: '#667eea',
-                          background: customization.spiceLevel === level ? '#5568d3' : 'rgba(102, 126, 234, 0.1)',
+                          borderColor: '#e2552b',
+                          background: customization.spiceLevel === level ? '#5568d3' : 'rgba(226, 85, 43, 0.1)',
                         },
                       }}
                     >
@@ -2345,9 +2359,9 @@ const CustomerHome = () => {
                         gap: '12px',
                         padding: '12px',
                         background: customization.extras.includes(item.id) 
-                          ? 'rgba(102, 126, 234, 0.1)' 
+                          ? 'rgba(226, 85, 43, 0.1)' 
                           : palette.surface,
-                        border: `2px solid ${customization.extras.includes(item.id) ? '#667eea' : palette.border}`,
+                        border: `2px solid ${customization.extras.includes(item.id) ? '#e2552b' : palette.border}`,
                         borderRadius: '8px',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -2364,7 +2378,7 @@ const CustomerHome = () => {
                         {item.label}
                       </Typography>
                       {customization.extras.includes(item.id) && (
-                        <span style={{ marginLeft: 'auto', color: '#667eea', fontSize: '18px' }}>✓</span>
+                        <span style={{ marginLeft: 'auto', color: '#e2552b', fontSize: '18px' }}>✓</span>
                       )}
                     </div>
                   ))}
@@ -2390,10 +2404,10 @@ const CustomerHome = () => {
                         borderColor: palette.border,
                       },
                       '&:hover fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#e2552b',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#667eea',
+                        borderColor: '#e2552b',
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -2490,15 +2504,15 @@ const CustomerHome = () => {
                 sx={{
                   flex: 1,
                   backgroundColor:
-                    vegFilter === "all" ? "#667eea" : palette.surface,
+                    vegFilter === "all" ? "#e2552b" : palette.surface,
                   color: vegFilter === "all" ? "#fff" : palette.textPrimary,
                   border: `1px solid ${
-                    vegFilter === "all" ? "#667eea" : palette.border
+                    vegFilter === "all" ? "#e2552b" : palette.border
                   }`,
                   fontWeight: 600,
                   "&:hover": {
                     backgroundColor:
-                      vegFilter === "all" ? "#764ba2" : palette.background,
+                      vegFilter === "all" ? "#f2a541" : palette.background,
                   },
                 }}
               />
@@ -2571,7 +2585,7 @@ const CustomerHome = () => {
                 padding: "12px 16px",
                 background:
                   selectedCategory === "All"
-                    ? "linear-gradient(135deg, #667eea, #764ba2)"
+                    ? "linear-gradient(135deg, #e2552b, #f2a541)"
                     : "transparent",
                 color:
                   selectedCategory === "All" ? "#fff" : palette.textPrimary,
@@ -2579,7 +2593,7 @@ const CustomerHome = () => {
                 "&:hover": {
                   background:
                     selectedCategory === "All"
-                      ? "linear-gradient(135deg, #764ba2, #667eea)"
+                      ? "linear-gradient(135deg, #f2a541, #e2552b)"
                       : palette.background,
                 },
                 textTransform: "none",
@@ -2607,7 +2621,7 @@ const CustomerHome = () => {
                     padding: "12px 16px",
                     background:
                       selectedCategory === category
-                        ? "linear-gradient(135deg, #667eea, #764ba2)"
+                        ? "linear-gradient(135deg, #e2552b, #f2a541)"
                         : "transparent",
                     color:
                       selectedCategory === category
@@ -2617,7 +2631,7 @@ const CustomerHome = () => {
                     "&:hover": {
                       background:
                         selectedCategory === category
-                          ? "linear-gradient(135deg, #764ba2, #667eea)"
+                          ? "linear-gradient(135deg, #f2a541, #e2552b)"
                           : palette.background,
                     },
                     textTransform: "none",
@@ -2638,13 +2652,13 @@ const CustomerHome = () => {
                 padding: "16px",
                 background:
                   themeMode === "dark"
-                    ? "rgba(102, 126, 234, 0.15)"
-                    : "rgba(102, 126, 234, 0.1)",
+                    ? "rgba(226, 85, 43, 0.15)"
+                    : "rgba(226, 85, 43, 0.1)",
                 borderRadius: "12px",
                 border: `1px solid ${
                   themeMode === "dark"
-                    ? "rgba(102, 126, 234, 0.3)"
-                    : "rgba(102, 126, 234, 0.2)"
+                    ? "rgba(226, 85, 43, 0.3)"
+                    : "rgba(226, 85, 43, 0.2)"
                 }`,
               }}
             >
@@ -2729,19 +2743,19 @@ const CustomerHome = () => {
           position: absolute;
           top: 10px;
           right: 10px;
-          background: rgba(102, 126, 234, 0.95);
+          background: rgba(226, 85, 43, 0.95);
           padding: 6px;
           border-radius: 50%;
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 2px 8px rgba(226, 85, 43, 0.4);
         }
         .splash-overlay {
           position: fixed;
           inset: 0;
-          background: radial-gradient(circle at top, rgba(102,126,234,0.4), rgba(0,0,0,0.95)), #000;
+          background: radial-gradient(circle at top, rgba(226, 85, 43,0.4), rgba(0,0,0,0.95)), #000;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -2801,11 +2815,11 @@ const CustomerHome = () => {
           border-radius: 3px;
         }
         .food-carousel-scroll::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #667eea, #764ba2);
+          background: linear-gradient(135deg, #e2552b, #f2a541);
           border-radius: 3px;
         }
         .food-carousel-scroll::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #764ba2, #667eea);
+          background: linear-gradient(135deg, #f2a541, #e2552b);
         }
         
         /* Sphere Loader Animation */
@@ -2819,7 +2833,7 @@ const CustomerHome = () => {
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #667eea, #764ba2);
+          background: linear-gradient(135deg, #e2552b, #f2a541);
           animation: sphereBounce 1.4s infinite ease-in-out both;
         }
         .sphere-loader .sphere:nth-child(1) {
@@ -2855,7 +2869,7 @@ const CustomerHome = () => {
         <div
           style={{
             padding: '16px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
             color: 'white',
             display: 'flex',
             justifyContent: 'space-between',

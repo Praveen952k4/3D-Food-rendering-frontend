@@ -121,7 +121,7 @@ const UserManagement = () => {
       {/* Stats Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} md={4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)', color: 'white' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -138,7 +138,7 @@ const UserManagement = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)', color: 'white' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -155,7 +155,7 @@ const UserManagement = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #4fa683 0%, #38f9d7 100%)', color: 'white' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -199,7 +199,7 @@ const UserManagement = () => {
                   <TableRow key={user._id}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar sx={{ bgcolor: '#667eea' }}>
+                        <Avatar sx={{ bgcolor: '#e2552b' }}>
                           {user.name ? user.name[0].toUpperCase() : user.phone[0]}
                         </Avatar>
                         <Typography variant="body2" fontWeight="bold">

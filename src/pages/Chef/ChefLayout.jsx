@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  Button,
-} from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { Outlet, useNavigate } from 'react-router-dom';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ThemeToggle from '../../components/ui/ThemeToggle';
+import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 const ChefLayout = () => {
   const navigate = useNavigate();
@@ -20,20 +15,56 @@ const ChefLayout = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <AppBar position="static" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <Toolbar>
-          <RestaurantIcon sx={{ mr: 2, fontSize: 32 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            Chef Panel
-          </Typography>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar
+        position="sticky"
+        sx={{
+          backdropFilter: 'blur(14px)',
+          backgroundColor: 'color-mix(in srgb, var(--ad-surface) 88%, transparent)',
+        }}
+      >
+        <Toolbar sx={{ gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: '11px',
+              display: 'grid',
+              placeItems: 'center',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 13,
+              flex: 'none',
+              background: 'linear-gradient(145deg, var(--ad-ember), var(--ad-saffron))',
+              boxShadow: '0 8px 20px -8px rgba(226,85,43,.8)',
+            }}
+          >
+            AR
+          </Box>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 16, lineHeight: 1.2 }} noWrap>
+              Kitchen studio
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 9.5,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                color: 'text.disabled',
+                fontWeight: 600,
+              }}
+            >
+              AR Automated Dining
+            </Typography>
+          </Box>
+
+          <ThemeToggle size="small" />
           <Button
-            color="inherit"
             startIcon={<LogoutIcon />}
             onClick={handleLogout}
-            sx={{ fontWeight: 600 }}
+            sx={{ color: 'text.secondary', '&:hover': { color: 'var(--ad-ember)' } }}
           >
-            Logout
+            Log out
           </Button>
         </Toolbar>
       </AppBar>
