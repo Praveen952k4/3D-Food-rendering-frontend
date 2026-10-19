@@ -665,7 +665,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
                               width: 8,
                               height: 8,
                               borderRadius: '50%',
-                              backgroundColor: statusConfig[history.status]?.color || '#9ca3af',
+                              backgroundColor: statusConfig[history.status]?.color || 'var(--ad-text-3)',
                             }}
                           />
                           <Typography variant="caption" display="block">

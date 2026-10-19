@@ -136,12 +136,12 @@ const FoodRatings = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)' }}>
+          <Paper sx={{ p: 3, textAlign: 'center', background: 'linear-gradient(135deg, #f2a541 0%, #c5412f 100%)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
               <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold' }}>
                 {stats.avgRating}
               </Typography>
-              <StarIcon sx={{ color: '#fbbf24', fontSize: 40 }} />
+              <StarIcon sx={{ color: '#f2a541', fontSize: 40 }} />
             </Box>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)' }}>
               Average Rating
@@ -208,7 +208,7 @@ const FoodRatings = () => {
                     emptyIcon={<StarIcon fontSize="inherit" />}
                     sx={{
                       '& .MuiRating-iconFilled': {
-                        color: '#fbbf24',
+                        color: '#f2a541',
                       },
                     }}
                   />
@@ -242,7 +242,7 @@ const FoodRatings = () => {
                                 emptyIcon={<StarIcon fontSize="inherit" />}
                                 sx={{
                                   '& .MuiRating-iconFilled': {
-                                    color: '#fbbf24',
+                                    color: '#f2a541',
                                   },
                                 }}
                               />

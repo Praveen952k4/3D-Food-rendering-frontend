@@ -89,7 +89,7 @@ const FeedbackManagement = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)', color: 'white' }}>
+            <Card sx={{ background: 'linear-gradient(135deg, #f2a541 0%, #c5412f 100%)', color: 'white' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>

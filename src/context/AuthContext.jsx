@@ -1,22 +1,26 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { verifyOTP as verifyOTPApi } from '../services/api';
 
 const AuthContext = createContext(undefined);
 
+// Read the saved session before the first render. Restoring it in an effect
+// instead meant the first render always looked signed out, so opening or
+// refreshing any deep link bounced the user to their default page.
+const storedSession = () => {
+  try {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (!token || !user) return { token: null, user: null };
+    return { token, user: JSON.parse(user) };
+  } catch {
+    return { token: null, user: null };
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-
-  useEffect(() => {
-    // Load from localStorage on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  const [session] = useState(storedSession);
+  const [user, setUser] = useState(session.user);
+  const [token, setToken] = useState(session.token);
 
   const login = async (phone, otp) => {
     try {

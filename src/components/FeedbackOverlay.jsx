@@ -209,7 +209,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
                       emptyIcon={<StarIcon fontSize="inherit" />}
                       sx={{
                         '& .MuiRating-iconFilled': {
-                          color: '#fbbf24',
+                          color: '#f2a541',
                         },
                       }}
                     />
@@ -277,7 +277,7 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
               fontWeight: 'bold',
               fontSize: '1rem',
               '&:hover': {
-                background: 'linear-gradient(135deg, #5568d3 0%, #63408a 100%)',
+                background: 'linear-gradient(135deg, #c8451f 0%, #63408a 100%)',
               },
             }}
           >

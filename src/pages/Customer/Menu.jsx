@@ -26,7 +26,7 @@ import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 const CustomerMenu = () => {
   const [foodItems, setFoodItems] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState({});
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -50,10 +50,15 @@ const CustomerMenu = () => {
   }, [fetchFoodItems]);
 
 
+  // The cart is a { foodId: quantity } map in localStorage, which is what the
+  // home page writes and the cart page reads. This page used to keep an array
+  // here, so anything added from the menu never reached the cart.
   const loadCart = () => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    try {
+      const savedCart = localStorage.getItem('cart');
+      setCart(savedCart ? JSON.parse(savedCart) : {});
+    } catch {
+      setCart({});
     }
   };
 
@@ -63,47 +68,19 @@ const CustomerMenu = () => {
   };
 
   const addToCart = (item) => {
-    const existingItem = cart.find((cartItem) => cartItem._id === item._id);
-    let updatedCart;
-
-    if (existingItem) {
-      updatedCart = cart.map((cartItem) =>
-        cartItem._id === item._id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-    } else {
-      updatedCart = [...cart, { ...item, quantity: 1 }];
-    }
-
-    saveCart(updatedCart);
+    saveCart({ ...cart, [item._id]: (cart[item._id] || 0) + 1 });
   };
 
   const removeFromCart = (itemId) => {
-    const existingItem = cart.find((cartItem) => cartItem._id === itemId);
-    let updatedCart;
-
-    if (existingItem && existingItem.quantity > 1) {
-      updatedCart = cart.map((cartItem) =>
-        cartItem._id === itemId
-          ? { ...cartItem, quantity: cartItem.quantity - 1 }
-          : cartItem
-      );
-    } else {
-      updatedCart = cart.filter((cartItem) => cartItem._id !== itemId);
-    }
-
+    const updatedCart = { ...cart };
+    if (updatedCart[itemId] > 1) updatedCart[itemId] -= 1;
+    else delete updatedCart[itemId];
     saveCart(updatedCart);
   };
 
-  const getItemQuantity = (itemId) => {
-    const item = cart.find((cartItem) => cartItem._id === itemId);
-    return item?.quantity || 0;
-  };
+  const getItemQuantity = (itemId) => cart[itemId] || 0;
 
-  const getTotalItems = () => {
-    return cart.reduce((sum, item) => sum + item.quantity, 0);
-  };
+  const getTotalItems = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 
   const categories = ['all', 'Starters', 'Tandoori', 'Indian', 'Special Platter', 'Biryani'];
 

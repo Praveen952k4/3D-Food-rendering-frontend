@@ -13,7 +13,7 @@ const FeedbackStats = ({ feedbackSummary }) => {
         <Card
           sx={{
             height: '100%',
-            background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)',
+            background: 'linear-gradient(135deg, #f2a541 0%, #c5412f 100%)',
             color: 'white',
           }}
         >

@@ -124,6 +124,8 @@ const CustomerCart = () => {
             imageUrl: food.imageUrl,
             isVeg: food.isVeg,
             calories: food.calories,
+            // the climate label is derived from the category too, so carry it
+            category: food.category,
             customizations: cartCustomization[foodId] || [],
           });
         }
@@ -616,7 +618,7 @@ const CustomerCart = () => {
                                 label={`${item.customizations.length}/${item.quantity}`}
                                 size="small"
                                 sx={{
-                                  background: '#3b82f6',
+                                  background: '#f2a541',
                                   color: '#fff',
                                   fontWeight: 700,
                                   fontSize: '0.7rem',
@@ -663,7 +665,7 @@ const CustomerCart = () => {
                                       size="small"
                                       sx={{
                                         background: '#fef3c7',
-                                        border: '1px solid #f59e0b',
+                                        border: '1px solid #f2a541',
                                         color: '#92400e',
                                         fontWeight: 600,
                                         fontSize: '0.65rem',
@@ -684,8 +686,8 @@ const CustomerCart = () => {
                                           size="small"
                                           sx={{
                                             background: '#dbeafe',
-                                            border: '1px solid #3b82f6',
-                                            color: '#1e40af',
+                                            border: '1px solid #f2a541',
+                                            color: '#c8451f',
                                             fontWeight: 600,
                                             fontSize: '0.65rem',
                                             height: '24px',
@@ -701,7 +703,7 @@ const CustomerCart = () => {
                                   <Typography 
                                     variant="caption" 
                                     sx={{ 
-                                      color: '#6b7280', 
+                                      color: 'var(--ad-text-3)', 
                                       fontStyle: 'italic',
                                       display: 'block',
                                       fontSize: '0.7rem',
@@ -827,7 +829,7 @@ const CustomerCart = () => {
                   background: themeMode === 'dark'
                     ? 'linear-gradient(135deg, rgba(254, 243, 199, 0.15) 0%, rgba(253, 230, 138, 0.15) 100%)'
                     : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                  border: '2px solid #fbbf24',
+                  border: '2px solid #f2a541',
                 }}
               >
                 <Typography 
@@ -951,7 +953,7 @@ const CustomerCart = () => {
                     },
                     '&:disabled': {
                       background: '#e5e7eb',
-                      color: '#9ca3af',
+                      color: 'var(--ad-text-3)',
                     }
                   }}
                 >
@@ -969,7 +971,7 @@ const CustomerCart = () => {
                   background: themeMode === 'dark'
                     ? 'linear-gradient(135deg, rgba(212, 252, 121, 0.15) 0%, rgba(150, 230, 161, 0.15) 100%)'
                     : 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)',
-                  border: '2px dashed #10b981',
+                  border: '2px dashed #2f7d62',
                   borderRadius: '12px',
                 }}
               >
@@ -1181,7 +1183,7 @@ const CustomerCart = () => {
                   }
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                      <RestaurantIcon sx={{ color: orderType === 'dine-in' ? '#e2552b' : '#9ca3af' }} />
+                      <RestaurantIcon sx={{ color: orderType === 'dine-in' ? '#e2552b' : 'var(--ad-text-3)' }} />
                       <Box>
                         <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
                           Dine In
@@ -1226,7 +1228,7 @@ const CustomerCart = () => {
                   }
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                      <TakeoutDiningIcon sx={{ color: orderType === 'takeaway' ? '#e2552b' : '#9ca3af' }} />
+                      <TakeoutDiningIcon sx={{ color: orderType === 'takeaway' ? '#e2552b' : 'var(--ad-text-3)' }} />
                       <Box>
                         <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
                           Takeaway
@@ -1408,8 +1410,8 @@ const CustomerCart = () => {
               </div>
               {couponDiscount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <Typography variant="body1" sx={{ color: '#10b981' }}>Coupon Discount</Typography>
-                  <Typography variant="body1" fontWeight="600" sx={{ color: '#10b981' }}>-₹{couponDiscount.toFixed(2)}</Typography>
+                  <Typography variant="body1" sx={{ color: '#2f7d62' }}>Coupon Discount</Typography>
+                  <Typography variant="body1" fontWeight="600" sx={{ color: '#2f7d62' }}>-₹{couponDiscount.toFixed(2)}</Typography>
                 </div>
               )}
               <Divider sx={{ my: 2, borderColor: 'rgba(226, 85, 43, 0.3)' }} />
@@ -1454,7 +1456,7 @@ const CustomerCart = () => {
               },
               '&:disabled': {
                 background: '#e5e7eb',
-                color: '#9ca3af',
+                color: 'var(--ad-text-3)',
               },
               transition: 'all 0.3s ease',
             }}
@@ -1659,7 +1661,7 @@ const CustomerCart = () => {
                       label={`+₹${extra.price}`} 
                       size="small" 
                       sx={{ 
-                        background: '#10b981', 
+                        background: '#2f7d62', 
                         color: '#fff',
                         fontWeight: 700,
                         fontSize: '0.75rem',
@@ -1682,10 +1684,10 @@ const CustomerCart = () => {
               border: `1px solid ${'var(--ad-ember)'}`,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#1e40af', fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ color: '#c8451f', fontWeight: 600 }}>
                   Extras Total:
                 </Typography>
-                <Typography variant="h6" sx={{ color: '#1e40af', fontWeight: 700 }}>
+                <Typography variant="h6" sx={{ color: '#c8451f', fontWeight: 700 }}>
                   +₹{calculateExtrasTotal()}
                 </Typography>
               </div>
@@ -1718,7 +1720,7 @@ const CustomerCart = () => {
             onClick={() => setCustomizeDialogOpen(false)}
             sx={{ 
               flex: 1,
-              color: '#6b7280',
+              color: 'var(--ad-text-3)',
               borderColor: '#d1d5db',
             }}
             variant="outlined"

@@ -138,7 +138,7 @@ const UserManagement = () => {
           </Card>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Card sx={{ background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)', color: 'white' }}>
+          <Card sx={{ background: 'linear-gradient(135deg, #f2a541 0%, #c5412f 100%)', color: 'white' }}>
             <CardContent>
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
@@ -272,7 +272,7 @@ const UserManagement = () => {
                   <TableRow key={user._id}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar sx={{ bgcolor: user.isOnline ? '#10b981' : '#94a3b8' }}>
+                        <Avatar sx={{ bgcolor: user.isOnline ? '#2f7d62' : '#94a3b8' }}>
                           {user.name ? user.name[0].toUpperCase() : user.phone[0]}
                         </Avatar>
                         <Typography variant="body2" fontWeight="bold">

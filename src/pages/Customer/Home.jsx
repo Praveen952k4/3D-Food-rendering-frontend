@@ -390,7 +390,7 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
             zIndex: 3,
           }}
         >
-          <div style={{ textAlign: "center", color: "#ff6b6b" }}>
+          <div style={{ textAlign: "center", color: "#ff7a4d" }}>
             <Typography variant="body2">{modelError}</Typography>
           </div>
         </div>
@@ -1137,15 +1137,15 @@ const CustomerHome = () => {
                   }
                 }}
                 sx={{
-                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  background: "linear-gradient(135deg, #c5412f, #c5412f)",
                   color: "#fff",
                   width: "32px",
                   height: "32px",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #dc2626, #b91c1c)",
+                    background: "linear-gradient(135deg, #c5412f, #a8371f)",
                     transform: "scale(1.1)",
                   },
-                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+                  boxShadow: "0 4px 12px rgba(197, 65, 47, 0.4)",
                   transition: "all 0.3s ease",
                 }}
               >
@@ -1259,7 +1259,7 @@ const CustomerHome = () => {
                         alignItems: "center",
                         justifyContent: "center",
                         border: `2px solid ${
-                          food.isVeg ? "#10b981" : "#ef4444"
+                          food.isVeg ? "#2f7d62" : "#c5412f"
                         }`,
                       }}
                     >
@@ -1268,7 +1268,7 @@ const CustomerHome = () => {
                           width: "6px",
                           height: "6px",
                           borderRadius: "50%",
-                          background: food.isVeg ? "#10b981" : "#ef4444",
+                          background: food.isVeg ? "#2f7d62" : "#c5412f",
                         }}
                       />
                     </div>
@@ -1305,14 +1305,14 @@ const CustomerHome = () => {
                         top: isActive ? "0px" : "4px",
                         right: isActive ? "8px" : "4px",
                         background:
-                          "linear-gradient(135deg, #10b981, #059669)",
+                          "linear-gradient(135deg, #2f7d62, #2f7d62)",
                         borderRadius: "50%",
                         width: "26px",
                         height: "26px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: "0 3px 12px rgba(16, 185, 129, 0.6), inset 0 1px 2px rgba(255,255,255,0.2)",
+                        boxShadow: "0 3px 12px rgba(47, 125, 98, 0.6), inset 0 1px 2px rgba(255,255,255,0.2)",
                         border: "2.5px solid white",
                         zIndex: 20,
                         transition: "all 0.3s ease",
@@ -1367,17 +1367,17 @@ const CustomerHome = () => {
                 setCartVersion((prev) => prev + 1);
               }}
               sx={{
-                background: "linear-gradient(135deg, #10b981, #059669)",
+                background: "linear-gradient(135deg, #2f7d62, #2f7d62)",
                 color: "#fff",
                 width: "32px",
                 height: "32px",
                 minWidth: "32px",
                 flexShrink: 0,
                 "&:hover": {
-                  background: "linear-gradient(135deg, #059669, #047857)",
+                  background: "linear-gradient(135deg, #2f7d62, #276852)",
                   transform: "scale(1.1)",
                 },
-                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)",
+                boxShadow: "0 4px 12px rgba(47, 125, 98, 0.4)",
                 transition: "all 0.3s ease",
               }}
             >
@@ -1408,8 +1408,8 @@ const CustomerHome = () => {
             }}
             sx={{
               background: cameraActive
-                ? "linear-gradient(135deg, #ff5252, #ff1744)" // RED when camera ON
-                : "linear-gradient(135deg, #f2a541, #f5576c)", // Pink when camera OFF
+                ? "linear-gradient(135deg, #e2552b, #c5412f)" // RED when camera ON
+                : "linear-gradient(135deg, #f2a541, #c5412f)", // Pink when camera OFF
               color: "#fff",
               width: "48px",
               height: "48px",
@@ -1472,13 +1472,13 @@ const CustomerHome = () => {
             size="small"
             onClick={() => setAllItemsDrawerOpen(true)}
             sx={{
-              background: "linear-gradient(135deg, #f59e0b, #d97706)",
+              background: "linear-gradient(135deg, #f2a541, #d08700)",
               color: "#fff",
               width: "48px",
               height: "48px",
-              boxShadow: "0 4px 16px rgba(245, 158, 11, 0.4)",
+              boxShadow: "0 4px 16px rgba(242, 165, 65, 0.4)",
               "&:hover": {
-                background: "linear-gradient(135deg, #d97706, #b45309)",
+                background: "linear-gradient(135deg, #d08700, #a86d00)",
                 transform: "scale(1.08)",
               },
               transition: "all 0.3s ease",
@@ -1493,13 +1493,13 @@ const CustomerHome = () => {
             size="small"
             onClick={() => setFilterDrawerOpen(true)}
             sx={{
-              background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+              background: "linear-gradient(135deg, #f2a541, #d08700)",
               color: "#fff",
               width: "48px",
               height: "48px",
               boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
               "&:hover": {
-                background: "linear-gradient(135deg, #6d28d9, #5b21b6)",
+                background: "linear-gradient(135deg, #d08700, #5b21b6)",
                 transform: "scale(1.08)",
               },
               transition: "all 0.3s ease",
@@ -1595,14 +1595,14 @@ const CustomerHome = () => {
                             top: "-6px",
                             right: "-6px",
                             background:
-                              "linear-gradient(135deg, #10b981, #059669)",
+                              "linear-gradient(135deg, #2f7d62, #2f7d62)",
                             borderRadius: "50%",
                             width: "22px",
                             height: "22px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            boxShadow: "0 2px 8px rgba(16, 185, 129, 0.6)",
+                            boxShadow: "0 2px 8px rgba(47, 125, 98, 0.6)",
                             border: "2px solid white",
                             zIndex: 10,
                           }}
@@ -1854,14 +1854,14 @@ const CustomerHome = () => {
                         position: 'absolute',
                         top: '8px',
                         right: '8px',
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        background: 'linear-gradient(135deg, #2f7d62, #2f7d62)',
                         borderRadius: '50%',
                         width: '28px',
                         height: '28px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.6)',
+                        boxShadow: '0 2px 8px rgba(47, 125, 98, 0.6)',
                         border: '2px solid white',
                         zIndex: 10,
                       }}
@@ -1936,11 +1936,11 @@ const CustomerHome = () => {
                           addToCart(food._id);
                         }}
                         sx={{
-                          background: 'linear-gradient(135deg, #10b981, #059669)',
+                          background: 'linear-gradient(135deg, #2f7d62, #2f7d62)',
                           color: '#fff',
                           padding: '6px',
                           '&:hover': {
-                            background: 'linear-gradient(135deg, #059669, #047857)',
+                            background: 'linear-gradient(135deg, #2f7d62, #276852)',
                           },
                         }}
                       >
@@ -1955,11 +1955,11 @@ const CustomerHome = () => {
                             removeFromCart(food._id);
                           }}
                           sx={{
-                            background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                            background: 'linear-gradient(135deg, #c5412f, #c5412f)',
                             color: '#fff',
                             padding: '4px',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                              background: 'linear-gradient(135deg, #c5412f, #a8371f)',
                             },
                           }}
                         >
@@ -1983,11 +1983,11 @@ const CustomerHome = () => {
                             addToCart(food._id);
                           }}
                           sx={{
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            background: 'linear-gradient(135deg, #2f7d62, #2f7d62)',
                             color: '#fff',
                             padding: '4px',
                             '&:hover': {
-                              background: 'linear-gradient(135deg, #059669, #047857)',
+                              background: 'linear-gradient(135deg, #2f7d62, #276852)',
                             },
                           }}
                         >
@@ -2177,9 +2177,9 @@ const CustomerHome = () => {
                   <div 
                     style={{
                       padding: '16px',
-                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))',
+                      background: 'linear-gradient(135deg, rgba(242, 165, 65, 0.1), rgba(217, 119, 6, 0.1))',
                       borderRadius: '12px',
-                      border: '2px solid rgba(245, 158, 11, 0.3)',
+                      border: '2px solid rgba(242, 165, 65, 0.3)',
                       textAlign: 'center',
                     }}
                   >
@@ -2206,10 +2206,10 @@ const CustomerHome = () => {
                   label={selectedFoodDetails.isVeg ? '🟢 Vegetarian' : '🔴 Non-Vegetarian'}
                   size="small"
                   sx={{
-                    backgroundColor: selectedFoodDetails.isVeg ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    color: selectedFoodDetails.isVeg ? '#10b981' : '#ef4444',
+                    backgroundColor: selectedFoodDetails.isVeg ? 'rgba(47, 125, 98, 0.1)' : 'rgba(197, 65, 47, 0.1)',
+                    color: selectedFoodDetails.isVeg ? '#2f7d62' : '#c5412f',
                     fontWeight: 600,
-                    border: `1px solid ${selectedFoodDetails.isVeg ? '#10b981' : '#ef4444'}`,
+                    border: `1px solid ${selectedFoodDetails.isVeg ? '#2f7d62' : '#c5412f'}`,
                   }}
                 />
                 {selectedFoodDetails.modelUrl && (
@@ -2245,7 +2245,7 @@ const CustomerHome = () => {
                   borderColor: '#e2552b',
                   color: '#e2552b',
                   '&:hover': {
-                    borderColor: '#5568d3',
+                    borderColor: '#c8451f',
                     background: 'rgba(226, 85, 43, 0.05)',
                   },
                 }}
@@ -2259,9 +2259,9 @@ const CustomerHome = () => {
                   setDetailsDialogOpen(false);
                 }}
                 sx={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: 'linear-gradient(135deg, #2f7d62, #2f7d62)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #059669, #047857)',
+                    background: 'linear-gradient(135deg, #2f7d62, #276852)',
                   },
                 }}
                 startIcon={<AddIcon />}
@@ -2319,7 +2319,7 @@ const CustomerHome = () => {
                         color: customization.spiceLevel === level ? '#fff' : palette.textPrimary,
                         '&:hover': {
                           borderColor: '#e2552b',
-                          background: customization.spiceLevel === level ? '#5568d3' : 'rgba(226, 85, 43, 0.1)',
+                          background: customization.spiceLevel === level ? '#c8451f' : 'rgba(226, 85, 43, 0.1)',
                         },
                       }}
                     >
@@ -2428,9 +2428,9 @@ const CustomerHome = () => {
                 variant="contained"
                 onClick={handleAddCustomizedToCart}
                 sx={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: 'linear-gradient(135deg, #2f7d62, #2f7d62)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #059669, #047857)',
+                    background: 'linear-gradient(135deg, #2f7d62, #276852)',
                   },
                 }}
                 startIcon={<AddIcon />}
@@ -2522,15 +2522,15 @@ const CustomerHome = () => {
                 sx={{
                   flex: 1,
                   backgroundColor:
-                    vegFilter === "veg" ? "#10b981" : palette.surface,
+                    vegFilter === "veg" ? "#2f7d62" : palette.surface,
                   color: vegFilter === "veg" ? "#fff" : palette.textPrimary,
                   border: `1px solid ${
-                    vegFilter === "veg" ? "#10b981" : palette.border
+                    vegFilter === "veg" ? "#2f7d62" : palette.border
                   }`,
                   fontWeight: 600,
                   "&:hover": {
                     backgroundColor:
-                      vegFilter === "veg" ? "#059669" : palette.background,
+                      vegFilter === "veg" ? "#2f7d62" : palette.background,
                   },
                 }}
               />
@@ -2540,15 +2540,15 @@ const CustomerHome = () => {
                 sx={{
                   flex: 1,
                   backgroundColor:
-                    vegFilter === "non-veg" ? "#ef4444" : palette.surface,
+                    vegFilter === "non-veg" ? "#c5412f" : palette.surface,
                   color: vegFilter === "non-veg" ? "#fff" : palette.textPrimary,
                   border: `1px solid ${
-                    vegFilter === "non-veg" ? "#ef4444" : palette.border
+                    vegFilter === "non-veg" ? "#c5412f" : palette.border
                   }`,
                   fontWeight: 600,
                   "&:hover": {
                     backgroundColor:
-                      vegFilter === "non-veg" ? "#dc2626" : palette.background,
+                      vegFilter === "non-veg" ? "#c5412f" : palette.background,
                   },
                 }}
               />
@@ -2728,16 +2728,16 @@ const CustomerHome = () => {
           display: block;
         }
         .veg-indicator.veg {
-          border-color: #10b981;
+          border-color: #2f7d62;
         }
         .veg-indicator.veg span {
-          background: #10b981;
+          background: #2f7d62;
         }
         .veg-indicator.non-veg {
-          border-color: #ef4444;
+          border-color: #c5412f;
         }
         .veg-indicator.non-veg span {
-          background: #ef4444;
+          background: #c5412f;
         }
         .view-3d-chip {
           position: absolute;
@@ -2784,7 +2784,7 @@ const CustomerHome = () => {
         }
         .splash-title span {
           display: inline-block;
-          background: linear-gradient(120deg, #ff9a9e, #fad0c4);
+          background: linear-gradient(120deg, #ffc876, #ffc876);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           animation: glowPulse 2s ease-in-out infinite;
