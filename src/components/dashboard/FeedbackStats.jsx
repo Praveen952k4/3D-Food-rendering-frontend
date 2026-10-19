@@ -13,7 +13,7 @@ const FeedbackStats = ({ feedbackSummary }) => {
         <Card
           sx={{
             height: '100%',
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            background: 'linear-gradient(135deg, #f2a541 0%, #f5576c 100%)',
             color: 'white',
           }}
         >
@@ -53,7 +53,7 @@ const FeedbackStats = ({ feedbackSummary }) => {
         <Card
           sx={{
             height: '100%',
-            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            background: 'linear-gradient(135deg, #4fa683 0%, #38f9d7 100%)',
             color: 'white',
           }}
         >
@@ -99,7 +99,7 @@ const FeedbackStats = ({ feedbackSummary }) => {
                     style={{
                       flex: 1,
                       height: 8,
-                      backgroundColor: '#f0f0f0',
+                      backgroundColor: 'var(--ad-bg-2)',
                       borderRadius: 4,
                       margin: '0 8px',
                       overflow: 'hidden',
@@ -108,7 +108,7 @@ const FeedbackStats = ({ feedbackSummary }) => {
                     <div
                       style={{
                         height: '100%',
-                        backgroundColor: '#667eea',
+                        backgroundColor: '#e2552b',
                         width: `${
                           feedbackSummary.summary.totalFeedback > 0
                             ? (feedbackSummary.summary.ratingDistribution[rating] /

@@ -6,10 +6,10 @@ import Login from '../../pages/Login';
 import Landing from '../../pages/Landing';
 import AdminDashboard from '../../pages/Admin/Dashboard';
 import OrderManagement from '../../pages/Admin/OrderManagement';
+import GstReport from '../../pages/Admin/GstReport';
 import AdminFoodManagement from '../../pages/Admin/FoodManagement';
 import CouponManagement from '../../pages/Admin/CouponManagement';
 import UserManagement from '../../pages/Admin/UserManagement';
-import FeedbackManagement from '../../pages/Admin/FeedbackManagement';
 import FoodRatings from '../../pages/Admin/FoodRatings';
 import ChefDashboard from '../../pages/Chef/Dashboard';
 import CustomerHome from '../../pages/Customer/Home';
@@ -55,9 +55,9 @@ const AppRoutes = () => {
       >
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="orders" element={<OrderManagement />} />
+        <Route path="gst" element={<GstReport />} />
         <Route path="food" element={<AdminFoodManagement />} />
         <Route path="coupons" element={<CouponManagement />} />
-        {/* <Route path="feedback" element={<FeedbackManagement />} /> */}
         <Route path="food-ratings" element={<FoodRatings />} />
         <Route path="users" element={<UserManagement />} />
         <Route index element={<Navigate to="/admin/dashboard" />} />

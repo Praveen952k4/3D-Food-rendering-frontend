@@ -100,6 +100,8 @@ export const getDashboard = () => api.get('/analytics/dashboard');
 export const getDailyReport = (date) => api.get('/analytics/daily-report', { params: { date } });
 export const getMonthlyReport = (year, month) => 
   api.get('/analytics/monthly-report', { params: { year, month } });
+export const getOverview = (range) => api.get('/analytics/overview', { params: { range } });
+export const getGstSummary = (params) => api.get('/analytics/gst-summary', { params });
 
 // Coupon APIs
 export const getAvailableCoupons = () => api.get('/coupons/available');

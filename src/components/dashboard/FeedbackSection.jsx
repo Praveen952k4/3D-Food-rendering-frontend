@@ -12,7 +12,7 @@ const FeedbackSection = ({ feedbackSummary }) => {
     <Grid container spacing={2} mt={1}>
       {feedbackSummary.recentFeedback.slice(0, 6).map((order) => (
         <Grid item xs={12} md={6} key={order._id}>
-          <Card sx={{ bgcolor: '#f8f9fa' }}>
+          <Card sx={{ bgcolor: 'var(--ad-bg-2)' }}>
             <CardContent>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
@@ -28,7 +28,7 @@ const FeedbackSection = ({ feedbackSummary }) => {
                   icon={<Star sx={{ fontSize: 16 }} />}
                   size="small"
                   sx={{
-                    bgcolor: '#667eea',
+                    bgcolor: '#e2552b',
                     color: 'white',
                     '& .MuiChip-icon': { color: 'white' },
                   }}

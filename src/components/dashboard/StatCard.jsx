@@ -1,36 +1,82 @@
 import React from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
+import { FONT_DISPLAY } from '../../theme/muiTheme';
+import { Skeleton } from '../ui/Loaders';
 
-const StatCard = ({ title, value, icon, color }) => (
-  <Card
-    sx={{
-      height: '100%',
-      background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-      color: 'white',
-    }}
-  >
-    <CardContent>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <Typography variant="body2" style={{ opacity: 0.9 }}>
+const TONES = {
+  ember: { fg: 'var(--ad-ember)', wash: 'var(--ad-ember-wash)' },
+  basil: { fg: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)' },
+  saffron: { fg: 'var(--ad-saffron)', wash: 'var(--ad-saffron-wash)' },
+};
+
+/**
+ * A KPI tile. Flat surface with one tinted accent, rather than the old
+ * full-bleed gradient — it reads the same in light and dark.
+ */
+const StatCard = ({ title, value, hint, icon, tone = 'ember', loading = false }) => {
+  const { fg, wash } = TONES[tone] || TONES.ember;
+
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', p: 2.5 }}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            sx={{
+              fontSize: 11,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+              color: 'text.disabled',
+            }}
+          >
             {title}
           </Typography>
-          <Typography variant="h4" fontWeight="bold" mt={1}>
-            {value}
-          </Typography>
-        </div>
-        <div
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.2)',
-            borderRadius: '50%',
-            padding: '16px',
-          }}
-        >
-          {icon}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+
+          {loading ? (
+            <Skeleton height={30} width="70%" sx={{ mt: 1.5 }} />
+          ) : (
+            <Typography
+              sx={{
+                fontFamily: FONT_DISPLAY,
+                fontWeight: 600,
+                fontSize: 30,
+                lineHeight: 1.15,
+                mt: 1,
+                letterSpacing: '-0.02em',
+                wordBreak: 'break-word',
+              }}
+            >
+              {value}
+            </Typography>
+          )}
+
+          {hint && !loading && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+              {hint}
+            </Typography>
+          )}
+        </Box>
+
+        {icon && (
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: '13px',
+              display: 'grid',
+              placeItems: 'center',
+              background: wash,
+              color: fg,
+              flex: 'none',
+              '& svg': { fontSize: 21 },
+            }}
+          >
+            {icon}
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default StatCard;

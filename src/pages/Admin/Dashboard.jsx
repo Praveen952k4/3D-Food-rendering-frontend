@@ -1,313 +1,347 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
+  Box,
+  Button,
   Container,
   Grid,
+  IconButton,
   Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
   Typography,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Box,
-  Chip,
 } from '@mui/material';
 import {
-  TrendingUp,
   ShoppingCart,
-  AttachMoney,
+  CurrencyRupee,
+  ReceiptLong,
   PendingActions,
-  CheckCircle,
-  HourglassEmpty,
-  Cancel,
+  Refresh,
+  ArrowForward,
 } from '@mui/icons-material';
-import { getDashboard, getDailyReport, getMonthlyReport, getFeedbackSummary } from 'services/api';
+import { useNavigate } from 'react-router-dom';
+import { getOverview, getFeedbackSummary } from 'services/api';
 import StatCard from 'components/dashboard/StatCard';
+import OverviewCharts, { Panel } from 'components/dashboard/OverviewCharts';
 import FeedbackStats from 'components/dashboard/FeedbackStats';
 import FeedbackSection from 'components/dashboard/FeedbackSection';
-import DailyReportCharts from 'components/dashboard/DailyReportCharts';
-import MonthlyReportCharts from 'components/dashboard/MonthlyReportCharts';
+import { formatINR } from 'config/business';
+import { FONT_DISPLAY } from 'theme/muiTheme';
+import { SkeletonText } from 'components/ui/Loaders';
+
+const RANGES = [
+  { value: '7d', label: '7 days' },
+  { value: '30d', label: '30 days' },
+  { value: '90d', label: '90 days' },
+  { value: '12m', label: '12 months' },
+  { value: 'all', label: 'All time' },
+];
+
+/** status → themed swatch, shared by both breakdown lists. */
+const TONE = {
+  pending: 'var(--ad-saffron)',
+  confirmed: 'var(--ad-saffron)',
+  preparing: 'var(--ad-ember)',
+  ready: 'var(--ad-basil)',
+  delivered: 'var(--ad-basil)',
+  completed: 'var(--ad-basil)',
+  success: 'var(--ad-basil)',
+  cancelled: 'var(--ad-text-3)',
+  failed: '#c5412f',
+  incomplete: '#c5412f',
+};
+
+const Breakdown = ({ rows, total }) => (
+  <Box sx={{ display: 'grid', gap: 1.5 }}>
+    {rows.map((row) => (
+      <Box key={row.name}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline', mb: 0.5 }}>
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: 99,
+              bgcolor: TONE[row.name] || 'var(--ad-text-3)',
+              flex: 'none',
+            }}
+          />
+          <Typography variant="body2" sx={{ textTransform: 'capitalize', flex: 1 }}>
+            {row.name}
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {row.value}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.disabled', width: 42, textAlign: 'right' }}>
+            {total ? `${Math.round((row.value / total) * 100)}%` : '—'}
+          </Typography>
+        </Box>
+        <Box sx={{ height: 6, borderRadius: 99, bgcolor: 'var(--ad-bg-2)', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              height: '100%',
+              width: `${total ? Math.max((row.value / total) * 100, 2) : 0}%`,
+              bgcolor: TONE[row.name] || 'var(--ad-text-3)',
+            }}
+          />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+);
 
 const AdminDashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState(null);
-  const [dailyReport, setDailyReport] = useState(null);
-  const [monthlyReport, setMonthlyReport] = useState(null);
+  const navigate = useNavigate();
+  const [range, setRange] = useState('30d');
+  const [overview, setOverview] = useState(null);
   const [feedbackSummary, setFeedbackSummary] = useState(null);
-  const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const [dashRes, dailyRes, monthlyRes, feedbackRes] = await Promise.all([
-        getDashboard(),
-        getDailyReport(),
-        getMonthlyReport(),
+      const [overviewRes, feedbackRes] = await Promise.allSettled([
+        getOverview(range),
         getFeedbackSummary(),
       ]);
 
-      setDashboardData(dashRes.data.dashboard);
-      setDailyReport(dailyRes.data.report);
-      setMonthlyReport(monthlyRes.data.report);
-      setFeedbackSummary(feedbackRes.data);
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      if (overviewRes.status === 'fulfilled') {
+        setOverview(overviewRes.value.data.overview);
+      } else {
+        console.error('Failed to fetch overview:', overviewRes.reason);
+        setError('Could not load analytics. Check that the API is reachable, then retry.');
+      }
+
+      if (feedbackRes.status === 'fulfilled') {
+        setFeedbackSummary(feedbackRes.value.data);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [range]);
 
-  if (loading) {
-    return (
-      <div style={{ 
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '80vh',
-        gap: '16px',
-      }}>
-        <div style={{ position: 'relative', display: 'inline-flex' }}>
-          <CircularProgress
-            size={60}
-            thickness={4}
-            sx={{
-              color: '#667eea',
-              animationDuration: '1.2s',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <TrendingUp style={{ fontSize: 28, color: '#667eea' }} />
-          </div>
-        </div>
-        <Typography variant="body2" sx={{ color: 'rgba(0,0,0,0.6)' }}>
-          Loading dashboard...
-        </Typography>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  if (!dashboardData) {
-    return (
-      <Container>
-        <Typography>Failed to load dashboard data</Typography>
-      </Container>
-    );
-  }
+  const kpis = overview?.kpis;
+  const statusRows = overview?.statusBreakdown || [];
+  const paymentRows = overview?.paymentBreakdown || [];
+  const totalOrders = kpis?.orders || 0;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Restaurant Dashboard
-      </Typography>
-      <Typography variant="body1" color="text.secondary" mb={4}>
-        Real-time analytics and reports
-      </Typography>
-
-      {/* Stats Cards */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Today's Orders"
-            value={dashboardData.today.orders}
-            icon={<ShoppingCart fontSize="large" />}
-            color="#667eea"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Today's Revenue"
-            value={`₹${dashboardData.today.revenue.toFixed(0)}`}
-            icon={<AttachMoney fontSize="large" />}
-            color="#764ba2"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Monthly Revenue"
-            value={`₹${dashboardData.month.revenue.toFixed(0)}`}
-            icon={<TrendingUp fontSize="large" />}
-            color="#f093fb"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Pending Orders"
-            value={dashboardData.overall.pendingOrders}
-            icon={<PendingActions fontSize="large" />}
-            color="#4facfe"
-          />
-        </Grid>
-      </Grid>
-
-      {/* Revenue & Orders Summary */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AttachMoney color="primary" />
-              Revenue Overview
-            </Typography>
-            <Box sx={{ mt: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Total Revenue</Typography>
-                <Typography variant="h6" fontWeight="bold" color="primary">
-                  ₹{dashboardData.overall.totalRevenue.toFixed(2)}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">This Month</Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  ₹{dashboardData.month.revenue.toFixed(2)}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Today</Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  ₹{dashboardData.today.revenue.toFixed(2)}
-                </Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ShoppingCart color="primary" />
-              Orders Summary
-            </Typography>
-            <Box sx={{ mt: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Total Orders</Typography>
-                <Typography variant="h6" fontWeight="bold" color="primary">
-                  {dashboardData.overall.totalOrders}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">This Month</Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {dashboardData.month.orders}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">Today</Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {dashboardData.today.orders}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" color="text.secondary">Pending</Typography>
-                <Chip 
-                  label={dashboardData.overall.pendingOrders} 
-                  color="warning" 
-                  size="small"
-                  icon={<PendingActions />}
-                />
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Payment Status Summary */}
-      {(dailyReport || monthlyReport) && (
-        <Paper sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AttachMoney color="primary" />
-            Payment Status Overview
+    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 } }}>
+      {/* ------------------------------------------------------------ head */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'flex-end',
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography className="ad-eyebrow">Admin</Typography>
+          <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: { xs: 28, sm: 36 }, mt: 0.5 }}>
+            Restaurant dashboard
           </Typography>
-          <Grid container spacing={3} sx={{ mt: 1 }}>
-            {dailyReport && (
-              <>
-                <Grid item xs={6} sm={3}>
-                  <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <CheckCircle sx={{ fontSize: 40, color: '#10b981', mb: 1 }} />
-                    <Typography variant="h5" fontWeight="bold">
-                      {dailyReport.successfulOrders || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Completed (Today)
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <HourglassEmpty sx={{ fontSize: 40, color: '#f59e0b', mb: 1 }} />
-                    <Typography variant="h5" fontWeight="bold">
-                      {dailyReport.pendingOrders || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Pending (Today)
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <HourglassEmpty sx={{ fontSize: 40, color: '#ef4444', mb: 1 }} />
-                    <Typography variant="h5" fontWeight="bold">
-                      {dailyReport.incompleteOrders || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Incomplete (Today)
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <Cancel sx={{ fontSize: 40, color: '#6b7280', mb: 1 }} />
-                    <Typography variant="h5" fontWeight="bold">
-                      {dailyReport.failedOrders || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Failed (Today)
-                    </Typography>
-                  </Box>
-                </Grid>
-              </>
-            )}
-          </Grid>
-        </Paper>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {overview ? `${overview.rangeLabel} · live figures from your orders` : 'Live figures from your orders'}
+          </Typography>
+        </Box>
+
+        <Box sx={{ ml: { md: 'auto' }, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={range}
+            onChange={(e, v) => v && setRange(v)}
+            sx={{
+              bgcolor: 'var(--ad-surface)',
+              borderRadius: 999,
+              p: 0.5,
+              border: '1px solid var(--ad-line-strong)',
+              flexWrap: 'wrap',
+              '& .MuiToggleButton-root': {
+                border: 0,
+                borderRadius: '999px !important',
+                px: 1.75,
+                py: 0.5,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: 'text.disabled',
+              },
+              '& .Mui-selected': {
+                bgcolor: 'var(--ad-ember) !important',
+                color: '#fff !important',
+              },
+            }}
+          >
+            {RANGES.map((r) => (
+              <ToggleButton key={r.value} value={r.value}>
+                {r.label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+
+          <Tooltip title="Refresh">
+            <span>
+              <IconButton onClick={fetchData} disabled={loading} sx={{ border: '1px solid var(--ad-line-strong)' }}>
+                <Refresh fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 'var(--ad-radius)' }} action={
+          <Button color="inherit" size="small" onClick={fetchData}>Retry</Button>
+        }>
+          {error}
+        </Alert>
       )}
 
-      {/* Feedback Stats */}
-      <FeedbackStats feedbackSummary={feedbackSummary} />
+      {/* ------------------------------------------------------------ KPIs */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Revenue"
+            value={formatINR(kpis?.revenue, false)}
+            hint={kpis ? `${kpis.paidOrders} paid orders · avg ${formatINR(kpis.avgOrderValue, false)}` : ''}
+            icon={<CurrencyRupee />}
+            tone="ember"
+            loading={loading}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard
+            title="Orders"
+            value={kpis?.orders ?? 0}
+            hint={kpis ? `${kpis.cancelledOrders} cancelled` : ''}
+            icon={<ShoppingCart />}
+            tone="basil"
+            loading={loading}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard
+            title="GST collected"
+            value={formatINR(kpis?.gst, false)}
+            hint="5% · CGST 2.5% + SGST 2.5%"
+            icon={<ReceiptLong />}
+            tone="saffron"
+            loading={loading}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <StatCard
+            title="In the kitchen"
+            value={kpis?.pendingOrders ?? 0}
+            hint="Pending, confirmed or preparing"
+            icon={<PendingActions />}
+            tone="ember"
+            loading={loading}
+          />
+        </Grid>
+      </Grid>
 
-      {/* Recent Feedback */}
-      {feedbackSummary && feedbackSummary.recentFeedback && feedbackSummary.recentFeedback.length > 0 && (
-        <Paper sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Recent Customer Feedback
+      {/* ---------------------------------------------------------- graphs */}
+      <OverviewCharts overview={overview} loading={loading} />
+
+      {/* --------------------------------------------- GST + status splits */}
+      <Grid container spacing={3} sx={{ mt: 0 }}>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography className="ad-eyebrow">GST</Typography>
+            <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 19, mt: 0.5, mb: 2 }}>
+              Tax for this period
+            </Typography>
+
+            {loading ? (
+              <SkeletonText lines={4} />
+            ) : (
+              <Box sx={{ display: 'grid', gap: 1.25, fontSize: 14 }}>
+                {[
+                  ['Taxable value', overview?.gst?.taxableValue],
+                  ['CGST @ 2.5%', overview?.gst?.cgst],
+                  ['SGST @ 2.5%', overview?.gst?.sgst],
+                ].map(([label, value]) => (
+                  <Box key={label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>{label}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatINR(value)}</Typography>
+                  </Box>
+                ))}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    borderTop: '1px solid var(--ad-line)',
+                    pt: 1.25,
+                    mt: 0.5,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>Total GST</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'var(--ad-ember)' }}>
+                    {formatINR(overview?.gst?.total)}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            <Button
+              endIcon={<ArrowForward />}
+              onClick={() => navigate('/admin/gst')}
+              sx={{ mt: 2.5, px: 0 }}
+            >
+              Open GST report
+            </Button>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Panel
+            title="Order status"
+            subtitle="Every order in this period"
+            loading={loading}
+            isEmpty={statusRows.length === 0}
+            emptyText="No orders in this period."
+            height={180}
+          >
+            <Breakdown rows={statusRows} total={totalOrders} />
+          </Panel>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Panel
+            title="Payments"
+            subtitle="Settlement state"
+            loading={loading}
+            isEmpty={paymentRows.length === 0}
+            emptyText="No payments in this period."
+            height={180}
+          >
+            <Breakdown rows={paymentRows} total={totalOrders} />
+          </Panel>
+        </Grid>
+      </Grid>
+
+      {/* -------------------------------------------------------- feedback */}
+      <Box sx={{ mt: 4 }}>
+        <FeedbackStats feedbackSummary={feedbackSummary} />
+      </Box>
+
+      {feedbackSummary?.recentFeedback?.length > 0 && (
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 19, mb: 1 }}>
+            Recent customer feedback
           </Typography>
           <FeedbackSection feedbackSummary={feedbackSummary} />
         </Paper>
       )}
-
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-          <Tab label="Daily Report" />
-          <Tab label="Monthly Report" />
-        </Tabs>
-      </Paper>
-
-      {/* Daily Report */}
-      {tabValue === 0 && <DailyReportCharts dailyReport={dailyReport} />}
-
-      {/* Monthly Report */}
-      {tabValue === 1 && <MonthlyReportCharts monthlyReport={monthlyReport} />}
     </Container>
   );
 };
