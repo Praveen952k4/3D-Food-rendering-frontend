@@ -17,11 +17,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  CircularProgress,
   Stack,
   Pagination,
   Box,
 } from '@mui/material';
+import { LoadingPanel } from '../../components/ui/Loaders';
 import {
   Add,
   Edit,
@@ -165,11 +165,7 @@ const CouponManagement = () => {
   );
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress size={60} />
-      </div>
-    );
+    return <LoadingPanel minHeight="70vh">Loading coupons…</LoadingPanel>;
   }
 
   return (

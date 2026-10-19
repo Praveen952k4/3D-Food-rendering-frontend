@@ -94,6 +94,8 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
   const previousOrdersRef = useRef({});
   const audioRef = useRef(null);
   const socketRef = useRef(null);
+  // Only the very first fetch shows a loader; the 10s poll should not flicker.
+  const [firstFetch, setFirstFetch] = useState(true);
 
   // Load notification history and viewed state from localStorage
   useEffect(() => {
@@ -418,6 +420,8 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
     } catch (error) {
       console.error('❌ Error fetching active orders:', error);
       console.error('Error details:', error.response?.data || error.message);
+    } finally {
+      setFirstFetch(false);
     }
   };
 
@@ -502,6 +506,21 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
     setServiceQuality(5);
     setDeliverySpeed(5);
   };
+
+  if (firstFetch && orders.length === 0 && notificationHistory.length === 0) {
+    return showInDrawer ? (
+      <Box sx={{ p: 2, display: 'grid', gap: 1.5 }}>
+        {[0, 1, 2].map((i) => (
+          <Box
+            key={i}
+            className="ad-sk"
+            sx={{ height: 66, borderRadius: 'var(--ad-radius)' }}
+            aria-hidden="true"
+          />
+        ))}
+      </Box>
+    ) : null;
+  }
 
   if (orders.length === 0 && notificationHistory.length === 0) return showInDrawer ? (
     <Box sx={{ p: 4, textAlign: 'center' }}>

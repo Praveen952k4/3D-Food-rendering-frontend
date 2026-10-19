@@ -10,7 +10,6 @@ import {
   Chip,
   Paper,
   Divider,
-  CircularProgress,
   Alert,
   Stack,
   Accordion,
@@ -18,6 +17,7 @@ import {
   AccordionDetails,
   Pagination,
 } from '@mui/material';
+import { LoadingPanel } from '../../components/ui/Loaders';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import StarIcon from '@mui/icons-material/Star';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -85,11 +85,7 @@ const FoodRatings = () => {
   );
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <LoadingPanel minHeight="70vh">Loading ratings…</LoadingPanel>;
   }
 
   if (error) {

@@ -7,6 +7,7 @@ import {
   Pagination,
   Box,
 } from '@mui/material';
+import { SkeletonCards } from '../../components/ui/Loaders';
 import AddIcon from '@mui/icons-material/Add';
 import { getAdminFoodItems, createFoodItem, updateFoodItem, deleteFoodItem } from 'services/api';
 import FoodCard from 'components/food/FoodCard';
@@ -17,6 +18,7 @@ const AdminFoodManagement = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [page, setPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [currentFood, setCurrentFood] = useState({
@@ -37,11 +39,14 @@ const AdminFoodManagement = () => {
   }, []);
 
   const fetchFoodItems = async () => {
+    setFetching(true);
     try {
       const response = await getAdminFoodItems();
       setFoodItems(response.data.foodItems || []);
     } catch (error) {
       console.error('Failed to fetch food items:', error);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -155,6 +160,9 @@ const AdminFoodManagement = () => {
       </div>
 
       {/* Food Items Grid */}
+      {fetching ? (
+        <SkeletonCards count={6} height={260} columns="repeat(auto-fill, minmax(260px, 1fr))" />
+      ) : (
       <Grid container spacing={3}>
         {paginatedItems.map((food) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={food._id}>
@@ -166,9 +174,25 @@ const AdminFoodManagement = () => {
             />
           </Grid>
         ))}
+        {paginatedItems.length === 0 && (
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                py: 6,
+                textAlign: 'center',
+                color: 'text.disabled',
+                border: '1px dashed var(--ad-line-strong)',
+                borderRadius: 'var(--ad-radius-lg)',
+              }}
+            >
+              No food items yet — add the first dish.
+            </Box>
+          </Grid>
+        )}
       </Grid>
+      )}
 
-      {totalPages > 1 && (
+      {!fetching && totalPages > 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <Pagination
             count={totalPages}

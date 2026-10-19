@@ -16,10 +16,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
   Avatar,
   TablePagination,
 } from '@mui/material';
+import { LoadingPanel } from '../../components/ui/Loaders';
 import { Person, CheckCircle, History, Phone, Email } from '@mui/icons-material';
 import { getOnlineUsers, getLoginHistory } from '../../services/api';
 import { format } from 'date-fns';
@@ -105,11 +105,7 @@ const UserManagement = () => {
   );
 
   if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress size={60} />
-      </div>
-    );
+    return <LoadingPanel minHeight="70vh">Loading customers…</LoadingPanel>;
   }
 
   return (
