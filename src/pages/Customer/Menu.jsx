@@ -15,7 +15,7 @@ import {
   Stack,
   Box,
 } from '@mui/material';
-import { Add, Remove, ShoppingCart } from '@mui/icons-material';
+import { Add, Remove, ShoppingCart, Schedule } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getFoodItems } from '../../services/api';
 import ClimateLabel from '../../components/food/ClimateLabel';
@@ -240,6 +240,21 @@ const CustomerMenu = () => {
                     <Typography variant="body2" color="text.secondary" mb={1.5}>
                       {item.description || 'Delicious food item'}
                     </Typography>
+
+                    {/* What the kitchen needs for this dish, so the wait is
+                        known before it is ordered rather than after. */}
+                    <Chip
+                      icon={<Schedule sx={{ fontSize: 15 }} />}
+                      label={`${item.prepTimeMinutes ?? 15} min to prepare`}
+                      size="small"
+                      sx={{
+                        mb: 1.5,
+                        bgcolor: 'var(--ad-saffron-wash)',
+                        color: 'var(--ad-warn)',
+                        fontWeight: 600,
+                        '& .MuiChip-icon': { color: 'inherit' },
+                      }}
+                    />
 
                     <Box sx={{ mb: 1.75 }}>
                       <ClimateLabel food={item} />

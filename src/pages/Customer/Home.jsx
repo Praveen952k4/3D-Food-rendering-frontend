@@ -47,6 +47,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import CameraIcon from '@mui/icons-material/Camera';
 import NotificationsIcon from '@mui/icons-material/Notifications';
@@ -1913,15 +1914,26 @@ const CustomerHome = () => {
                   >
                     {food.category}
                   </Typography>
-                  {/* Calories Badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                    <LocalFireDepartmentIcon sx={{ fontSize: '14px', color: 'var(--ad-warn)' }} />
-                    <Typography 
-                      variant="caption" 
-                      sx={{ color: 'var(--ad-warn)', fontWeight: 600, fontSize: '0.7rem' }}
-                    >
-                      {food.calories || 0} kcal
-                    </Typography>
+                  {/* Calories and the kitchen's preparation time */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <LocalFireDepartmentIcon sx={{ fontSize: '14px', color: 'var(--ad-warn)' }} />
+                      <Typography 
+                        variant="caption" 
+                        sx={{ color: 'var(--ad-warn)', fontWeight: 600, fontSize: '0.7rem' }}
+                      >
+                        {food.calories || 0} kcal
+                      </Typography>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ScheduleIcon sx={{ fontSize: '14px', color: palette.textSecondary }} />
+                      <Typography 
+                        variant="caption" 
+                        sx={{ color: palette.textSecondary, fontWeight: 600, fontSize: '0.7rem' }}
+                      >
+                        {food.prepTimeMinutes ?? 15} min
+                      </Typography>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <Typography 
@@ -2198,6 +2210,9 @@ const CustomerHome = () => {
                     </Typography>
                     <Typography variant="subtitle2" sx={{ color: palette.textSecondary }}>
                       Calories (kcal)
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: palette.textSecondary, display: 'block', marginTop: '8px' }}>
+                      About {selectedFoodDetails.prepTimeMinutes ?? 15} minutes to prepare
                     </Typography>
                   </div>
                 </AccordionDetails>

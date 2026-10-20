@@ -113,6 +113,17 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
             error={!food.calories || food.calories === 0}
           />
 
+          <TextField
+            fullWidth
+            label="Preparation time (minutes)"
+            type="number"
+            value={food.prepTimeMinutes ?? 15}
+            onChange={(e) => setFood({ ...food, prepTimeMinutes: Math.max(parseInt(e.target.value, 10) || 0, 0) })}
+            sx={{ mb: 2 }}
+            helperText="Shown to customers on the menu, and used for the order's estimate"
+            inputProps={{ min: 0, step: 1 }}
+          />
+
           {/* Ingredients Section */}
           <Box sx={{ mb: 2, p: 2, border: '1px solid var(--ad-line)', borderRadius: '8px' }}>
             <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>

@@ -137,6 +137,7 @@ const CustomerCart = () => {
             imageUrl: food.imageUrl,
             isVeg: food.isVeg,
             calories: food.calories,
+            prepTimeMinutes: food.prepTimeMinutes ?? 15,
             // the climate label is derived from the category too, so carry it
             category: food.category,
             customizations: cartCustomization[foodId] || [],
@@ -291,6 +292,11 @@ const CustomerCart = () => {
     setCouponDiscount(0);
   };
 
+  // The kitchen works on dishes in parallel, so an order is ready when its
+  // slowest dish is — not after the sum of every dish on it.
+  const getEstimatedPrepMinutes = () =>
+    cartItems.reduce((longest, item) => Math.max(longest, item.prepTimeMinutes ?? 15), 0);
+
   const getSubtotal = () => {
     let total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     
@@ -352,6 +358,7 @@ const CustomerCart = () => {
           price: item.price,
           quantity: item.quantity,
           subtotal: item.price * item.quantity,
+          prepTimeMinutes: item.prepTimeMinutes ?? 15,
           customizations: item.customizations || [],
         })),
         subtotal: getSubtotal(),
@@ -1427,6 +1434,16 @@ const CustomerCart = () => {
                   <Typography variant="body1" fontWeight="600" sx={{ color: '#2f7d62' }}>-₹{couponDiscount.toFixed(2)}</Typography>
                 </div>
               )}
+              {/* The kitchen cooks the dishes side by side, so the wait is the
+                  longest dish on the order rather than the sum of them. */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <Typography variant="body1" color="text.secondary">
+                  Estimated preparation
+                </Typography>
+                <Typography variant="body1" fontWeight="600">
+                  ~{getEstimatedPrepMinutes()} min
+                </Typography>
+              </div>
               <Divider sx={{ my: 2, borderColor: 'rgba(226, 85, 43, 0.3)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>Total Amount</Typography>

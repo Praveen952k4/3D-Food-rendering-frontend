@@ -32,6 +32,7 @@ const AdminFoodManagement = () => {
     modelUrl: '',
     ingredients: [],
     calories: 0,
+    prepTimeMinutes: 15,
     isVeg: true,
     isAvailable: true,
   });
@@ -66,6 +67,7 @@ const AdminFoodManagement = () => {
         modelUrl: '',
         ingredients: [],
         calories: 0,
+        prepTimeMinutes: 15,
         isVeg: true,
         isAvailable: true,
       });

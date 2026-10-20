@@ -73,7 +73,12 @@ const FoodCard = ({ food, onEdit, onDelete, onToggleAvailability }) => {
         <Chip
           label={food.category}
           size="small"
-          sx={{ mb: 1 }}
+          sx={{ mb: 1, mr: 0.75 }}
+        />
+        <Chip
+          label={`${food.prepTimeMinutes ?? 15} min`}
+          size="small"
+          sx={{ mb: 1, bgcolor: 'var(--ad-saffron-wash)', color: 'var(--ad-warn)', fontWeight: 600 }}
         />
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, height: 40, overflow: 'hidden' }}>
           {food.description}
