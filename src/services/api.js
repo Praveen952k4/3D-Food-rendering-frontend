@@ -56,6 +56,9 @@ export const guestLogin = (tableNumber, name) =>
 export const staffLogin = (staffId, password) =>
   api.post('/auth/staff/login', { staffId, password });
 export const getTables = () => api.get('/auth/tables');
+// Reserve one of the free tables, held in the guest's name.
+export const bookTable = (tableNumber, name) =>
+  api.post('/auth/guest/book', { tableNumber, name });
 
 // Food APIs
 export const getFoodItems = (category, isVeg) => 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import AuthShell from './AuthShell';
 import { useAuth, defaultRouteFor } from '../../context/AuthContext';
 import { useMessage } from '../../components/ui/MessageDialog';
+import io from 'socket.io-client';
 import { getTables } from '../../services/api';
 import { Skeleton } from '../../components/ui/Loaders';
 
@@ -31,6 +32,7 @@ const GuestLogin = () => {
   const [tableNumber, setTableNumber] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +48,26 @@ const GuestLogin = () => {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // A table taken at another door should stop being offered here too.
+  useEffect(() => {
+    const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+    socketRef.current = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+
+    socketRef.current.on('tableChange', (changed) => {
+      if (!changed) return;
+      setTables((current) =>
+        current
+          ? current.map((table) =>
+              table.number === changed.number ? { ...table, isOccupied: changed.isOccupied } : table
+            )
+          : current
+      );
+      setTableNumber((current) => (changed.isOccupied && current === changed.number ? '' : current));
+    });
+
+    return () => socketRef.current?.disconnect();
   }, []);
 
   const handleSubmit = async (event) => {
@@ -98,11 +120,14 @@ const GuestLogin = () => {
                 <TableRestaurant sx={{ fontSize: 18, color: 'text.disabled', mr: 1 }} />
               }
             >
+              {/* A table someone is already sitting at is shown but cannot be
+                  chosen: hiding it outright only looks like a bug to the
+                  person standing at that table. */}
               {tables.map((table) => (
-                <MenuItem key={table.number} value={table.number}>
+                <MenuItem key={table.number} value={table.number} disabled={table.isOccupied}>
                   {table.label || `Table ${table.number}`}
                   <Typography component="span" variant="caption" sx={{ color: 'text.disabled', ml: 1 }}>
-                    · {table.seats} seats
+                    · {table.isOccupied ? 'Occupied' : `${table.seats} seats`}
                   </Typography>
                 </MenuItem>
               ))}
