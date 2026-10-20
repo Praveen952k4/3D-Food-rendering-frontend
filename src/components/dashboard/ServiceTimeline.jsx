@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  EventSeat,
   TableRestaurant,
   ReceiptLong,
   RoomService,
@@ -41,6 +42,8 @@ import { SkeletonText } from 'components/ui/Loaders';
  */
 
 const EVENT_STYLE = {
+  'table-reserved': { icon: <EventSeat />, tone: 'var(--ad-ember)', wash: 'var(--ad-ember-wash)' },
+  'guest-checked-in': { icon: <TableRestaurant />, tone: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)' },
   'table-booked': { icon: <TableRestaurant />, tone: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)' },
   'order-placed': { icon: <ReceiptLong />, tone: 'var(--ad-saffron)', wash: 'var(--ad-saffron-wash)' },
   'order-accepted': { icon: <RoomService />, tone: 'var(--ad-saffron)', wash: 'var(--ad-saffron-wash)' },
