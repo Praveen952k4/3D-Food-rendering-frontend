@@ -12,12 +12,19 @@ import {
 } from '@mui/material';
 import { Close, Download, Print, Send, TaskAlt } from '@mui/icons-material';
 import { buildReceiptPdf, receiptFileName } from '../../utils/receipt';
+import ReceiptView from './ReceiptView';
 import { gstForOrder, formatINR } from '../../config/business';
 import { LoadingPanel } from '../ui/Loaders';
 
 /**
- * Shows a GST-inclusive e-receipt for one order: the generated PDF is rendered
- * in-place in an iframe, with Download and Print beneath it.
+ * Shows a GST-inclusive e-receipt for one order, with Download and Print
+ * beneath it.
+ *
+ * The receipt on screen is HTML, not the PDF. Phones refuse to render a PDF
+ * inside an iframe — Android Chrome offers a download instead of showing it,
+ * iOS Safari often shows nothing — so on a phone the preview was a blank grey
+ * box. The PDF is still built, and is still exactly what downloads and
+ * prints.
  *
  * The admin also gets "Send to customer", which releases the receipt — the
  * customer cannot view or download it until that happens. Pass
@@ -68,19 +75,38 @@ const ReceiptDialog = ({
   };
 
   const handlePrint = () => {
-    // Print the PDF already rendered in the iframe; fall back to a new window
-    // if the embedded viewer will not accept a print command.
-    const frame = frameRef.current;
-    try {
-      if (frame?.contentWindow) {
+    if (!url) return;
+
+    // Print the PDF itself rather than the page: load it into an off-screen
+    // frame, print that, and drop the frame afterwards. A phone has no print
+    // frame to speak of, so there it just opens the PDF and lets the system
+    // share sheet do the rest.
+    const isPhone = typeof window !== 'undefined' && window.innerWidth < 600;
+    if (isPhone) {
+      window.open(url, '_blank', 'noopener');
+      return;
+    }
+
+    const frame = document.createElement('iframe');
+    frame.style.position = 'fixed';
+    frame.style.right = '0';
+    frame.style.bottom = '0';
+    frame.style.width = '0';
+    frame.style.height = '0';
+    frame.style.border = '0';
+    frame.src = url;
+    frame.onload = () => {
+      try {
         frame.contentWindow.focus();
         frame.contentWindow.print();
-        return;
+      } catch {
+        // Some embedded viewers refuse a print command from script.
+        window.open(url, '_blank', 'noopener');
       }
-    } catch {
-      /* cross-origin viewer — fall through */
-    }
-    if (docRef.current) docRef.current.output('dataurlnewwindow');
+      setTimeout(() => frame.remove(), 60000);
+    };
+    document.body.appendChild(frame);
+    frameRef.current = frame;
   };
 
   return (
@@ -113,13 +139,10 @@ const ReceiptDialog = ({
           <Alert severity="error" sx={{ m: 2 }}>
             {error}
           </Alert>
-        ) : url ? (
-          <iframe
-            ref={frameRef}
-            src={`${url}#toolbar=0&navpanes=0&view=FitH`}
-            title="E-receipt preview"
-            style={{ border: 0, width: '100%', flex: 1, minHeight: 420, background: 'var(--ad-bg-2)' }}
-          />
+        ) : order ? (
+          <Box sx={{ flex: 1, overflowY: 'auto', py: { xs: 1.5, sm: 2.5 } }}>
+            <ReceiptView order={order} />
+          </Box>
         ) : (
           <LoadingPanel minHeight={420}>Generating receipt…</LoadingPanel>
         )}
