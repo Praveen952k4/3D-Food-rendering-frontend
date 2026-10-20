@@ -1,12 +1,12 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { TableRestaurant, PersonOutline, SoupKitchen, ArrowForward } from '@mui/icons-material';
+import { TableRestaurant, EventSeat, PersonOutline, SoupKitchen, ArrowForward } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AuthShell from './AuthShell';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 /**
- * Three doors — picked here so nobody has to work out which one applies to
+ * Four doors — picked here so nobody has to work out which one applies to
  * them. Customers, admins and kitchen staff all sign in with a phone number
  * and a one-time code; the role attached to the number decides where they
  * land. Guests need no account at all, just their table number.
@@ -18,6 +18,13 @@ const DOORS = [
     tone: 'basil',
     title: 'I am at a table',
     detail: 'Just your table number. No account, no OTP.',
+  },
+  {
+    to: '/login/book',
+    icon: <EventSeat />,
+    tone: 'ember',
+    title: 'Book a table',
+    detail: 'Pick a free table and we will hold it in your name.',
   },
   {
     to: '/login/customer',

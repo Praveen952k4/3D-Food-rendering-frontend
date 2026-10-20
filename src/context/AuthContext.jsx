@@ -3,6 +3,7 @@ import {
   verifyOTP as verifyOTPApi,
   guestLogin as guestLoginApi,
   staffLogin as staffLoginApi,
+  bookTable as bookTableApi,
 } from '../services/api';
 
 const AuthContext = createContext(undefined);
@@ -56,6 +57,13 @@ export const AuthProvider = ({ children }) => {
     return persist(newToken, newUser);
   };
 
+  /** Booking: reserve a free table, then sit down at it. */
+  const bookTable = async (tableNumber, name) => {
+    const response = await bookTableApi(tableNumber, name);
+    const { token: newToken, user: newUser } = response.data;
+    return persist(newToken, newUser);
+  };
+
   /** Staff sign-in: staff ID + password. */
   const loginStaff = async (staffId, password) => {
     const response = await staffLoginApi(staffId, password);
@@ -86,6 +94,7 @@ export const AuthProvider = ({ children }) => {
     isCustomer: user?.role === 'customer',
     login,
     loginGuest,
+    bookTable,
     loginStaff,
     logout,
     updateUser,

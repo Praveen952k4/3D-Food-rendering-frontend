@@ -5,6 +5,7 @@ import PrivateRoute from './PrivateRoute';
 import Landing from '../../pages/Landing';
 import LoginChooser from '../../pages/auth/LoginChooser';
 import GuestLogin from '../../pages/auth/GuestLogin';
+import BookTable from '../../pages/auth/BookTable';
 import CustomerLogin from '../../pages/auth/CustomerLogin';
 import ChefLogin from '../../pages/auth/ChefLogin';
 import AdminDashboard from '../../pages/Admin/Dashboard';
@@ -38,6 +39,7 @@ const AppRoutes = () => {
       {/* Three doors, each with its own credential */}
       <Route path="/login" element={signedInRedirect(<LoginChooser />)} />
       <Route path="/login/guest" element={signedInRedirect(<GuestLogin />)} />
+      <Route path="/login/book" element={signedInRedirect(<BookTable />)} />
       <Route path="/login/customer" element={signedInRedirect(<CustomerLogin />)} />
       <Route path="/login/chef" element={signedInRedirect(<ChefLogin />)} />
 
