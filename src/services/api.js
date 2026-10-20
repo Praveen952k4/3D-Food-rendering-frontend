@@ -75,6 +75,7 @@ export const setBookingStatus = (id, status) => api.patch(`/bookings/${id}/statu
 // --- tables on the floor ---------------------------------------------------
 export const getFloorTables = () => api.get('/tables');
 export const getMyTable = () => api.get('/tables/mine');
+export const takeTable = (number) => api.post(`/tables/${number}/take`);
 export const leaveTable = () => api.post('/tables/leave');
 export const freeTable = (number) => api.post(`/tables/${number}/free`);
 

@@ -17,8 +17,9 @@ import {
 } from '@mui/material';
 import {
   EventSeat,
-  TableRestaurant,
   ReceiptLong,
+  Logout,
+  TableRestaurant,
   RoomService,
   SoupKitchen,
   DoneAll,
@@ -51,6 +52,8 @@ const EVENT_STYLE = {
   'order-ready': { icon: <DoneAll />, tone: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)' },
   'order-served': { icon: <DoneAll />, tone: 'var(--ad-basil)', wash: 'var(--ad-basil-wash)' },
   'order-cancelled': { icon: <Cancel />, tone: 'var(--ad-text-3)', wash: 'var(--ad-bg-2)' },
+  'receipt-sent': { icon: <ReceiptLong />, tone: 'var(--ad-ember)', wash: 'var(--ad-ember-wash)' },
+  'table-left': { icon: <Logout />, tone: 'var(--ad-text-3)', wash: 'var(--ad-bg-2)' },
 };
 
 const RANGES = [
@@ -233,6 +236,7 @@ const ServiceTimeline = () => {
         <Stat label="In the kitchen" value={data?.averages?.timeInKitchen} />
         <Stat label="Ready to served" value={data?.averages?.waitToServe} />
         <Stat label="Order to table" value={data?.averages?.totalMinutes} />
+        <Stat label="Served to receipt" value={data?.averages?.servedToReceipt} />
         <Box sx={{ alignSelf: 'center' }}>
           <Typography variant="caption" sx={{ color: 'text.disabled' }}>
             Averages across {data?.averages?.servedOrders ?? 0} served order
@@ -266,6 +270,7 @@ const ServiceTimeline = () => {
                     <TableCell>Taken</TableCell>
                     <TableCell>Ready</TableCell>
                     <TableCell>Served</TableCell>
+                    <TableCell>Receipt</TableCell>
                     <TableCell align="right">Total</TableCell>
                   </TableRow>
                 </TableHead>
@@ -292,6 +297,14 @@ const ServiceTimeline = () => {
                         )}
                       </TableCell>
                       <TableCell>{clockOf(row.servedAt)}</TableCell>
+                      <TableCell>
+                        {clockOf(row.receiptSentAt)}
+                        {row.servedToReceipt !== null && row.servedToReceipt !== undefined && (
+                          <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                            +{row.servedToReceipt} min
+                          </Typography>
+                        )}
+                      </TableCell>
                       <TableCell align="right">
                         <Mins value={row.totalMinutes} warnOver={row.estimatedPrepMinutes || 30} />
                       </TableCell>
