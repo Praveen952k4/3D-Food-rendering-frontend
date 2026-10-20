@@ -15,7 +15,9 @@ import {
   ToggleButtonGroup,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Refresh, CheckCircle, Cancel, EventBusy } from '@mui/icons-material';
 import { format, parseISO, isPast } from 'date-fns';
 import {
@@ -54,6 +56,10 @@ const RANGES = [
 ];
 
 const AdminBookings = () => {
+  const theme = useTheme();
+  // The table below needs about 660px. A phone has 375, and staff read this
+  // standing up on the floor, so there it becomes a list of cards.
+  const compact = useMediaQuery(theme.breakpoints.down('md'));
   const { showError, confirmAction } = useMessage();
   const [days, setDays] = useState(7);
   const [data, setData] = useState(null);
@@ -158,7 +164,7 @@ const AdminBookings = () => {
         </Box>
       </Box>
 
-      <Box sx={{ display: 'grid', gap: 2.5, gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, mb: 3 }}>
+      <Box sx={{ display: 'grid', gap: { xs: 1, sm: 2.5 }, gridTemplateColumns: 'repeat(3, 1fr)', mb: 3 }}>
         <StatCard title="Expected" value={counts.reserved ?? 0} hint="Not arrived yet" tone="saffron" loading={loading} />
         <StatCard title="Checked in" value={counts.seated ?? 0} hint="Sitting down now" tone="basil" loading={loading} />
         <StatCard title="Cancelled" value={counts.cancelled ?? 0} hint="Including no-shows" tone="ember" loading={loading} />
@@ -176,6 +182,109 @@ const AdminBookings = () => {
             No bookings in this period.
           </Typography>
         ) : (
+          compact ? (
+          <Box sx={{ display: 'grid', gap: 1.25 }}>
+            {bookings.map((booking) => {
+              const when = parseISO(booking.scheduledFor);
+              const tone = TONE[booking.status] || TONE.reserved;
+              const items = booking.preOrderItems || [];
+              const total = items.reduce((sum, item) => sum + item.subtotal, 0);
+              const late = booking.status === 'reserved' && isPast(when);
+
+              return (
+                <Box
+                  key={booking._id}
+                  sx={{
+                    p: 1.75,
+                    border: '1px solid var(--ad-line)',
+                    borderRadius: 'var(--ad-radius-sm)',
+                    bgcolor: 'var(--ad-surface)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 15 }}>
+                      {format(when, 'HH:mm')}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: late ? 'var(--ad-ember)' : 'text.disabled' }}>
+                      {format(when, 'EEE d MMM')}
+                      {late ? ' · overdue' : ''}
+                    </Typography>
+                    <Chip
+                      label={tone.label}
+                      size="small"
+                      sx={{ ml: 'auto', bgcolor: tone.bg, color: tone.fg, fontWeight: 700 }}
+                    />
+                  </Box>
+
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Table {booking.tableNumber} · {booking.partySize}{' '}
+                    {booking.partySize === 1 ? 'person' : 'people'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    {booking.customerName || '—'} · {booking.customerPhone}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.5 }}>
+                    {items.length === 0
+                      ? 'Ordering at the table'
+                      : `${items.reduce((sum, i) => sum + i.quantity, 0)} items · ${formatINR(total, false)} · about ${booking.estimatedPrepMinutes} min to cook`}
+                  </Typography>
+
+                  {booking.status === 'reserved' && (
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1.5, flexWrap: 'wrap' }}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={busy === booking._id}
+                        onClick={() =>
+                          confirmThen(
+                            booking,
+                            'seat',
+                            'Seat them',
+                            `Table ${booking.tableNumber} will be held${items.length ? ' and their pre-order goes to the kitchen now.' : '.'}`
+                          )
+                        }
+                      >
+                        Seat them
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={busy === booking._id}
+                        onClick={() =>
+                          confirmThen(booking, 'no-show', 'Mark no-show', `Table ${booking.tableNumber} will be released.`)
+                        }
+                      >
+                        No-show
+                      </Button>
+                      <Button
+                        size="small"
+                        sx={{ color: '#c5412f' }}
+                        disabled={busy === booking._id}
+                        onClick={() =>
+                          confirmThen(booking, 'cancel', 'Cancel booking', `Table ${booking.tableNumber} will be released.`)
+                        }
+                      >
+                        Cancel
+                      </Button>
+                    </Box>
+                  )}
+
+                  {booking.status === 'seated' && (
+                    <Button
+                      size="small"
+                      sx={{ mt: 1, px: 0 }}
+                      disabled={busy === booking._id}
+                      onClick={() =>
+                        confirmThen(booking, 'complete', 'Mark completed', `Table ${booking.tableNumber} will be released.`)
+                      }
+                    >
+                      Finish
+                    </Button>
+                  )}
+                </Box>
+              );
+            })}
+          </Box>
+          ) : (
           <Box sx={{ overflowX: 'auto' }}>
             <Table size="small">
               <TableHead>
@@ -322,6 +431,7 @@ const AdminBookings = () => {
               </TableBody>
             </Table>
           </Box>
+          )
         )}
       </Paper>
     </Container>

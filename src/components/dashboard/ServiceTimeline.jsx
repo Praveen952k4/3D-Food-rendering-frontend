@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
   Chip,
+  useMediaQuery,
   Divider,
   IconButton,
   Paper,
@@ -26,6 +27,7 @@ import {
   Cancel,
   Refresh,
 } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import io from 'socket.io-client';
 import { getActivity } from 'services/api';
@@ -115,7 +117,76 @@ const Stat = ({ label, value }) => (
   </Box>
 );
 
+/**
+ * One order's stages as a card. The table below needs 700px to lay this out,
+ * which is twice a phone, so on a phone it is read down the screen instead of
+ * sideways.
+ */
+const OrderCard = ({ row }) => {
+  const stages = [
+    ['Placed', row.placedAt],
+    ['Taken by staff', row.acceptedAt || row.cookingAt],
+    ['Ready', row.readyAt],
+    ['Served', row.servedAt],
+    ['Receipt', row.receiptSentAt],
+  ];
+
+  return (
+    <Box
+      sx={{
+        p: 1.75,
+        border: '1px solid var(--ad-line)',
+        borderRadius: 'var(--ad-radius-sm)',
+        bgcolor: 'var(--ad-surface)',
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{row.orderNumber}</Typography>
+        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+          {row.tableNumber ? tableLabel(row.tableNumber) : row.orderType}
+        </Typography>
+        <Box sx={{ ml: 'auto', textAlign: 'right' }}>
+          <Mins value={row.totalMinutes} warnOver={row.estimatedPrepMinutes || 30} />
+          {row.estimatedPrepMinutes > 0 && (
+            <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+              est. {row.estimatedPrepMinutes} min
+            </Typography>
+          )}
+        </Box>
+      </Box>
+
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
+        {row.customerName} · {formatINR(row.grandTotal, false)}
+      </Typography>
+
+      <Box sx={{ display: 'grid', gap: 0.5 }}>
+        {stages.map(([label, at]) => (
+          <Box key={label} sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: 99,
+                flex: 'none',
+                bgcolor: at ? 'var(--ad-ember)' : 'var(--ad-line-strong)',
+              }}
+            />
+            <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1 }}>
+              {label}
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: at ? 700 : 400, color: at ? 'inherit' : 'text.disabled' }}>
+              {clockOf(at)}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 const ServiceTimeline = () => {
+  const theme = useTheme();
+  const compact = useMediaQuery(theme.breakpoints.down('md'));
   const [hours, setHours] = useState(24);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -260,6 +331,12 @@ const ServiceTimeline = () => {
               <Typography variant="body2" sx={{ color: 'text.disabled', py: 3 }}>
                 No orders in this period yet.
               </Typography>
+            ) : compact ? (
+              <Box sx={{ display: 'grid', gap: 1.25 }}>
+                {timeline.map((row) => (
+                  <OrderCard key={row.orderId} row={row} />
+                ))}
+              </Box>
             ) : (
               <Table size="small">
                 <TableHead>
