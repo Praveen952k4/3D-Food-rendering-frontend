@@ -6,8 +6,10 @@ import AuthShell from './AuthShell';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 /**
- * Three doors, three different credentials — picked here so nobody has to
- * work out which one applies to them.
+ * Three doors — picked here so nobody has to work out which one applies to
+ * them. Customers, admins and kitchen staff all sign in with a phone number
+ * and a one-time code; the role attached to the number decides where they
+ * land. Guests need no account at all, just their table number.
  */
 const DOORS = [
   {
@@ -29,7 +31,7 @@ const DOORS = [
     icon: <SoupKitchen />,
     tone: 'saffron',
     title: 'Kitchen staff',
-    detail: 'Staff ID and password for the kitchen studio.',
+    detail: 'Your staff phone number and a one-time code.',
   },
 ];
 
