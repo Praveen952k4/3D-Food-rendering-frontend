@@ -5,6 +5,7 @@ import {
   Paper,
   IconButton,
   Button,
+  MenuItem,
   TextField,
   Divider,
   Card,
@@ -36,7 +37,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ViewInArIcon from '@mui/icons-material/ViewInAr';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
-import { getFoodItems, createOrder, validateCoupon, getAvailableCoupons } from '../../services/api';
+import { getFoodItems, createOrder, validateCoupon, getAvailableCoupons, getTables, getMyTable } from '../../services/api';
 import { useThemeMode } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useMessage } from '../../components/ui/MessageDialog';
@@ -63,6 +64,11 @@ const CustomerCart = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [tableNumber, setTableNumber] = useState('');
+  // The table the diner is actually sitting at, and the ones nobody is using.
+  // A typed-in number used to be taken at face value, which put two parties on
+  // one table's tickets without telling either of them.
+  const [myTable, setMyTable] = useState(null);
+  const [tables, setTables] = useState([]);
   const [orderType, setOrderType] = useState('dine-in');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [orderNumber, setOrderNumber] = useState('');
@@ -100,6 +106,33 @@ const CustomerCart = () => {
     if (user.name) setCustomerName((current) => current || user.name);
     if (!isGuest && user.phone) setCustomerPhone((current) => current || user.phone);
   }, [user, isGuest]);
+
+  // Where this diner is sitting, and which tables are free. Someone already at
+  // a table cannot order for a different one; someone who is not yet at one
+  // picks from the free tables rather than typing a number that may belong to
+  // the party next to them.
+  useEffect(() => {
+    let cancelled = false;
+
+    getMyTable()
+      .then((res) => {
+        if (cancelled) return;
+        const held = res.data.table;
+        setMyTable(held);
+        if (held) setTableNumber(held.number);
+      })
+      .catch(() => {});
+
+    getTables()
+      .then((res) => {
+        if (!cancelled) setTables(res.data.tables || []);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const loadAvailableCoupons = async () => {
     try {
@@ -423,6 +456,16 @@ const CustomerCart = () => {
         }, 2000);
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
+
+        // The table was somebody else's, or not the one they are sitting at.
+        // Put the right number in for them and refresh what is free, so the
+        // next attempt is not the same mistake.
+        if (error.response.status === 409) {
+          const yours = error.response.data.yourTable;
+          if (yours) setTableNumber(yours);
+          getTables().then((res) => setTables(res.data.tables || [])).catch(() => {});
+          getMyTable().then((res) => setMyTable(res.data.table)).catch(() => {});
+        }
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -1266,25 +1309,59 @@ const CustomerCart = () => {
           </FormControl>
 
           {orderType === 'dine-in' && (
-            <TextField
-              fullWidth
-              label="Table Number"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              margin="normal"
-              required
-              placeholder="Enter table number"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#e2552b',
+            myTable ? (
+              // Already sitting somewhere: the table is a fact, not a choice.
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 1.75,
+                  borderRadius: 'var(--ad-radius-sm)',
+                  border: '1px solid var(--ad-line)',
+                  bgcolor: 'var(--ad-basil-wash)',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  Your table
+                </Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
+                  Table {myTable.number}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  This is where your food will go. Ask a member of staff if you have moved.
+                </Typography>
+              </Box>
+            ) : (
+              <TextField
+                select
+                fullWidth
+                label="Table Number"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                margin="normal"
+                required
+                helperText="Only tables nobody is sitting at can be chosen"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-focused fieldset': { borderColor: '#e2552b' },
                   },
-                },
-                '& label.Mui-focused': {
-                  color: '#e2552b',
-                },
-              }}
-            />
+                  '& label.Mui-focused': { color: '#e2552b' },
+                }}
+              >
+                {tables.length === 0 && (
+                  <MenuItem value="" disabled>
+                    Loading the tables…
+                  </MenuItem>
+                )}
+                {tables.map((table) => (
+                  <MenuItem key={table.number} value={table.number} disabled={table.isOccupied}>
+                    {table.label || `Table ${table.number}`}
+                    <Typography component="span" variant="caption" sx={{ color: 'text.disabled', ml: 1 }}>
+                      · {table.isOccupied ? 'Occupied' : `${table.seats} seats`}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </TextField>
+            )
           )}
 
           <FormControl component="fieldset" sx={{ mt: 2, mb: 2, width: '100%' }}>
