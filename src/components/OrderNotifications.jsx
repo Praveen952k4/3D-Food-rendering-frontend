@@ -221,6 +221,29 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
             }, 1000);
           }
         }
+      } else if (type === 'receiptSent') {
+        // The restaurant has released the e-receipt. The server has always
+        // sent this; nothing was listening for it, so the customer was never
+        // told their receipt had arrived and had no reason to go and look.
+        if (order.receiptSent) {
+          playNotificationSound();
+          showNotification(
+            message || `Your e-receipt for ${order.orderNumber} is ready in Orders & receipts`,
+            'success'
+          );
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('E-receipt ready 🧾', {
+                body: `Open Orders & receipts to view or download the receipt for ${order.orderNumber}`,
+                icon: '/logo192.png',
+                badge: '/logo192.png',
+              });
+            } catch (err) {
+              console.log('Browser notification not supported:', err);
+            }
+          }
+        }
       }
       
       // Refresh orders list
