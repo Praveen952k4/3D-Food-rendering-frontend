@@ -4,16 +4,25 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import LockClockIcon from '@mui/icons-material/LockClock';
 import { useNavigate } from 'react-router-dom';
 import AuthShell from './AuthShell';
-import { sendOTP } from '../../services/api';
+import { sendOTP, getMyTable } from '../../services/api';
 import { useAuth, defaultRouteFor } from '../../context/AuthContext';
 import { useMessage } from '../../components/ui/MessageDialog';
 
 /**
- * Customer sign-in: phone number and a one-time code. Admins share this door,
- * because they sign in with a phone number too — the server turns away anyone
- * whose stored role is chef or guest.
+ * One door for everybody: a phone number and a one-time code.
+ *
+ * There used to be four, and picking the right one was the customer's
+ * problem. It never needed to be: the number already decides the role — the
+ * restaurant's own number is the admin, the kitchen's is the chef, anything
+ * else is a diner — so the server can answer the question that the four doors
+ * were asking.
+ *
+ * Where someone lands follows from that. Staff go to their own screen; a
+ * diner goes to the menu if they are already sitting somewhere, and otherwise
+ * is asked which table they are at, because that is the moment their visit
+ * starts being timed.
  */
-const CustomerLogin = () => {
+const SignIn = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { showError } = useMessage();
@@ -56,7 +65,20 @@ const CustomerLogin = () => {
     setLoading(true);
     try {
       const user = await login(phone, otp);
-      navigate(defaultRouteFor(user.role));
+
+      if (user.role === 'admin' || user.role === 'chef') {
+        navigate(defaultRouteFor(user.role));
+        return;
+      }
+
+      // A diner already at a table carries on where they left off; anyone
+      // else is asked which table they are at before anything else.
+      try {
+        const table = await getMyTable();
+        navigate(table.data.table ? '/customer/home' : '/customer/table');
+      } catch {
+        navigate('/customer/table');
+      }
     } catch (err) {
       showError(err.response?.data?.message || 'That code was not accepted.', { title: 'Not signed in' });
     } finally {
@@ -68,15 +90,15 @@ const CustomerLogin = () => {
 
   return (
     <AuthShell
-      eyebrow="Customer"
-      title={isPhoneStep ? 'Welcome back' : 'Check your phone'}
+      eyebrow="Sign in"
+      title={isPhoneStep ? 'Welcome' : 'Check your phone'}
       subtitle={
         isPhoneStep
-          ? 'Sign in with the phone number your orders are under.'
+          ? 'Your phone number is all you need — it knows whether you are a diner, the kitchen or the owner.'
           : `We sent a six-digit code to ${phone}.`
       }
-      back="/login"
-      backLabel="Other ways to sign in"
+      back="/"
+      backLabel="Back to the home page"
     >
       {devOtp && (
         <Alert severity="info" sx={{ mb: 2.5, borderRadius: 'var(--ad-radius)' }}>
@@ -94,7 +116,7 @@ const CustomerLogin = () => {
             label="Phone number"
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-            placeholder="8148545814"
+            placeholder="9876543210"
             autoFocus
             InputProps={{
               startAdornment: (
@@ -104,7 +126,6 @@ const CustomerLogin = () => {
               ),
             }}
           />
-
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading || phone.length < 10}>
             {loading ? (
               <>
@@ -134,7 +155,6 @@ const CustomerLogin = () => {
               ),
             }}
           />
-
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading || otp.length !== 6}>
             {loading ? (
               <>
@@ -145,7 +165,6 @@ const CustomerLogin = () => {
               'Sign in'
             )}
           </Button>
-
           <Button
             onClick={() => {
               setStep('phone');
@@ -162,4 +181,4 @@ const CustomerLogin = () => {
   );
 };
 
-export default CustomerLogin;
+export default SignIn;
