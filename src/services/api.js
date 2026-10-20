@@ -72,6 +72,12 @@ export const cancelBooking = (id) => api.patch(`/bookings/${id}/cancel`);
 export const getBookings = (days = 7) => api.get('/bookings', { params: { days } });
 export const setBookingStatus = (id, status) => api.patch(`/bookings/${id}/status`, { status });
 
+// --- tables on the floor ---------------------------------------------------
+export const getFloorTables = () => api.get('/tables');
+export const getMyTable = () => api.get('/tables/mine');
+export const leaveTable = () => api.post('/tables/leave');
+export const freeTable = (number) => api.post(`/tables/${number}/free`);
+
 // Food APIs
 export const getFoodItems = (category, isVeg) => 
   api.get('/food', { params: { category, isVeg } });
