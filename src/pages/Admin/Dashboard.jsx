@@ -213,7 +213,7 @@ const AdminDashboard = () => {
 
       {/* ------------------------------------------------------------ KPIs */}
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={6} sm={6} lg={3}>
           <StatCard
             title="Revenue"
             value={formatINR(kpis?.revenue, false)}
@@ -223,7 +223,7 @@ const AdminDashboard = () => {
             loading={loading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={6} sm={6} lg={3}>
           <StatCard
             title="Orders"
             value={kpis?.orders ?? 0}
@@ -233,7 +233,7 @@ const AdminDashboard = () => {
             loading={loading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={6} sm={6} lg={3}>
           <StatCard
             title="GST collected"
             value={formatINR(kpis?.gst, false)}
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
             loading={loading}
           />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={6} sm={6} lg={3}>
           <StatCard
             title="In the kitchen"
             value={kpis?.pendingOrders ?? 0}

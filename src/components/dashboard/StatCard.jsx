@@ -18,7 +18,15 @@ const StatCard = ({ title, value, hint, icon, tone = 'ember', loading = false })
 
   return (
     <Card sx={{ height: '100%' }}>
-      <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', p: 2.5 }}>
+      <CardContent
+        sx={{
+          display: 'flex',
+          gap: { xs: 1, sm: 2 },
+          alignItems: 'flex-start',
+          p: { xs: 1.75, sm: 2.5 },
+          '&:last-child': { pb: { xs: 1.75, sm: 2.5 } },
+        }}
+      >
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
             sx={{
@@ -39,7 +47,7 @@ const StatCard = ({ title, value, hint, icon, tone = 'ember', loading = false })
               sx={{
                 fontFamily: FONT_DISPLAY,
                 fontWeight: 600,
-                fontSize: 30,
+                fontSize: { xs: 24, sm: 30 },
                 lineHeight: 1.15,
                 mt: 1,
                 letterSpacing: '-0.02em',
@@ -51,7 +59,10 @@ const StatCard = ({ title, value, hint, icon, tone = 'ember', loading = false })
           )}
 
           {hint && !loading && (
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' }, mt: 0.5 }}
+            >
               {hint}
             </Typography>
           )}
@@ -60,15 +71,15 @@ const StatCard = ({ title, value, hint, icon, tone = 'ember', loading = false })
         {icon && (
           <Box
             sx={{
-              width: 42,
-              height: 42,
+              width: { xs: 32, sm: 42 },
+              height: { xs: 32, sm: 42 },
               borderRadius: '13px',
               display: 'grid',
               placeItems: 'center',
               background: wash,
               color: fg,
               flex: 'none',
-              '& svg': { fontSize: 21 },
+              '& svg': { fontSize: { xs: 17, sm: 21 } },
             }}
           >
             {icon}
