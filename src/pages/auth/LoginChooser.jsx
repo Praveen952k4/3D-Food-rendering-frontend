@@ -24,7 +24,7 @@ const DOORS = [
     icon: <EventSeat />,
     tone: 'ember',
     title: 'Book a table',
-    detail: 'Pick a free table and we will hold it in your name.',
+    detail: 'Reserve a table for later, and choose your food in advance.',
   },
   {
     to: '/login/customer',

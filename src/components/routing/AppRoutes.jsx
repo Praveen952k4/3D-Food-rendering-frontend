@@ -5,7 +5,7 @@ import PrivateRoute from './PrivateRoute';
 import Landing from '../../pages/Landing';
 import LoginChooser from '../../pages/auth/LoginChooser';
 import GuestLogin from '../../pages/auth/GuestLogin';
-import BookTable from '../../pages/auth/BookTable';
+import BookingLogin from '../../pages/auth/BookingLogin';
 import CustomerLogin from '../../pages/auth/CustomerLogin';
 import ChefLogin from '../../pages/auth/ChefLogin';
 import AdminDashboard from '../../pages/Admin/Dashboard';
@@ -14,12 +14,15 @@ import GstReport from '../../pages/Admin/GstReport';
 import AdminFoodManagement from '../../pages/Admin/FoodManagement';
 import CouponManagement from '../../pages/Admin/CouponManagement';
 import UserManagement from '../../pages/Admin/UserManagement';
+import AdminBookings from '../../pages/Admin/Bookings';
 import FoodRatings from '../../pages/Admin/FoodRatings';
 import ChefDashboard from '../../pages/Chef/Dashboard';
 import CustomerHome from '../../pages/Customer/Home';
 import CustomerMenu from '../../pages/Customer/Menu';
 import CustomerCart from '../../pages/Customer/Cart';
 import OrderHistory from '../../pages/Customer/OrderHistory';
+import CustomerBookTable from '../../pages/Customer/BookTable';
+import MyBookings from '../../pages/Customer/MyBookings';
 import AdminLayout from '../AdminLayout';
 import ChefLayout from '../../pages/Chef/ChefLayout';
 import CustomerLayout from '../CustomerLayout';
@@ -39,7 +42,7 @@ const AppRoutes = () => {
       {/* Three doors, each with its own credential */}
       <Route path="/login" element={signedInRedirect(<LoginChooser />)} />
       <Route path="/login/guest" element={signedInRedirect(<GuestLogin />)} />
-      <Route path="/login/book" element={signedInRedirect(<BookTable />)} />
+      <Route path="/login/book" element={signedInRedirect(<BookingLogin />)} />
       <Route path="/login/customer" element={signedInRedirect(<CustomerLogin />)} />
       <Route path="/login/chef" element={signedInRedirect(<ChefLogin />)} />
 
@@ -59,6 +62,7 @@ const AppRoutes = () => {
         <Route path="coupons" element={<CouponManagement />} />
         <Route path="food-ratings" element={<FoodRatings />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="bookings" element={<AdminBookings />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
 
@@ -88,6 +92,24 @@ const AppRoutes = () => {
         <Route path="menu" element={<CustomerMenu />} />
         <Route path="cart" element={<CustomerCart />} />
         <Route path="orders" element={<OrderHistory />} />
+        {/* Booking ahead belongs to an account, so a guest signed in by table
+            number is sent to the booking door to sign in properly. */}
+        <Route
+          path="book"
+          element={
+            <PrivateRoute allow={['customer', 'admin']} redirectTo="/login/book">
+              <CustomerBookTable />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="bookings"
+          element={
+            <PrivateRoute allow={['customer', 'admin']} redirectTo="/login/book">
+              <MyBookings />
+            </PrivateRoute>
+          }
+        />
         <Route index element={<Navigate to="/customer/home" replace />} />
       </Route>
 
