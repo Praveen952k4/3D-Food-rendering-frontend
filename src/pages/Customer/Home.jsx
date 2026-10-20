@@ -32,6 +32,7 @@ import {
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import ClimateLabel from '../../components/food/ClimateLabel';
+import FoodInsights from '../../components/food/FoodInsights';
 // eslint-disable-next-line no-unused-vars
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -2211,12 +2212,18 @@ const CustomerHome = () => {
                     <Typography variant="subtitle2" sx={{ color: palette.textSecondary }}>
                       Calories (kcal)
                     </Typography>
-                    <Typography variant="caption" sx={{ color: palette.textSecondary, display: 'block', marginTop: '8px' }}>
-                      About {selectedFoodDetails.prepTimeMinutes ?? 15} minutes to prepare
-                    </Typography>
                   </div>
                 </AccordionDetails>
               </Accordion>
+
+              {/* What the kitchen actually takes for this dish, and what
+                  diners thought of it. Both are observed, not set. */}
+              <Box sx={{ mt: 2 }}>
+                <FoodInsights
+                  foodId={selectedFoodDetails._id}
+                  estimateMinutes={selectedFoodDetails.prepTimeMinutes ?? 15}
+                />
+              </Box>
 
               {/* Veg/Non-Veg Badge */}
               <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
