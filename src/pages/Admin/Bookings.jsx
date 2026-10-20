@@ -29,6 +29,7 @@ import { SkeletonText } from 'components/ui/Loaders';
 import { formatINR } from 'config/business';
 import { FONT_DISPLAY } from 'theme/muiTheme';
 import StatCard from 'components/dashboard/StatCard';
+import FloorBoard from 'components/admin/FloorBoard';
 
 /**
  * Every reservation, and the actions staff need on the day: seat a party that
@@ -161,6 +162,10 @@ const AdminBookings = () => {
         <StatCard title="Expected" value={counts.reserved ?? 0} hint="Not arrived yet" tone="saffron" loading={loading} />
         <StatCard title="Checked in" value={counts.seated ?? 0} hint="Sitting down now" tone="basil" loading={loading} />
         <StatCard title="Cancelled" value={counts.cancelled ?? 0} hint="Including no-shows" tone="ember" loading={loading} />
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <FloorBoard />
       </Box>
 
       <Paper sx={{ p: { xs: 1.5, sm: 2.5 } }}>

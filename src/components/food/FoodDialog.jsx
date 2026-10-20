@@ -120,7 +120,7 @@ const FoodDialog = ({ open, onClose, food, setFood, onSave, editMode, loading })
             value={food.prepTimeMinutes ?? 15}
             onChange={(e) => setFood({ ...food, prepTimeMinutes: Math.max(parseInt(e.target.value, 10) || 0, 0) })}
             sx={{ mb: 2 }}
-            helperText="Shown to customers on the menu, and used for the order's estimate"
+            helperText="The kitchen's estimate, quoted to customers before cooking starts. The average it actually takes is measured from real orders and shown on the dish's own page."
             inputProps={{ min: 0, step: 1 }}
           />
 
