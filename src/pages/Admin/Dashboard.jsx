@@ -25,6 +25,7 @@ import StatCard from 'components/dashboard/StatCard';
 import OverviewCharts, { Panel } from 'components/dashboard/OverviewCharts';
 import FeedbackStats from 'components/dashboard/FeedbackStats';
 import FeedbackSection from 'components/dashboard/FeedbackSection';
+import ServiceTimeline from 'components/dashboard/ServiceTimeline';
 import { formatINR } from 'config/business';
 import { FONT_DISPLAY } from 'theme/muiTheme';
 import { SkeletonText } from 'components/ui/Loaders';
@@ -253,6 +254,11 @@ const AdminDashboard = () => {
           />
         </Grid>
       </Grid>
+
+      {/* -------------------------------------------------- service timing */}
+      <Box sx={{ mb: 3 }}>
+        <ServiceTimeline />
+      </Box>
 
       {/* ---------------------------------------------------------- graphs */}
       <OverviewCharts overview={overview} loading={loading} />

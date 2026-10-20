@@ -98,6 +98,9 @@ export const getFeedbackSummary = () => api.get('/admin/feedback-summary');
 export const getCustomers = () => api.get('/admin/customers');
 export const getOnlineUsers = () => api.get('/admin/users/online');
 export const getLoginHistory = () => api.get('/admin/users/login-history');
+// The service timeline: table taken → ordered → taken by staff → cooked → served.
+export const getActivity = (hours = 24, limit = 60) =>
+  api.get('/admin/activity', { params: { hours, limit } });
 export const createFoodItem = (data) => api.post('/admin/food', data);
 export const updateFoodItem = (id, data) => api.put(`/admin/food/${id}`, data);
 export const deleteFoodItem = (id) => api.delete(`/admin/food/${id}`);
