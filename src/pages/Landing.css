@@ -89,6 +89,7 @@ html[data-theme="dark"] .ad {
   gap: 9px;
   border-radius: 999px;
   padding: 11px 20px;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 600;
   border: 1px solid transparent;
@@ -104,6 +105,10 @@ html[data-theme="dark"] .ad {
   box-shadow: 0 14px 30px -14px rgba(226, 85, 43, 0.9);
 }
 .ad-btn-solid:hover { background: var(--ad-ember-soft); }
+.ad-btn-saffron { background: var(--ad-saffron); color: #1e1714; box-shadow: 0 14px 30px -14px rgba(242, 165, 65, 0.9); }
+.ad-btn-saffron:hover { background: #f7b764; }
+.ad-btn-basil { background: var(--ad-basil); color: #fff; box-shadow: 0 14px 30px -14px rgba(47, 125, 98, 0.9); }
+.ad-btn-basil:hover { background: var(--ad-basil-soft); }
 .ad-btn-ghost { border-color: var(--ad-line-strong); color: var(--ad-text); }
 .ad-btn-ghost:hover { border-color: var(--ad-ember); color: var(--ad-ember); }
 .ad-btn-lg { padding: 14px 26px; font-size: 15px; }
@@ -228,6 +233,8 @@ html[data-theme="dark"] .ad {
 .ad-phone {
   position: relative;
   width: 286px;
+  max-width: 100%;
+  box-sizing: border-box;
   height: 570px;
   border-radius: 44px;
   padding: 11px;
@@ -387,6 +394,7 @@ html[data-theme="dark"] .ad-chip-sm.is-eco { color: var(--ad-basil-soft); }
   margin-right: 9px;
   vertical-align: middle;
 }
+.ad-portal .ad-btn { margin-top: auto; }
 .ad-portal .ad-go { margin-top: auto; font-size: 13px; font-weight: 600; color: var(--ad-ember); }
 
 /* ------------------------------------------------------------- menu board */

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getFoodItems } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { useThemeMode } from "../context/ThemeContext";
+import TalkToSalesDialog from "../components/sales/TalkToSalesDialog";
 import "./Landing.css";
 
 /* --------------------------------------------------------------------------
@@ -110,7 +111,8 @@ const PORTALS = [
       "Climate label on every dish",
       "E-receipt with GST",
     ],
-    cta: "Enter the menu",
+    cta: "Launch Guest Demo",
+    path: "/customer/home",
   },
   {
     icon: "👨‍🍳",
@@ -122,7 +124,8 @@ const PORTALS = [
       "Allergen flags front and centre",
       "Sound + toast notifications",
     ],
-    cta: "Open chef board",
+    cta: "Launch Kitchen Demo",
+    path: "/chef/dashboard",
   },
   {
     icon: "📊",
@@ -134,7 +137,8 @@ const PORTALS = [
       "Printable e-receipts (PDF)",
       "Menu, models and staff",
     ],
-    cta: "Open dashboard",
+    cta: "Launch Admin Demo",
+    path: "/admin/dashboard",
   },
 ];
 
@@ -154,7 +158,7 @@ const PLANS = [
       ["Email support"],
     ],
     note: "Setup ₹150 per dish for 3D modelling",
-    cta: "Start 14-day trial",
+    cta: "Talk to Sales",
     featured: false,
   },
   {
@@ -172,7 +176,7 @@ const PLANS = [
       ["WhatsApp + phone support"],
     ],
     note: "Setup waived above 20 dishes",
-    cta: "Start 14-day trial",
+    cta: "Talk to Sales",
     featured: true,
   },
   {
@@ -191,7 +195,7 @@ const PLANS = [
       ["Dedicated manager + 99.9% SLA"],
     ],
     note: "Onboarding and training included",
-    cta: "Talk to sales",
+    cta: "Talk to Sales",
     featured: false,
   },
 ];
@@ -230,6 +234,8 @@ const Landing = () => {
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [billing, setBilling] = useState("monthly");
+  const [salesDialogOpen, setSalesDialogOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -357,7 +363,7 @@ const Landing = () => {
           <div className="ad-wrap ad-hero-grid">
             <div>
               <div className="ad-pill">
-                <i>✦</i> Paper-free menus · SDG 12 Responsible Consumption
+                <i>✦</i> Interactive Live Demo · SDG 12 Responsible Consumption
               </div>
 
               <h1>
@@ -372,7 +378,7 @@ const Landing = () => {
 
               <div className="ad-hero-actions">
                 <button className="ad-btn ad-btn-solid ad-btn-lg" type="button" onClick={goOrder}>
-                  Open the AR menu&nbsp;&nbsp;→
+                  Launch Live Demo&nbsp;&nbsp;→
                 </button>
                 <a className="ad-btn ad-btn-ghost ad-btn-lg" href="#flow">
                   See how it works&nbsp;&nbsp;↓
@@ -487,8 +493,12 @@ const Landing = () => {
                       <li key={point}>{point}</li>
                     ))}
                   </ul>
-                  <button className="ad-go" type="button" onClick={goOrder}>
-                    {portal.cta} →
+                  <button
+                    className={`ad-btn ad-btn-full ${portal.tone === "is-saffron" ? "ad-btn-saffron" : portal.tone === "is-basil" ? "ad-btn-basil" : "ad-btn-solid"}`}
+                    type="button"
+                    onClick={() => navigate(portal.path || "/customer/home")}
+                  >
+                    {portal.cta}&nbsp;&nbsp;→
                   </button>
                 </article>
               ))}
@@ -596,7 +606,7 @@ const Landing = () => {
                 </div>
               </div>
 
-              <div className="ad-eco-row">
+              <div className="ad-eco-row" style={{ marginTop: '24px' }}>
                 <header>
                   <b>Carbon</b>
                   <span>1.4 kg CO₂e</span>
@@ -604,29 +614,6 @@ const Landing = () => {
                 <div className="ad-bar">
                   <i style={{ width: "28%" }} />
                 </div>
-              </div>
-              <div className="ad-eco-row">
-                <header>
-                  <b>Water</b>
-                  <span>610 L</span>
-                </header>
-                <div className="ad-bar is-warm">
-                  <i style={{ width: "54%" }} />
-                </div>
-              </div>
-              <div className="ad-eco-row">
-                <header>
-                  <b>Local sourcing</b>
-                  <span>82%</span>
-                </header>
-                <div className="ad-bar">
-                  <i style={{ width: "82%" }} />
-                </div>
-              </div>
-
-              <div className="ad-eco-foot">
-                <span>Paper menus avoided this month</span>
-                <b>1,240 sheets</b>
               </div>
             </div>
           </div>
@@ -699,9 +686,12 @@ const Landing = () => {
                   <button
                     className={`ad-btn ad-btn-full ${plan.featured ? "ad-btn-solid" : "ad-btn-ghost"}`}
                     type="button"
-                    onClick={goOrder}
+                    onClick={() => {
+                      setSelectedPlan(plan.name);
+                      setSalesDialogOpen(true);
+                    }}
                   >
-                    {plan.cta}
+                    {plan.cta}&nbsp;&nbsp;→
                   </button>
                 </article>
               ))}
@@ -725,7 +715,7 @@ const Landing = () => {
               </p>
               <div className="ad-hero-actions">
                 <button className="ad-btn ad-btn-solid ad-btn-lg" type="button" onClick={goOrder}>
-                  Start free setup&nbsp;&nbsp;→
+                  Launch Live Demo&nbsp;&nbsp;→
                 </button>
                 <button
                   className="ad-btn ad-btn-ghost ad-btn-lg"
@@ -774,6 +764,11 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+      <TalkToSalesDialog
+        open={salesDialogOpen}
+        onClose={() => setSalesDialogOpen(false)}
+        defaultPlan={selectedPlan}
+      />
     </div>
   );
 };

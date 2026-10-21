@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   Paper,
   Typography,
@@ -42,10 +42,10 @@ const statusConfig = {
   },
   confirmed: {
     label: 'Confirmed',
-    color: 'var(--ad-saffron)',
+    color: '#0284c7',
     icon: <CheckCircleIcon />,
     progress: 40,
-    bg: 'var(--ad-saffron-wash)',
+    bg: 'rgba(2, 132, 199, 0.12)',
   },
   preparing: {
     label: 'Preparing',
@@ -56,10 +56,10 @@ const statusConfig = {
   },
   ready: {
     label: 'Ready',
-    color: 'var(--ad-basil)',
+    color: '#0d9488',
     icon: <LocalShippingIcon />,
     progress: 80,
-    bg: 'var(--ad-basil-wash)',
+    bg: 'rgba(13, 148, 136, 0.14)',
   },
   delivered: {
     label: 'Delivered',
@@ -98,6 +98,12 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
   const { showError } = useMessage();
   // Only the very first fetch shows a loader; the 10s poll should not flicker.
   const [firstFetch, setFirstFetch] = useState(true);
+
+  // Show notification history in drawer, active orders otherwise — sorted latest first
+  const displayOrders = useMemo(() => {
+    const list = showInDrawer ? notificationHistory : orders;
+    return [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [showInDrawer, notificationHistory, orders]);
 
   // Load notification history and viewed state from localStorage
   useEffect(() => {
@@ -342,6 +348,8 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
           }
         });
         
+        // Sort latest orders first (descending timestamp)
+        updatedHistory.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         // Keep only last 50 notifications in history
         if (updatedHistory.length > 50) {
           updatedHistory.splice(50);
@@ -563,8 +571,7 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
     </Box>
   ) : null;
 
-  // Show notification history in drawer, active orders otherwise
-  const displayOrders = showInDrawer ? notificationHistory : orders;
+
 
   return (
     <>
@@ -620,12 +627,13 @@ const OrderNotifications = ({ onCountChange, onUnviewedCountChange, showInDrawer
             <Paper
               key={order._id}
               sx={{
-                m: 2,
+                m: { xs: 1.5, sm: 2 },
                 borderRadius: 'var(--ad-radius)',
                 overflow: 'hidden',
-                border: '1px solid var(--ad-line)',
-                borderLeft: `3px solid ${config.color}`,
-                bgcolor: 'var(--ad-surface)',
+                border: order.status === 'delivered' ? '1.5px solid var(--ad-basil)' : '1px solid var(--ad-line)',
+                borderLeft: `4px solid ${config.color}`,
+                bgcolor: order.status === 'delivered' ? 'var(--ad-basil-wash)' : 'var(--ad-surface)',
+                transition: 'border-color 0.2s ease, background-color 0.2s ease',
               }}
             >
               {/* Order Header */}

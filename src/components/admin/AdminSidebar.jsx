@@ -18,7 +18,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
   { text: 'Orders', icon: <ShoppingCart />, path: '/admin/orders' },
   { text: 'Bookings', icon: <EventSeat />, path: '/admin/bookings' },
-  { text: 'GST report', icon: <ReceiptLong />, path: '/admin/gst' },
+  { text: 'GST compliance', icon: <ReceiptLong />, path: '/admin/gst' },
   { text: 'Food items', icon: <Restaurant />, path: '/admin/food' },
   { text: 'Coupons', icon: <LocalOffer />, path: '/admin/coupons' },
   { text: 'Food ratings', icon: <Star />, path: '/admin/food-ratings' },

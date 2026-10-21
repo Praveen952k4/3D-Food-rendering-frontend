@@ -6,6 +6,8 @@ import React, {
   useRef,
 } from "react";
 import {
+  useTheme,
+  useMediaQuery,
   Avatar,
   Badge,
   Box,
@@ -402,6 +404,8 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
 };
 
 const CustomerHome = () => {
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -838,9 +842,11 @@ const CustomerHome = () => {
     <div
       style={{
         backgroundColor: palette.background,
-        minHeight: "100vh",
+        minHeight: "100dvh",
         transition: "background-color 0.3s ease",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
+        position: "relative",
       }}
     >
       {/* Splash Screen */}
@@ -864,19 +870,20 @@ const CustomerHome = () => {
       )}
 
       {/* Header */}
-      <div
-        style={{
+      <Box
+        sx={{
           background: palette.background,
           color: palette.textPrimary,
-          padding: "16px 20px",
+          px: { xs: 1.5, sm: 2.5 },
+          py: { xs: 1, sm: 1.75 },
           position: "sticky",
           top: 0,
           zIndex: 120,
           borderBottom: `1px solid ${palette.border}`,
         }}
       >
-        <div
-          style={{
+        <Box
+          sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -885,31 +892,33 @@ const CustomerHome = () => {
           }}
         >
           <div>
-            <Typography variant="h6" fontWeight={800}>
+            <Typography variant="h6" fontWeight={800} sx={{ fontSize: { xs: "1.05rem", sm: "1.25rem" }, lineHeight: 1.2 }}>
               AR Food Menu
             </Typography>
-            <Typography variant="caption" sx={{ color: palette.textSecondary }}>
+            <Typography variant="caption" sx={{ color: palette.textSecondary, fontSize: { xs: "0.7rem", sm: "0.75rem" } }}>
               Explore dishes in 3D
             </Typography>
           </div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <Box sx={{ display: "flex", gap: { xs: 0.75, sm: 1.25 }, alignItems: "center" }}>
             <IconButton
+              size="small"
               onClick={toggleTheme}
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: "8px",
+                padding: { xs: "6px", sm: "8px" },
                 "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Toggle theme"
             >
               {themeMode === "dark" ? (
-                <LightModeIcon fontSize="small" />
+                <LightModeIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               ) : (
-                <DarkModeIcon fontSize="small" />
+                <DarkModeIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               )}
             </IconButton>
             <IconButton
+              size="small"
               onClick={() => {
                 setNotificationDrawerOpen(true);
                 // Mark all notifications as viewed when drawer opens
@@ -918,7 +927,7 @@ const CustomerHome = () => {
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: "8px",
+                padding: { xs: "6px", sm: "8px" },
                 "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Notifications"
@@ -935,36 +944,25 @@ const CustomerHome = () => {
                   }
                 }}
               >
-                <NotificationsIcon fontSize="small" />
+                <NotificationsIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               </Badge>
             </IconButton>
-            {/* <IconButton
-              onClick={() => setMenuDrawerOpen(true)}
-              sx={{
-                backgroundColor: palette.surface,
-                color: palette.textPrimary,
-                padding: "8px",
-                "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
-              }}
-              title="Menu card"
-            >
-              <MenuBookIcon fontSize="small" />
-            </IconButton> */}
             <IconButton
+              size="small"
               onClick={handleLogout}
               sx={{
                 backgroundColor: palette.surface,
                 color: palette.textPrimary,
-                padding: "8px",
+                padding: { xs: "6px", sm: "8px" },
                 "&:hover": { backgroundColor: palette.surface, opacity: 0.8 },
               }}
               title="Logout"
             >
-              <LogoutIcon fontSize="small" />
+              <LogoutIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
             </IconButton>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Order Notifications - Hidden but still running for feedback triggers */}
       <div style={{ display: "none" }}>
@@ -981,38 +979,165 @@ const CustomerHome = () => {
         style={{
           position: "relative",
           width: "100%",
-          height: "calc(100vh - 80px - 130px)",
+          minHeight: "340px",
+          height: "calc(100dvh - 56px - 105px - env(safe-area-inset-bottom, 0px))",
         }}
       >
+        {/* Floating Action Buttons - Top Right (anchored inside viewer) */}
+        {!loadingFoods && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: { xs: "10px", sm: "14px" },
+              right: { xs: "10px", sm: "14px" },
+              zIndex: 40,
+              display: "flex",
+              flexDirection: "column",
+              gap: { xs: "8px", sm: "10px" },
+            }}
+          >
+            {/* Order Camera Button */}
+            <Fab
+              size="small"
+              onClick={() => {
+                cameraActive ? stopCamera() : startCamera();
+              }}
+              sx={{
+                background: cameraActive
+                  ? "linear-gradient(135deg, #e2552b, #c5412f)"
+                  : "linear-gradient(135deg, #f2a541, #c5412f)",
+                color: "#fff",
+                width: { xs: "38px", sm: "46px" },
+                height: { xs: "38px", sm: "46px" },
+                minWidth: { xs: "38px", sm: "46px" },
+                boxShadow: "0 4px 16px rgba(242, 165, 65, 0.5)",
+                "&:hover": {
+                  transform: "scale(1.08)",
+                  boxShadow: "0 8px 20px rgba(242, 165, 65, 0.7)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              <CameraIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+            </Fab>
+
+            {cameraError && (
+              <div style={{ color: "red", textAlign: "center", marginTop: 10, fontSize: "11px" }}>
+                {cameraError}
+              </div>
+            )}
+            {/* View Cart Button */}
+            <Fab
+              size="small"
+              onClick={() => navigate("/customer/cart")}
+              sx={{
+                background: "linear-gradient(135deg, #e2552b, #f2a541)",
+                color: "#fff",
+                width: { xs: "38px", sm: "46px" },
+                height: { xs: "38px", sm: "46px" },
+                minWidth: { xs: "38px", sm: "46px" },
+                boxShadow: "0 4px 16px rgba(226, 85, 43, 0.5)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #f2a541, #e2552b)",
+                  transform: "scale(1.08)",
+                  boxShadow: "0 8px 20px rgba(226, 85, 43, 0.7)",
+                },
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              title="View Cart"
+            >
+              <Badge
+                badgeContent={cartCount}
+                color="error"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.65rem",
+                    height: "16px",
+                    minWidth: "16px",
+                    borderRadius: "8px",
+                    fontWeight: 700,
+                    top: 1,
+                    right: 1,
+                  },
+                }}
+              >
+                <ShoppingCartIcon sx={{ fontSize: { xs: "19px", sm: "22px" } }} />
+              </Badge>
+            </Fab>
+
+            {/* All Items Menu Button */}
+            <Fab
+              size="small"
+              onClick={() => setAllItemsDrawerOpen(true)}
+              sx={{
+                background: "linear-gradient(135deg, #f2a541, #d08700)",
+                color: "#fff",
+                width: { xs: "38px", sm: "46px" },
+                height: { xs: "38px", sm: "46px" },
+                minWidth: { xs: "38px", sm: "46px" },
+                boxShadow: "0 4px 16px rgba(242, 165, 65, 0.4)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #d08700, #a86d00)",
+                  transform: "scale(1.08)",
+                },
+                transition: "all 0.3s ease",
+              }}
+              title="View All Items"
+            >
+              <RestaurantMenuIcon sx={{ fontSize: { xs: "19px", sm: "22px" } }} />
+            </Fab>
+
+            {/* Filter Button */}
+            <Fab
+              size="small"
+              onClick={() => setFilterDrawerOpen(true)}
+              sx={{
+                background: "linear-gradient(135deg, #f2a541, #d08700)",
+                color: "#fff",
+                width: { xs: "38px", sm: "46px" },
+                height: { xs: "38px", sm: "46px" },
+                minWidth: { xs: "38px", sm: "46px" },
+                boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #d08700, #5b21b6)",
+                  transform: "scale(1.08)",
+                },
+                transition: "all 0.3s ease",
+              }}
+              title="Filter by Category"
+            >
+              <FilterListIcon sx={{ fontSize: { xs: "19px", sm: "22px" } }} />
+            </Fab>
+          </Box>
+        )}
         {activePreviewFood && showModel && (
           <>
             {/* 3D GLB Viewer with Camera - Full Screen */}
             <div style={{ width: "100%", height: "100%" }}>
               <CameraWith3D videoRef={videoRef} glbModelUrl={glbModelUrl} />
-              {/* Food Info Overlay - Top Left */}
+              {/* Food Info Overlay - Top Left (Streamlined size for mobile/tablet) */}
               <div
                 style={{
                   position: "absolute",
-                  top: "12px",
-                  left: "12px",
+                  top: "10px",
+                  left: "10px",
                   display: "flex",
-                  marginLeft: "20px",
+                  marginLeft: "4px",
                   flexDirection: "column",
-                  gap: "8px",
-                  maxWidth: "220px",
-                  zIndex: 120,
+                  gap: "6px",
+                  maxWidth: "180px",
+                  zIndex: 40,
                 }}
               >
                 {/* Name Box */}
                 <div
                   style={{
                     background: themeMode === "dark" ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(20px)",
-                    borderRadius: "12px",
-                    
-                    padding: "10px 14px",
-                    boxShadow: themeMode === "dark" ? "0 4px 16px rgba(0,0,0,0.6)" : "0 2px 8px rgba(0,0,0,0.2)",
-                    border: `2px solid ${themeMode === "dark" ? "rgba(226, 85, 43, 0.3)" : "rgba(226, 85, 43, 0.2)"}`,
+                    backdropFilter: "blur(16px)",
+                    borderRadius: "10px",
+                    padding: "7px 11px",
+                    boxShadow: themeMode === "dark" ? "0 4px 14px rgba(0,0,0,0.5)" : "0 2px 8px rgba(0,0,0,0.15)",
+                    border: `1.5px solid ${themeMode === "dark" ? "rgba(226, 85, 43, 0.35)" : "rgba(226, 85, 43, 0.25)"}`,
                   }}
                 >
                   <Typography
@@ -1020,8 +1145,8 @@ const CustomerHome = () => {
                     fontWeight={700}
                     sx={{
                       color: palette.textPrimary,
-                      fontSize: "0.75rem",
-                      lineHeight: 1.3,
+                      fontSize: "0.72rem",
+                      lineHeight: 1.25,
                     }}
                   >
                     {activePreviewFood.name}
@@ -1032,12 +1157,15 @@ const CustomerHome = () => {
                 <div
                   style={{
                     background: "linear-gradient(135deg, rgba(226, 85, 43, 0.95), rgba(242, 165, 65, 0.95))",
-                    backdropFilter: "blur(20px)",
-                    borderRadius: "12px",
-                    padding: "10px 12px",
-                    boxShadow: "0 4px 20px rgba(226, 85, 43, 0.5)",
-                    border: "2px solid rgba(255, 255, 255, 0.2)",
-                    width: "65px",
+                    backdropFilter: "blur(16px)",
+                    borderRadius: "10px",
+                    padding: "5px 10px",
+                    boxShadow: "0 3px 12px rgba(226, 85, 43, 0.4)",
+                    border: "1.5px solid rgba(255, 255, 255, 0.25)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    width: "fit-content",
                   }}
                 >
                   <Typography
@@ -1047,20 +1175,19 @@ const CustomerHome = () => {
                       fontSize: "0.6rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.5px",
-                      fontWeight: 600,
-                      display: "block",
-                      marginBottom: "4px",
+                      fontWeight: 700,
                     }}
                   >
                     Price
                   </Typography>
                   <Typography
-                    variant="h6"
+                    variant="body2"
                     fontWeight={800}
                     sx={{
                       color: "#fff",
-                      fontSize: "1.1rem",
-                      letterSpacing: "0.5px",
+                      fontSize: "0.95rem",
+                      letterSpacing: "0.3px",
+                      lineHeight: 1,
                     }}
                   >
                     ₹{activePreviewFood.price}
@@ -1098,9 +1225,11 @@ const CustomerHome = () => {
             bottom: 0,
             left: 0,
             right: 0,
-            height: "120px",
-            paddingTop: "8px",
-            zIndex: 90,
+            height: "calc(105px + env(safe-area-inset-bottom, 0px))",
+            paddingBottom: "max(6px, env(safe-area-inset-bottom, 6px))",
+            background: "color-mix(in srgb, " + palette.background + " 75%, transparent)",
+            backdropFilter: "blur(14px)",
+            zIndex: 35,
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -1207,9 +1336,9 @@ const CustomerHome = () => {
                     alignItems: "center",
                     gap: "6px",
                     cursor: "pointer",
-                    minWidth: isActive ? "90px" : "70px",
+                    minWidth: isActive ? "80px" : "64px",
                     transition: "all 0.3s ease",
-                    transform: isActive ? "scale(1.2)" : "scale(1)",
+                    transform: isActive ? "scale(1.15)" : "scale(1)",
                     opacity: isActive ? 1 : 0.7,
                     position: "relative",
                     overflow: "visible",
@@ -1218,8 +1347,8 @@ const CustomerHome = () => {
                   {/* IMAGE CIRCLE */}
                   <div
                     style={{
-                      width: isActive ? "70px" : "56px",
-                      height: isActive ? "70px" : "56px",
+                      width: isActive ? "64px" : "52px",
+                      height: isActive ? "64px" : "52px",
                       borderRadius: "50%",
                       overflow: "hidden",
                       border: isActive
@@ -1392,129 +1521,7 @@ const CustomerHome = () => {
         </div>
       )}
 
-      {/* Floating Cart & Theme Button - Top Right */}
-      {!loadingFoods && (
-        <div
-          style={{
-            position: "fixed",
-            top: "100px",
-            right: "20px",
-            zIndex: 50,
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
-          {/* Order Camera Button */}
-          <Fab
-            size="small"
-            onClick={() => {
-              cameraActive ? stopCamera() : startCamera();
-            }}
-            sx={{
-              background: cameraActive
-                ? "linear-gradient(135deg, #e2552b, #c5412f)" // RED when camera ON
-                : "linear-gradient(135deg, #f2a541, #c5412f)", // Pink when camera OFF
-              color: "#fff",
-              width: "48px",
-              height: "48px",
-              boxShadow: "0 4px 16px rgba(242, 165, 65, 0.5)",
-              "&:hover": {
-                transform: "scale(1.08)",
-                boxShadow: "0 8px 20px rgba(242, 165, 65, 0.7)",
-              },
-              transition: "all 0.3s ease",
-            }}
-          >
-            <CameraIcon sx={{ fontSize: 20 }} />
-          </Fab>
 
-          {cameraError && (
-            <div style={{ color: "red", textAlign: "center", marginTop: 10 }}>
-              {cameraError}
-            </div>
-          )}
-          {/* View Cart Button */}
-          <Fab
-            size="small"
-            onClick={() => navigate("/customer/cart")}
-            sx={{
-              background: "linear-gradient(135deg, #e2552b, #f2a541)",
-              color: "#fff",
-              width: "48px",
-              height: "48px",
-              boxShadow: "0 4px 16px rgba(226, 85, 43, 0.5)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #f2a541, #e2552b)",
-                transform: "scale(1.08)",
-                boxShadow: "0 8px 20px rgba(226, 85, 43, 0.7)",
-              },
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-            title="View Cart"
-          >
-            <Badge
-              badgeContent={cartCount}
-              color="error"
-              sx={{
-                "& .MuiBadge-badge": {
-                  fontSize: "0.7rem",
-                  height: "18px",
-                  minWidth: "18px",
-                  borderRadius: "9px",
-                  fontWeight: 700,
-                  top: 2,
-                  right: 2,
-                },
-              }}
-            >
-              <ShoppingCartIcon sx={{ fontSize: "24px" }} />
-            </Badge>
-          </Fab>
-
-          {/* All Items Menu Button */}
-          <Fab
-            size="small"
-            onClick={() => setAllItemsDrawerOpen(true)}
-            sx={{
-              background: "linear-gradient(135deg, #f2a541, #d08700)",
-              color: "#fff",
-              width: "48px",
-              height: "48px",
-              boxShadow: "0 4px 16px rgba(242, 165, 65, 0.4)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #d08700, #a86d00)",
-                transform: "scale(1.08)",
-              },
-              transition: "all 0.3s ease",
-            }}
-            title="View All Items"
-          >
-            <RestaurantMenuIcon sx={{ fontSize: "24px" }} />
-          </Fab>
-
-          {/* Filter Button */}
-          <Fab
-            size="small"
-            onClick={() => setFilterDrawerOpen(true)}
-            sx={{
-              background: "linear-gradient(135deg, #f2a541, #d08700)",
-              color: "#fff",
-              width: "48px",
-              height: "48px",
-              boxShadow: "0 4px 16px rgba(139, 92, 246, 0.4)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #d08700, #5b21b6)",
-                transform: "scale(1.08)",
-              },
-              transition: "all 0.3s ease",
-            }}
-            title="Filter by Category"
-          >
-            <FilterListIcon sx={{ fontSize: "24px" }} />
-          </Fab>
-        </div>
-      )}
 
       {/* Menu Drawer */}
       <Drawer
@@ -2050,10 +2057,11 @@ const CustomerHome = () => {
         onClose={() => setDetailsDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{
           sx: {
             background: palette.surface,
-            borderRadius: '16px',
+            borderRadius: isMobile ? 0 : '16px',
           },
         }}
       >
@@ -2304,10 +2312,11 @@ const CustomerHome = () => {
         onClose={() => setCustomizeDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{
           sx: {
             background: palette.background,
-            borderRadius: '16px',
+            borderRadius: isMobile ? 0 : '16px',
           }
         }}
       >

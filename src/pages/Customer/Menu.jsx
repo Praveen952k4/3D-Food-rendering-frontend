@@ -85,7 +85,7 @@ const CustomerMenu = () => {
   const categories = ['all', 'Starters', 'Tandoori', 'Indian', 'Special Platter', 'Biryani'];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ad-bg)', paddingBottom: '92px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--ad-bg)', paddingBottom: 'calc(105px + env(safe-area-inset-bottom, 0px))' }}>
       <Box
         sx={{
           position: 'sticky',
@@ -312,6 +312,7 @@ const CustomerMenu = () => {
             backdropFilter: 'blur(14px)',
             borderTop: '1px solid var(--ad-line)',
             padding: '14px 0',
+            paddingBottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
             zIndex: 30,
           }}
         >

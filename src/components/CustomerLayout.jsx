@@ -15,9 +15,9 @@ import { useAuth } from '../context/AuthContext';
  * receipt had been sent had nowhere to go and look at it.
  */
 const LINKS = [
-  { to: '/customer/home', label: 'Menu', icon: <RestaurantMenu sx={{ fontSize: 17 }} /> },
-  { to: '/customer/orders', label: 'Orders & receipts', icon: <ReceiptLong sx={{ fontSize: 17 }} /> },
-  { to: '/customer/bookings', label: 'My bookings', icon: <EventSeat sx={{ fontSize: 17 }} />, accountOnly: true },
+  { to: '/customer/home', label: 'Menu', shortLabel: 'Menu', icon: <RestaurantMenu sx={{ fontSize: { xs: 15, sm: 17 } }} /> },
+  { to: '/customer/orders', label: 'Orders & receipts', shortLabel: 'Orders', icon: <ReceiptLong sx={{ fontSize: { xs: 15, sm: 17 } }} /> },
+  { to: '/customer/bookings', label: 'My bookings', shortLabel: 'Bookings', icon: <EventSeat sx={{ fontSize: { xs: 15, sm: 17 } }} />, accountOnly: true },
 ];
 
 const CustomerLayout = () => {
@@ -36,9 +36,9 @@ const CustomerLayout = () => {
       <Box
         sx={{
           display: 'flex',
-          gap: 0.5,
+          gap: { xs: 0.5, sm: 1 },
           px: { xs: 1, sm: 2 },
-          py: 0.75,
+          py: 0.5,
           overflowX: 'auto',
           borderBottom: '1px solid var(--ad-line)',
           bgcolor: 'var(--ad-surface)',
@@ -54,15 +54,21 @@ const CustomerLayout = () => {
               startIcon={link.icon}
               onClick={() => navigate(link.to)}
               sx={{
-                flex: 'none',
+                flex: { xs: '1 1 0', sm: 'none' },
                 fontWeight: 600,
-                fontSize: 13,
+                fontSize: { xs: '12px', sm: '13px' },
+                px: { xs: 1, sm: 1.75 },
+                py: { xs: 0.5, sm: 0.75 },
+                minWidth: 0,
+                borderRadius: '999px',
                 color: active ? 'var(--ad-ember)' : 'text.secondary',
                 bgcolor: active ? 'var(--ad-ember-wash)' : 'transparent',
                 '&:hover': { bgcolor: active ? 'var(--ad-ember-wash)' : 'var(--ad-bg-2)' },
+                whiteSpace: 'nowrap',
               }}
             >
-              {link.label}
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{link.label}</Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>{link.shortLabel}</Box>
             </Button>
           );
         })}

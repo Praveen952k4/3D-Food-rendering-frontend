@@ -87,10 +87,10 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-end', sm: 'center' },
         justifyContent: 'center',
         zIndex: 9999,
-        padding: 2,
+        p: { xs: 0, sm: 2 },
       }}
       onClick={onClose}
     >
@@ -99,9 +99,9 @@ const FeedbackOverlay = ({ order, onClose, onSubmit }) => {
         sx={{
           maxWidth: 600,
           width: '100%',
-          maxHeight: '90vh',
+          maxHeight: { xs: '90dvh', sm: '90vh' },
           overflow: 'auto',
-          borderRadius: 3,
+          borderRadius: { xs: '16px 16px 0 0', sm: 3 },
           position: 'relative',
           pointerEvents: 'auto',
         }}

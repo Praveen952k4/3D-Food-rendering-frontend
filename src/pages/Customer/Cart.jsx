@@ -486,7 +486,7 @@ const CustomerCart = () => {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--ad-bg-2)', minHeight: '100vh', paddingBottom: '200px' }}>
+    <div style={{ backgroundColor: 'var(--ad-bg-2)', minHeight: '100vh', paddingBottom: 'calc(260px + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <Paper
         sx={{
@@ -519,7 +519,7 @@ const CustomerCart = () => {
         </Container>
       </Paper>
 
-      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3 }, px: { xs: 1, sm: 2 }, pb: { xs: '250px', sm: '220px' } }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3 }, px: { xs: 1, sm: 2 }, pb: { xs: '260px', sm: '220px' } }}>
         {cartItems.length === 0 ? (
           <Paper sx={{ p: 6, textAlign: 'center', border: '1px dashed var(--ad-line-strong)' }}>
             <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 22, mb: 0.5 }}>
@@ -558,8 +558,8 @@ const CustomerCart = () => {
                       <CardMedia
                         component="img"
                         sx={{ 
-                          width: { xs: 70, sm: 80 }, 
-                          height: { xs: 70, sm: 80 }, 
+                          width: { xs: 68, sm: 80 }, 
+                          height: { xs: 68, sm: 80 }, 
                           borderRadius: { xs: 1.5, sm: 2 },
                         }}
                         image={item.imageUrl || 'https://via.placeholder.com/150?text=Food'}
@@ -1071,7 +1071,8 @@ const CustomerCart = () => {
             left: 0,
             right: 0,
             zIndex: 30,
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 1.75, sm: 2.5 },
+            pb: 'max(14px, env(safe-area-inset-bottom, 14px))',
             borderRadius: 'var(--ad-radius-lg) var(--ad-radius-lg) 0 0',
             borderBottom: 0,
             borderTop: '1px solid var(--ad-line)',

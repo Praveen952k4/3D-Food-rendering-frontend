@@ -65,7 +65,8 @@ const OrderHistory = () => {
 
       const response = await getOrderHistory(phone);
       if (response.data.success) {
-        setOrders(response.data.orders);
+        const sorted = [...(response.data.orders || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setOrders(sorted);
       }
     } catch (error) {
       console.error('Failed to fetch order history:', error);

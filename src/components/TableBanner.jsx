@@ -30,6 +30,8 @@ const TableBanner = () => {
 
   useEffect(() => {
     load();
+    const interval = setInterval(load, 10000);
+    return () => clearInterval(interval);
   }, [load]);
 
   const handleLeave = async () => {
@@ -64,38 +66,53 @@ const TableBanner = () => {
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1.5,
+        gap: { xs: 1, sm: 1.5 },
         flexWrap: 'wrap',
-        px: 2,
-        py: 1.25,
+        px: { xs: 1.25, sm: 2 },
+        py: { xs: 0.65, sm: 0.85 },
         borderBottom: '1px solid var(--ad-line)',
         bgcolor: 'var(--ad-basil-wash)',
       }}
     >
-      <TableRestaurant sx={{ fontSize: 18, color: 'var(--ad-basil)' }} />
-      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+      <TableRestaurant sx={{ fontSize: { xs: 16, sm: 18 }, color: 'var(--ad-basil)' }} />
+      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '13px', sm: '14px' } }}>
         Table {table.number}
       </Typography>
-      {table.sittingMinutes !== null && (
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {table.sittingMinutes} min
-        </Typography>
-      )}
-      {table.activeOrders > 0 && (
-        <Chip
-          size="small"
-          label={`${table.activeOrders} order${table.activeOrders === 1 ? '' : 's'} coming`}
-          sx={{ bgcolor: 'var(--ad-saffron-wash)', color: 'var(--ad-warn)', fontWeight: 600 }}
-        />
-      )}
+      <Chip
+        size="small"
+        label={
+          (table.activeOrders ?? 0) === 1
+            ? '1 Order in progress'
+            : `${table.activeOrders ?? 0} Orders in progress`
+        }
+        sx={{
+          height: { xs: 22, sm: 24 },
+          bgcolor: (table.activeOrders ?? 0) > 0 ? 'var(--ad-saffron-wash)' : 'var(--ad-surface-2)',
+          color: (table.activeOrders ?? 0) > 0 ? 'var(--ad-warn)' : 'text.secondary',
+          fontWeight: 600,
+          border: '1px solid var(--ad-line)',
+          fontSize: { xs: '11px', sm: '12px' },
+          '& .MuiChip-label': {
+            px: { xs: 0.75, sm: 1 },
+          },
+        }}
+      />
 
       {table.canLeave && (
         <Button
           size="small"
-          startIcon={<Logout sx={{ fontSize: 15 }} />}
+          startIcon={<Logout sx={{ fontSize: { xs: 13, sm: 15 } }} />}
           disabled={busy}
           onClick={handleLeave}
-          sx={{ ml: 'auto', color: 'var(--ad-basil)', fontWeight: 600 }}
+          sx={{
+            ml: 'auto',
+            color: 'var(--ad-basil)',
+            fontWeight: 600,
+            fontSize: { xs: '11px', sm: '12px' },
+            px: { xs: 0.75, sm: 1.25 },
+            py: { xs: 0.25, sm: 0.5 },
+            minWidth: 'auto',
+          }}
         >
           I am leaving
         </Button>

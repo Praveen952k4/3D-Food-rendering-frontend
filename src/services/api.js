@@ -154,4 +154,28 @@ export const markOrderDelivered = (orderId) => api.put(`/chef/orders/${orderId}/
 export const updateChefOrderStatus = (orderId, status) => 
   api.patch(`/chef/orders/${orderId}/status`, { status });
 
+// GST Compliance & Filing APIs
+export const getGstProfile = () => api.get('/gst/profile');
+export const updateGstProfile = (data) => api.put('/gst/profile', data);
+export const getGstDashboard = (period) => api.get('/gst/dashboard', { params: { period } });
+export const calculateGstSnapshot = (period) => api.post('/gst/snapshots/calculate', { period });
+export const getGstReconciliation = (period) => api.get('/gst/reconciliation', { params: { period } });
+export const addGstReconciliationItem = (data) => api.post('/gst/reconciliation/items', data);
+export const generateGstr1 = (period) => api.post('/gst/gstr1/generate', { period });
+export const getGstr1 = (period) => api.get(`/gst/gstr1/${period}`);
+export const approveGstr1 = (draftId, approvalNotes) => api.post('/gst/gstr1/approve', { draftId, approvalNotes });
+export const submitGstr1 = (draftId) => api.post('/gst/gstr1/submit', { draftId });
+export const generateGstr3b = (period) => api.post('/gst/gstr3b/generate', { period });
+export const getGstr3b = (period) => api.get(`/gst/gstr3b/${period}`);
+export const approveGstr3b = (draftId, approvalNotes) => api.post('/gst/gstr3b/approve', { draftId, approvalNotes });
+export const submitGstr3b = (draftId) => api.post('/gst/gstr3b/submit', { draftId });
+export const createGstChallan = (data) => api.post('/gst/challans/create', data);
+export const verifyGstPayment = (data) => api.post('/gst/challans/verify-payment', data);
+export const payGstDirect = (data) => api.post('/gst/challans/pay-direct', data);
+export const getGstHistory = () => api.get('/gst/history');
+export const getGstAuditTrail = (params) => api.get('/gst/audit-trail', { params });
+
+// Sales & Demo Enquiry APIs
+export const submitSalesEnquiry = (data) => api.post('/enquiries', data);
+
 export default api;
