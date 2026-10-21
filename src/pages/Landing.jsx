@@ -747,20 +747,11 @@ const Landing = () => {
                 dish inspection, automated order processing.
               </p>
             </div>
-
-            <div className="ad-footer-team">
-              <span className="ad-footer-label">Team</span>
-              <ul>
-                {TEAM.map((person) => (
-                  <li key={person}>{person}</li>
-                ))}
-              </ul>
-            </div>
           </div>
 
           <div className="ad-footer-bottom">
             <span>© {new Date().getFullYear()} AR Automated Dining</span>
-            <span>SDG 12 · 8 · 11 — currently in {themeMode} mode</span>
+            {/* <span>SDG 12 · 8 · 11 — currently in {themeMode} mode</span> */}
           </div>
         </div>
       </footer>
