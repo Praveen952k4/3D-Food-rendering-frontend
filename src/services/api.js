@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Force localhost for development - don't use network IP
-const development = true
+const development = false
 const API_BASE_URL = development ? 'http://localhost:5001/api' : process.env.REACT_APP_API_URL;
 
 console.log('API Base URL:', API_BASE_URL); // Debug log
