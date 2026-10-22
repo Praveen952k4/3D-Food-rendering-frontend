@@ -10,28 +10,35 @@ import {
   TableRow,
   Paper,
   Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   CircularProgress,
   Alert,
   Pagination,
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SecurityIcon from '@mui/icons-material/Security';
 
-import { getGstAuditTrail } from '../../../services/api';
+import { getGstAuditTrail, getGstProfile } from '../../../services/api';
 import { FONT_DISPLAY } from '../../../theme/muiTheme';
+import GSTChallanModal from './GSTChallanModal';
 
 const AuditTrailTab = () => {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getGstProfile()
+      .then((res) => {
+        if (res.data?.success && res.data.profile) {
+          setProfile(res.data.profile);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetchAuditEvents(pagination.page);
@@ -116,7 +123,7 @@ const AuditTrailTab = () => {
                 <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>ACTION</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>ACTOR / USER</TableCell>
                 <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>CORRELATION ID</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>PAYLOAD</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>CHALLAN / RECEIPT</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -153,13 +160,28 @@ const AuditTrailTab = () => {
                         {ev.correlationId || '—'}
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton
+                        <Button
                           size="small"
+                          variant="outlined"
+                          startIcon={<ReceiptLongIcon sx={{ fontSize: 15 }} />}
                           onClick={() => setSelectedEvent(ev)}
-                          sx={{ color: 'var(--ad-ember)', '&:hover': { bgcolor: 'var(--ad-ember-wash)' } }}
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            py: 0.35,
+                            px: 1.25,
+                            borderColor: 'var(--ad-line)',
+                            color: 'var(--ad-ember)',
+                            borderRadius: 'var(--ad-radius-sm)',
+                            '&:hover': {
+                              borderColor: 'var(--ad-ember)',
+                              bgcolor: 'var(--ad-ember-wash)',
+                            },
+                          }}
                         >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
+                          View Challan
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -192,52 +214,13 @@ const AuditTrailTab = () => {
         )}
       </Paper>
 
-      {/* Payload Inspection Modal */}
-      <Dialog
+      {/* Printable Form GST PMT-06 Challan Modal */}
+      <GSTChallanModal
         open={!!selectedEvent}
+        event={selectedEvent}
+        profile={profile}
         onClose={() => setSelectedEvent(null)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 'var(--ad-radius)' } }}
-      >
-        <DialogTitle sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600 }}>
-          Audit Event Details: {selectedEvent?.action}
-        </DialogTitle>
-        <DialogContent dividers sx={{ borderColor: 'var(--ad-line)' }}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Logged At: <strong>{selectedEvent ? new Date(selectedEvent.timestamp).toLocaleString() : ''}</strong> &bull; Performed By: <strong>{selectedEvent?.userName || 'System'}</strong>
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              Correlation ID: {selectedEvent?.correlationId}
-            </Typography>
-          </Box>
-
-          <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1 }}>
-            Sanitized Event Payload:
-          </Typography>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              bgcolor: 'var(--ad-surface-2)',
-              border: '1px solid var(--ad-line)',
-              borderRadius: 'var(--ad-radius-sm)',
-              maxHeight: 350,
-              overflow: 'auto',
-            }}
-          >
-            <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: 12, color: 'var(--ad-text)' }}>
-              {JSON.stringify(selectedEvent?.details || {}, null, 2)}
-            </pre>
-          </Paper>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setSelectedEvent(null)} sx={{ textTransform: 'none', color: 'text.secondary' }}>
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
     </Box>
   );
 };

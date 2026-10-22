@@ -381,7 +381,7 @@ const Landing = () => {
                   Sign in
                 </button>
                 <button className="ad-btn ad-btn-solid" type="button" onClick={goOrder}>
-                  Scan a table
+                  Demo
                 </button>
               </>
             )}
