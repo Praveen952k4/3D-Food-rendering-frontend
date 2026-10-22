@@ -477,8 +477,9 @@ const GSTDashboardTab = ({ onNavigateTab }) => {
                 <TableHead sx={{ bgcolor: 'var(--ad-surface-2)' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>CATEGORY</TableCell>
-                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>SAC CODE</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>TAXABLE VALUE</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>SAC / HSN CODE</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>ITEMS SOLD</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>TAXABLE SALES</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>CGST (2.5%)</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>SGST (2.5%)</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', py: 1.5 }}>TOTAL GST (5%)</TableCell>
@@ -486,26 +487,51 @@ const GSTDashboardTab = ({ onNavigateTab }) => {
                 </TableHead>
                 <TableBody>
                   {snapshot.categoryBreakdown && snapshot.categoryBreakdown.length > 0 ? (
-                    snapshot.categoryBreakdown.map((item, idx) => (
-                      <TableRow key={idx} hover sx={{ '&:hover': { bgcolor: 'var(--ad-surface-2)' } }}>
-                        <TableCell sx={{ fontWeight: 600, textTransform: 'capitalize', py: 1.5 }}>
-                          {item.category || 'General Menu'}
-                        </TableCell>
-                        <TableCell sx={{ color: 'text.secondary', py: 1.5 }}>996331</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, py: 1.5 }}>
-                          {formatINR(item.taxableValue || 0)}
-                        </TableCell>
-                        <TableCell align="right" sx={{ py: 1.5 }}>{formatINR(item.cgst || 0)}</TableCell>
-                        <TableCell align="right" sx={{ py: 1.5 }}>{formatINR(item.sgst || 0)}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700, color: 'var(--ad-ember)', py: 1.5 }}>
-                          {formatINR(item.totalGst || 0)}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    snapshot.categoryBreakdown.map((row, idx) => {
+                      const taxable = row.taxableAmount ?? row.taxableValue ?? 0;
+                      const tax = row.taxAmount ?? row.totalGst ?? 0;
+                      const cgst = tax / 2;
+                      const sgst = tax / 2;
+                      return (
+                        <TableRow key={idx} hover sx={{ '&:hover': { bgcolor: 'var(--ad-surface-2)' } }}>
+                          <TableCell sx={{ fontWeight: 600, textTransform: 'capitalize', py: 1.5 }}>
+                            {row.category || 'General Menu'}
+                          </TableCell>
+                          <TableCell sx={{ py: 1.5 }}>
+                            <Chip
+                              label={row.hsnCode || '996331'}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: 11,
+                                borderColor: 'var(--ad-line)',
+                                color: 'var(--ad-text)',
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="right" sx={{ py: 1.5, fontWeight: 600 }}>
+                            {row.count ?? 0}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 600, py: 1.5 }}>
+                            {formatINR(taxable)}
+                          </TableCell>
+                          <TableCell align="right" sx={{ py: 1.5 }}>
+                            {formatINR(cgst)}
+                          </TableCell>
+                          <TableCell align="right" sx={{ py: 1.5 }}>
+                            {formatINR(sgst)}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, color: 'var(--ad-ember)', py: 1.5 }}>
+                            {formatINR(tax)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                        No orders recorded for period {period}. Click &quot;Recalculate Eligible Sales&quot; to compile data.
+                      <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                        No sales data found for period {period}. Click &quot;Recalculate Eligible Sales&quot; to fetch from orders.
                       </TableCell>
                     </TableRow>
                   )}

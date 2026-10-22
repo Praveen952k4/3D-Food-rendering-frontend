@@ -14,7 +14,6 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import HistoryIcon from '@mui/icons-material/History';
 import SecurityIcon from '@mui/icons-material/Security';
-import TableChartIcon from '@mui/icons-material/TableChart';
 
 import GSTDashboardTab from './GSTDashboardTab';
 import GSTProfileTab from './GSTProfileTab';
@@ -23,7 +22,6 @@ import GSTR3BTab from './GSTR3BTab';
 import ReconciliationTab from './ReconciliationTab';
 import FilingPaymentHistoryTab from './FilingPaymentHistoryTab';
 import AuditTrailTab from './AuditTrailTab';
-import GstRegisterTab from './GstRegisterTab';
 import { FONT_DISPLAY } from '../../../theme/muiTheme';
 
 const GSTCompliancePortal = () => {
@@ -105,7 +103,6 @@ const GSTCompliancePortal = () => {
           <Tab icon={<CompareArrowsIcon fontSize="small" />} iconPosition="start" label="Inward Supplies &amp; ITC" />
           <Tab icon={<HistoryIcon fontSize="small" />} iconPosition="start" label="Returns &amp; Challans" />
           <Tab icon={<SecurityIcon fontSize="small" />} iconPosition="start" label="Audit Trail" />
-          <Tab icon={<TableChartIcon fontSize="small" />} iconPosition="start" label="Register &amp; CSV" />
         </Tabs>
       </Paper>
 
@@ -118,7 +115,6 @@ const GSTCompliancePortal = () => {
         {activeTab === 4 && <ReconciliationTab />}
         {activeTab === 5 && <FilingPaymentHistoryTab />}
         {activeTab === 6 && <AuditTrailTab />}
-        {activeTab === 7 && <GstRegisterTab />}
       </Box>
     </Container>
   );
