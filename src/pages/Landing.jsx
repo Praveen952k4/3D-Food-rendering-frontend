@@ -200,8 +200,6 @@ const PLANS = [
   },
 ];
 
-const TEAM = ["Pradeep S", "Navin B", "Thrisala K", "Yamuna S"];
-
 const SunIcon = () => (
   <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
     <circle cx="12" cy="12" r="4.2" />
@@ -227,7 +225,7 @@ const BrandMark = () => (
 const Landing = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, user } = useAuth();
-  const { themeMode, toggleTheme, isDark } = useThemeMode();
+  const { toggleTheme, isDark } = useThemeMode();
 
   const [foodItems, setFoodItems] = useState([]);
   const [category, setCategory] = useState("All");
