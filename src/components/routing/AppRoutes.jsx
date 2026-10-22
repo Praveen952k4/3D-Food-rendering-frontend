@@ -10,6 +10,7 @@ import GSTCompliancePortal from '../../pages/Admin/GST/GSTCompliancePortal';
 import AdminFoodManagement from '../../pages/Admin/FoodManagement';
 import CouponManagement from '../../pages/Admin/CouponManagement';
 import UserManagement from '../../pages/Admin/UserManagement';
+import AdminTables from '../../pages/Admin/Tables';
 import FoodRatings from '../../pages/Admin/FoodRatings';
 import ChefDashboard from '../../pages/Chef/Dashboard';
 import CustomerHome from '../../pages/Customer/Home';
@@ -52,6 +53,7 @@ const AppRoutes = () => {
       >
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="orders" element={<OrderManagement />} />
+        <Route path="tables" element={<AdminTables />} />
         <Route path="gst" element={<GSTCompliancePortal />} />
         <Route path="gst/*" element={<GSTCompliancePortal />} />
         <Route path="food" element={<AdminFoodManagement />} />

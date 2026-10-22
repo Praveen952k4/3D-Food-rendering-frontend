@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Button, Chip, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { Refresh, TableRestaurant } from '@mui/icons-material';
 import io from 'socket.io-client';
@@ -8,18 +8,27 @@ import { SkeletonText } from 'components/ui/Loaders';
 import { FONT_DISPLAY } from 'theme/muiTheme';
 
 /**
- * The floor as it stands: which tables are taken, how long each party has
- * been sitting, and which of them have eaten and could leave.
+ * The floor as it stands: which tables are free, which are taken, how long
+ * each party has been sitting, and which of them have eaten and could leave.
  *
  * Tables free themselves — when the party says they are going, or when
  * housekeeping finds one quiet since its last course — so the button here is
  * for the cases that beat the clock: a party that has plainly gone, or a
  * table being turned over for someone waiting.
  */
+
+/** The three ways staff look at the floor: everything, or one side of it. */
+const VIEWS = [
+  { key: 'all', label: 'All' },
+  { key: 'free', label: 'Free' },
+  { key: 'taken', label: 'Taken' },
+];
+
 const FloorBoard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
+  const [view, setView] = useState('all');
   const { showError, confirmAction } = useMessage();
   const socketRef = useRef(null);
 
@@ -71,8 +80,16 @@ const FloorBoard = () => {
     }
   };
 
-  const tables = data?.tables || [];
+  const tables = useMemo(() => data?.tables || [], [data]);
   const settings = data?.settings || {};
+  const taken = data?.occupied ?? tables.filter((table) => table.isOccupied).length;
+  const free = tables.length - taken;
+
+  const shown = useMemo(() => {
+    if (view === 'free') return tables.filter((table) => !table.isOccupied);
+    if (view === 'taken') return tables.filter((table) => table.isOccupied);
+    return tables;
+  }, [tables, view]);
 
   return (
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
@@ -83,7 +100,7 @@ const FloorBoard = () => {
             Who is sitting where
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {data ? `${data.occupied} of ${tables.length} tables taken` : 'Loading the floor'}
+            {data ? `${free} free · ${taken} taken of ${tables.length} tables` : 'Loading the floor'}
             {settings.idleMinutes
               ? ` · a table frees itself ${settings.idleMinutes} min after its last course, a no-show after ${settings.graceMinutes} min`
               : ''}
@@ -98,8 +115,40 @@ const FloorBoard = () => {
         </Tooltip>
       </Box>
 
+      {/* Someone on the door is only ever asking one of these questions. */}
+      <Box sx={{ display: 'flex', gap: 0.75, mb: 2, flexWrap: 'wrap' }}>
+        {VIEWS.map((option) => {
+          const count =
+            option.key === 'free' ? free : option.key === 'taken' ? taken : tables.length;
+          const active = view === option.key;
+          return (
+            <Chip
+              key={option.key}
+              size="small"
+              clickable
+              onClick={() => setView(option.key)}
+              label={`${option.label} · ${count}`}
+              sx={{
+                fontWeight: 600,
+                bgcolor: active ? 'var(--ad-ember)' : 'var(--ad-bg-2)',
+                color: active ? '#fff' : 'text.secondary',
+                '&:hover': { bgcolor: active ? 'var(--ad-ember)' : 'var(--ad-bg-2)', opacity: 0.9 },
+              }}
+            />
+          );
+        })}
+      </Box>
+
       {loading && !data ? (
         <SkeletonText lines={4} />
+      ) : shown.length === 0 ? (
+        <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
+          {view === 'free'
+            ? 'Every table is taken right now.'
+            : view === 'taken'
+            ? 'Nobody is seated — the whole floor is free.'
+            : 'No tables have been set up yet.'}
+        </Typography>
       ) : (
         <Box
           sx={{
@@ -108,7 +157,7 @@ const FloorBoard = () => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))',
           }}
         >
-          {tables.map((table) => (
+          {shown.map((table) => (
             <Box
               key={table.number}
               sx={{
@@ -166,7 +215,7 @@ const FloorBoard = () => {
                     onClick={() => handleFree(table)}
                     sx={{ mt: 1 }}
                   >
-                    Clear table
+                    {busy === table.number ? 'Clearing…' : 'Clear table'}
                   </Button>
                 </>
               ) : (

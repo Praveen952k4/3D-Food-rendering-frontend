@@ -3,6 +3,7 @@ import { Box, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typogr
 import {
   Dashboard,
   ShoppingCart,
+  TableRestaurant,
   Restaurant,
   People,
   ExitToApp,
@@ -16,6 +17,7 @@ import { FONT_DISPLAY } from '../../theme/muiTheme';
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
   { text: 'Orders', icon: <ShoppingCart />, path: '/admin/orders' },
+  { text: 'Tables', icon: <TableRestaurant />, path: '/admin/tables' },
   { text: 'GST compliance', icon: <ReceiptLong />, path: '/admin/gst' },
   { text: 'Food items', icon: <Restaurant />, path: '/admin/food' },
   { text: 'Coupons', icon: <LocalOffer />, path: '/admin/coupons' },
