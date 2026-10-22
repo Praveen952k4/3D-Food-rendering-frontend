@@ -67,6 +67,10 @@ export const getMyTable = () => api.get('/tables/mine');
 export const takeTable = (number) => api.post(`/tables/${number}/take`);
 export const leaveTable = () => api.post('/tables/leave');
 export const freeTable = (number) => api.post(`/tables/${number}/free`);
+// Take a table out of service, or put it back. A frozen table is offered
+// to no one until staff say otherwise.
+export const setTableFrozen = (number, frozen = true) =>
+  api.post(`/tables/${number}/freeze`, { frozen });
 
 // Food APIs
 export const getFoodItems = (category, isVeg) => 

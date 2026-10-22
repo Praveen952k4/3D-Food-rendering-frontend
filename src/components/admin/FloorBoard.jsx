@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Button, Chip, IconButton, Paper, Tooltip, Typography } from '@mui/material';
-import { Refresh, TableRestaurant } from '@mui/icons-material';
+import { AcUnit, Refresh, TableRestaurant } from '@mui/icons-material';
 import io from 'socket.io-client';
-import { getFloorTables, freeTable } from 'services/api';
+import { getFloorTables, freeTable, setTableFrozen } from 'services/api';
 import { useMessage } from 'components/ui/MessageDialog';
 import { SkeletonText } from 'components/ui/Loaders';
 import { FONT_DISPLAY } from 'theme/muiTheme';
@@ -11,18 +11,31 @@ import { FONT_DISPLAY } from 'theme/muiTheme';
  * The floor as it stands: which tables are free, which are taken, how long
  * each party has been sitting, and which of them have eaten and could leave.
  *
- * Tables free themselves — when the party says they are going, or when
- * housekeeping finds one quiet since its last course — so the button here is
- * for the cases that beat the clock: a party that has plainly gone, or a
- * table being turned over for someone waiting.
+ * Tables free themselves — when the party says they are going, when they
+ * leave a review, or when housekeeping finds one quiet since its last course
+ * — so the clear button here is for the cases that beat the clock: a party
+ * that has plainly gone, or a table being turned over for someone waiting.
+ *
+ * Freezing is the other direction: a table nobody should be seated at, for
+ * reasons the floor knows nothing about — a broken leg, a leak above it, a
+ * corner being set up for later. It leaves the guest door entirely until it
+ * is put back.
  */
 
-/** The three ways staff look at the floor: everything, or one side of it. */
+/** The ways staff look at the floor: everything, or one side of it. */
 const VIEWS = [
   { key: 'all', label: 'All' },
   { key: 'free', label: 'Free' },
   { key: 'taken', label: 'Taken' },
+  { key: 'frozen', label: 'Frozen' },
 ];
+
+const EMPTY_VIEW = {
+  free: 'No table is free right now.',
+  taken: 'Nobody is seated.',
+  frozen: 'Every table is in service.',
+  all: 'No tables have been set up yet.',
+};
 
 const FloorBoard = () => {
   const [data, setData] = useState(null);
@@ -80,14 +93,42 @@ const FloorBoard = () => {
     }
   };
 
+  const handleFreeze = async (table) => {
+    const freezing = !table.isFrozen;
+    if (freezing) {
+      const sure = await confirmAction({
+        title: `Freeze table ${table.number}?`,
+        message: 'Nobody will be seated here, and it disappears from the guest door, until you put it back.',
+        confirmLabel: 'Freeze it',
+        cancelLabel: 'Leave it',
+      });
+      if (!sure) return;
+    }
+
+    setBusy(table.number);
+    try {
+      await setTableFrozen(table.number, freezing);
+      await load();
+    } catch (err) {
+      showError(err.response?.data?.message || 'Could not change that table.');
+    } finally {
+      setBusy('');
+    }
+  };
+
   const tables = useMemo(() => data?.tables || [], [data]);
   const settings = data?.settings || {};
-  const taken = data?.occupied ?? tables.filter((table) => table.isOccupied).length;
-  const free = tables.length - taken;
+  const taken = tables.filter((table) => table.isOccupied).length;
+  const frozen = tables.filter((table) => table.isFrozen).length;
+  const free = tables.length - taken - frozen;
+
+  const countFor = (key) =>
+    key === 'free' ? free : key === 'taken' ? taken : key === 'frozen' ? frozen : tables.length;
 
   const shown = useMemo(() => {
-    if (view === 'free') return tables.filter((table) => !table.isOccupied);
+    if (view === 'free') return tables.filter((table) => !table.isOccupied && !table.isFrozen);
     if (view === 'taken') return tables.filter((table) => table.isOccupied);
+    if (view === 'frozen') return tables.filter((table) => table.isFrozen);
     return tables;
   }, [tables, view]);
 
@@ -100,7 +141,9 @@ const FloorBoard = () => {
             Who is sitting where
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {data ? `${free} free · ${taken} taken of ${tables.length} tables` : 'Loading the floor'}
+            {data
+              ? `${free} free · ${taken} taken${frozen ? ` · ${frozen} frozen` : ''} of ${tables.length} tables`
+              : 'Loading the floor'}
             {settings.idleMinutes
               ? ` · a table frees itself ${settings.idleMinutes} min after its last course, a no-show after ${settings.graceMinutes} min`
               : ''}
@@ -118,8 +161,6 @@ const FloorBoard = () => {
       {/* Someone on the door is only ever asking one of these questions. */}
       <Box sx={{ display: 'flex', gap: 0.75, mb: 2, flexWrap: 'wrap' }}>
         {VIEWS.map((option) => {
-          const count =
-            option.key === 'free' ? free : option.key === 'taken' ? taken : tables.length;
           const active = view === option.key;
           return (
             <Chip
@@ -127,7 +168,7 @@ const FloorBoard = () => {
               size="small"
               clickable
               onClick={() => setView(option.key)}
-              label={`${option.label} · ${count}`}
+              label={`${option.label} · ${countFor(option.key)}`}
               sx={{
                 fontWeight: 600,
                 bgcolor: active ? 'var(--ad-ember)' : 'var(--ad-bg-2)',
@@ -143,11 +184,7 @@ const FloorBoard = () => {
         <SkeletonText lines={4} />
       ) : shown.length === 0 ? (
         <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
-          {view === 'free'
-            ? 'Every table is taken right now.'
-            : view === 'taken'
-            ? 'Nobody is seated — the whole floor is free.'
-            : 'No tables have been set up yet.'}
+          {EMPTY_VIEW[view]}
         </Typography>
       ) : (
         <Box
@@ -164,8 +201,14 @@ const FloorBoard = () => {
                 p: 1.5,
                 borderRadius: 'var(--ad-radius-sm)',
                 border: '1px solid',
+                borderStyle: table.isFrozen ? 'dashed' : 'solid',
                 borderColor: table.isOccupied ? 'var(--ad-ember)' : 'var(--ad-line)',
-                bgcolor: table.isOccupied ? 'var(--ad-ember-wash)' : 'var(--ad-surface)',
+                bgcolor: table.isOccupied
+                  ? 'var(--ad-ember-wash)'
+                  : table.isFrozen
+                  ? 'var(--ad-bg-2)'
+                  : 'var(--ad-surface)',
+                opacity: table.isFrozen ? 0.75 : 1,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
@@ -219,9 +262,34 @@ const FloorBoard = () => {
                   </Button>
                 </>
               ) : (
-                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                  Free · {table.seats} seats
-                </Typography>
+                <>
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
+                    {table.isFrozen ? 'Out of service' : 'Free'} · {table.seats} seats
+                  </Typography>
+
+                  {table.isFrozen && (
+                    <Chip
+                      size="small"
+                      icon={<AcUnit sx={{ fontSize: 13 }} />}
+                      label="Frozen"
+                      sx={{ mt: 0.75, bgcolor: 'var(--ad-bg-2)', color: 'text.secondary', fontWeight: 600 }}
+                    />
+                  )}
+
+                  <Button
+                    size="small"
+                    fullWidth
+                    disabled={busy === table.number}
+                    onClick={() => handleFreeze(table)}
+                    sx={{ mt: 1 }}
+                  >
+                    {busy === table.number
+                      ? 'Working…'
+                      : table.isFrozen
+                      ? 'Put back in service'
+                      : 'Freeze table'}
+                  </Button>
+                </>
               )}
             </Box>
           ))}
