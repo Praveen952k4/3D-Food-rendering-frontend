@@ -147,23 +147,24 @@ const CameraWith3D = ({ videoRef, glbModelUrl }) => {
     renderer.setPixelRatio(window.devicePixelRatio);
     rendererRef.current = renderer;
 
-    // Balanced Lighting Setup
+    // Lighting Setup — kept deliberately low so the dish reads against the
+    // camera feed behind it instead of washing out.
     // 1. Ambient Light - soft base illumination
-    const ambientLight = new window.THREE.AmbientLight(0xffffff, 0.8);
+    const ambientLight = new window.THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
     // 2. Key Light (Main directional light from front-top-right)
-    const keyLight = new window.THREE.DirectionalLight(0xffffff, 0.11);
+    const keyLight = new window.THREE.DirectionalLight(0xffffff, 0.07);
     keyLight.position.set(5, 8, 5);
     scene.add(keyLight);
 
     // 3. Fill Light (Front-left to fill shadows)
-    const fillLight = new window.THREE.DirectionalLight(0xffffff, 0.7);
+    const fillLight = new window.THREE.DirectionalLight(0xffffff, 0.4);
     fillLight.position.set(-5, 3, 5);
     scene.add(fillLight);
 
     // 4. Back Light (Behind and above for rim lighting)
-    const backLight = new window.THREE.DirectionalLight(0xffffff, 0.6);
+    const backLight = new window.THREE.DirectionalLight(0xffffff, 0.35);
     backLight.position.set(0, 5, -8);
     scene.add(backLight);
 
