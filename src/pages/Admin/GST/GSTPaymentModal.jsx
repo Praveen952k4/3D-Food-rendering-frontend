@@ -7,11 +7,6 @@ import {
   Button,
   Typography,
   Box,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
   TextField,
   MenuItem,
   Alert,
@@ -23,7 +18,6 @@ import {
   Grid,
 } from '@mui/material';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import QrCode2Icon from '@mui/icons-material/QrCode2';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SecurityIcon from '@mui/icons-material/Security';
 
@@ -32,9 +26,7 @@ import { formatINR } from '../../../config/business';
 import { FONT_DISPLAY } from '../../../theme/muiTheme';
 
 const GSTPaymentModal = ({ open, onClose, challan, onPaymentSuccess }) => {
-  const [paymentMethod, setPaymentMethod] = useState('net_banking');
   const [bankCode, setBankCode] = useState('HDFC');
-  const [upiId, setUpiId] = useState('restaurant.owner@okaxis');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -63,9 +55,8 @@ const GSTPaymentModal = ({ open, onClose, challan, onPaymentSuccess }) => {
       setError(null);
       const res = await payGstDirect({
         challanId: challan._id,
-        paymentMethod,
+        paymentMethod: 'net_banking',
         bankName: bankCode,
-        upiId: paymentMethod === 'upi' ? upiId : undefined,
       });
 
       if (res.data.success) {
@@ -98,13 +89,14 @@ const GSTPaymentModal = ({ open, onClose, challan, onPaymentSuccess }) => {
         sx: {
           borderRadius: 'var(--ad-radius)',
           border: '1px solid var(--ad-line)',
-          bgcolor: 'background.paper',
+          bgcolor: 'var(--ad-surface)',
+          color: 'var(--ad-text)',
         },
       }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1, color: 'var(--ad-text)' }}>
         <AccountBalanceIcon sx={{ color: 'var(--ad-ember)' }} />
-        <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 20 }}>
+        <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 20, color: 'inherit' }}>
           Pay GST Dues Online
         </Typography>
         <Chip
@@ -229,66 +221,55 @@ const GSTPaymentModal = ({ open, onClose, challan, onPaymentSuccess }) => {
               </Box>
             </Paper>
 
-            {/* Payment Method Selector */}
-            <FormControl component="fieldset" sx={{ mb: 2 }}>
-              <FormLabel component="legend" sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary', mb: 0.5 }}>
-                Select Payment Route
-              </FormLabel>
-              <RadioGroup
-                row
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
+            {/* Statutory Payment Channel */}
+            <Box sx={{ mb: 2.5 }}>
+              <Typography variant="caption" sx={{ color: 'var(--ad-text-2)', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 1, letterSpacing: '0.5px' }}>
+                Statutory Payment Channel
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 1.5,
+                  bgcolor: 'var(--ad-surface-2)',
+                  borderRadius: 'var(--ad-radius-sm)',
+                  border: '1px solid var(--ad-line)',
+                }}
               >
-                <FormControlLabel
-                  value="net_banking"
-                  control={<Radio sx={{ color: 'var(--ad-ember)', '&.Mui-checked': { color: 'var(--ad-ember)' } }} />}
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <AccountBalanceIcon fontSize="small" sx={{ color: 'var(--ad-ember)' }} />
-                      <Typography variant="body2" fontWeight="600">Net Banking</Typography>
-                    </Box>
-                  }
-                />
-                <FormControlLabel
-                  value="upi"
-                  control={<Radio sx={{ color: 'var(--ad-ember)', '&.Mui-checked': { color: 'var(--ad-ember)' } }} />}
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <QrCode2Icon fontSize="small" sx={{ color: 'var(--ad-ember)' }} />
-                      <Typography variant="body2" fontWeight="600">UPI / QR</Typography>
-                    </Box>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
+                <AccountBalanceIcon sx={{ color: 'var(--ad-ember)', fontSize: 24 }} />
+                <Box>
+                  <Typography variant="body2" fontWeight="700" sx={{ color: 'var(--ad-text)' }}>
+                    Internet Banking (Authorized Agency Bank)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'var(--ad-text-2)', display: 'block' }}>
+                    Form GST PMT-06 electronic tax remittance via designated GST collection gateway
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
 
-            {paymentMethod === 'net_banking' ? (
-              <TextField
-                select
-                fullWidth
-                label="Select Authorized Bank"
-                value={bankCode}
-                onChange={(e) => setBankCode(e.target.value)}
-                sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: 'var(--ad-radius-sm)' } }}
-                size="small"
-              >
-                {banks.map((b) => (
-                  <MenuItem key={b.code} value={b.code}>
-                    {b.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            ) : (
-              <TextField
-                fullWidth
-                label="Virtual Payment Address (UPI ID)"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="e.g. restaurant@upi"
-                sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: 'var(--ad-radius-sm)' } }}
-                size="small"
-              />
-            )}
+            {/* Select Authorized Bank */}
+            <TextField
+              select
+              fullWidth
+              label="Select Authorized Bank"
+              value={bankCode}
+              onChange={(e) => setBankCode(e.target.value)}
+              sx={{
+                mb: 2.5,
+                '& .MuiOutlinedInput-root': { borderRadius: 'var(--ad-radius-sm)' },
+                '& .MuiInputLabel-root': { color: 'var(--ad-text-2)' },
+                '& .MuiSelect-select': { color: 'var(--ad-text)' },
+              }}
+              size="small"
+            >
+              {banks.map((b) => (
+                <MenuItem key={b.code} value={b.code}>
+                  {b.name}
+                </MenuItem>
+              ))}
+            </TextField>
 
             {/* 2FA OTP Prompt */}
             <Box sx={{ mb: 2 }}>
