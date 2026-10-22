@@ -330,32 +330,29 @@ const CustomerCart = () => {
   const getEstimatedPrepMinutes = () =>
     cartItems.reduce((longest, item) => Math.max(longest, item.prepTimeMinutes ?? 15), 0);
 
-  const getSubtotal = () => {
-    let total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    
-    // Add extras pricing
-    cartItems.forEach(item => {
-      if (item.customizations && item.customizations.length > 0) {
-        item.customizations.forEach(custom => {
-          if (custom.extras && custom.extras.length > 0) {
-            custom.extras.forEach(extra => {
-              total += extrasPricing[extra] || 0;
-            });
-          }
-        });
-      }
-    });
-    
-    return total;
-  };
+  // Extras ride on the line they were added to, so a dish carries its own
+  // extras in its total. The order used to count them only in the subtotal,
+  // which left the items adding up to less than the order they belong to —
+  // and the admin's top dishes reading low by exactly that much.
+  const getItemTotal = (item) =>
+    item.price * item.quantity +
+    (item.customizations || []).reduce(
+      (sum, custom) =>
+        sum + (custom.extras || []).reduce((extras, extra) => extras + (extrasPricing[extra] || 0), 0),
+      0
+    );
 
-  const getTax = () => {
-    return getSubtotal() * 0.05; // 5% tax
-  };
+  const getSubtotal = () => cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
 
-  const getTotal = () => {
-    return getSubtotal() + getTax() - couponDiscount;
-  };
+  // GST is charged on what the diner actually pays for the food, so a coupon
+  // comes off before the tax does. Charging it on the full subtotal left the
+  // stored tax higher than 5% of the taxable value every report derives from
+  // it — the receipt, the GST register and the dashboard all disagreed.
+  const getTaxableValue = () => Math.max(getSubtotal() - couponDiscount, 0);
+
+  const getTax = () => getTaxableValue() * GST_RATE;
+
+  const getTotal = () => getTaxableValue() + getTax();
 
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
@@ -390,7 +387,7 @@ const CustomerCart = () => {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          subtotal: item.price * item.quantity,
+          subtotal: getItemTotal(item),
           prepTimeMinutes: item.prepTimeMinutes ?? 15,
           customizations: item.customizations || [],
         })),
