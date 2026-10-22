@@ -142,60 +142,96 @@ const PORTALS = [
   },
 ];
 
-/* Plans priced off the deck's business model canvas (page 11) */
+/* Software plans and hardware kits, as priced in the business model deck
+   (pages 10 and 11). Both are sold per outlet and both are customizable. */
 const PLANS = [
   {
-    name: "Starter",
-    for: "Single café or QSR finding its feet.",
-    monthly: "₹1,499",
-    annual: "₹1,249",
+    name: "Basic",
+    for: "A single café or QSR putting its menu in 3D.",
+    price: "₹799",
     features: [
-      ["Up to ", "20 dishes", " in 3D"],
-      ["Up to 12 tables & QR codes"],
-      ["Guest menu + kitchen board"],
-      ["Climate label on every dish"],
-      ["GST e-receipts (PDF)"],
-      ["Email support"],
+      ["", "14-day free trial"],
+      ["QR-based AR menu"],
+      ["Order management"],
+      ["Review system"],
+      ["Sales analytics"],
+      ["Inventory management"],
+      ["Up to ", "50 items"],
+      ["Single outlet, ", "unlimited users"],
     ],
     note: "Setup ₹150 per dish for 3D modelling",
     cta: "Talk to Sales",
     featured: false,
   },
   {
-    name: "Growth",
-    for: "Full-service restaurants running a live kitchen.",
-    monthly: "₹3,999",
-    annual: "₹3,332",
+    name: "Standard",
+    for: "A full-service restaurant running a live kitchen.",
+    price: "₹1,499",
     features: [
-      ["Up to ", "75 dishes", " in 3D"],
-      ["", "Unlimited", " tables & QR codes"],
-      ["Admin dashboard, GST reports & graphs"],
-      ["Bill printer included", "", " (worth ₹1,000)"],
-      ["Priority 3D modelling queue"],
-      ["Order analytics & menu insights"],
-      ["WhatsApp + phone support"],
+      ["", "14-day free trial"],
+      ["Everything in Basic"],
+      ["Up to ", "200 items"],
+      ["Food customization"],
+      ["Up to ", "3 outlets"],
+      ["", "Unlimited users"],
     ],
     note: "Setup waived above 20 dishes",
     cta: "Talk to Sales",
     featured: true,
   },
   {
-    name: "Chain",
+    name: "Pro",
     for: "Multi-outlet brands and franchises.",
-    monthly: "Custom",
-    annual: "Custom",
-    subMonthly: "from ₹9,999 / month",
-    subAnnual: "from ₹8,332 / month, billed yearly",
+    price: "₹2,499",
     features: [
-      ["", "Unlimited", " dishes & outlets"],
-      ["Group dashboard across branches"],
-      ["POS / billing-software integration"],
-      ["Staff roles, SSO & audit log"],
-      ["White-labelled menu & domain"],
-      ["Dedicated manager + 99.9% SLA"],
+      ["", "14-day free trial"],
+      ["Everything in Standard"],
+      ["", "Unlimited", " food items"],
+      ["AI insights, forecasting & performance analytics"],
+      ["", "Unlimited", " outlets"],
+      ["", "Unlimited users"],
     ],
     note: "Onboarding and training included",
     cta: "Talk to Sales",
+    featured: false,
+  },
+];
+
+/* The kit, bought once. The capture kit is the same on every tier — it is
+   what turns a dish on your own table into a model — so what changes up the
+   tiers is the printer and the screen the kitchen reads from. */
+const HARDWARE = [
+  {
+    name: "Basic",
+    for: "One counter, one screen.",
+    total: "₹10,199",
+    parts: [
+      { name: "Capture kit", price: "₹2,000", spec: "motorised turntable, phone stand, LED lights" },
+      { name: "Thermal / KOT printer", price: "₹2,200", spec: "58 mm, USB / Bluetooth" },
+      { name: "Kitchen display", price: "₹5,999", spec: "10–11 inch HD, 3 GB RAM, Wi-Fi" },
+    ],
+    featured: false,
+  },
+  {
+    name: "Standard",
+    for: "A kitchen working off the board all service.",
+    total: "₹15,799",
+    parts: [
+      { name: "Capture kit", price: "₹2,000", spec: "motorised turntable, phone stand, LED lights" },
+      { name: "Thermal / KOT printer", price: "₹4,300", spec: "80 mm, USB / LAN / Bluetooth" },
+      { name: "Kitchen display", price: "₹9,499", spec: "15.6 inch HD, 4 GB RAM, Wi-Fi / LAN" },
+    ],
+    featured: true,
+  },
+  {
+    name: "Pro",
+    for: "High volume, and a screen the whole pass can read.",
+    total: "₹24,799",
+    parts: [
+      { name: "Capture kit", price: "₹2,000", spec: "motorised turntable, phone stand, LED lights" },
+      { name: "Thermal / KOT printer", price: "₹6,800", spec: "80 mm auto-cutter, multi-interface" },
+      { name: "Kitchen display", price: "₹12,499", spec: "21.5–22 inch HD, 8 GB RAM, LAN / Wi-Fi" },
+    ],
     featured: false,
   },
 ];
@@ -231,7 +267,6 @@ const Landing = () => {
   const [category, setCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const [billing, setBilling] = useState("monthly");
   const [salesDialogOpen, setSalesDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
 
@@ -303,7 +338,6 @@ const Landing = () => {
     navigate(isAuthenticated ? dashboardPath : "/login");
   };
 
-  const isAnnual = billing === "annual";
 
   return (
     <div className="ad">
@@ -622,27 +656,13 @@ const Landing = () => {
           <div className="ad-wrap">
             <div className="ad-head is-wide">
               <div className="ad-eyebrow">Pricing</div>
-              <h2>Simple plans. Per outlet, per month.</h2>
+              <h2>Software by the month. Hardware once.</h2>
               <p>
-                One subscription covers all three portals, hosting, 3D model storage and
-                updates. Cancel any time — the QR codes on your tables never change.
+                One subscription covers all three portals — the diner's AR menu, the
+                kitchen board and the admin dashboard — with hosting, 3D model storage
+                and updates. Every plan starts on a 14-day free trial, and the QR codes
+                on your tables never change if you move up a tier.
               </p>
-              <div className="ad-billing" role="group" aria-label="Billing period">
-                <button
-                  type="button"
-                  className={!isAnnual ? "is-active" : ""}
-                  onClick={() => setBilling("monthly")}
-                >
-                  Monthly
-                </button>
-                <button
-                  type="button"
-                  className={isAnnual ? "is-active" : ""}
-                  onClick={() => setBilling("annual")}
-                >
-                  Annual <i>· 2 months free</i>
-                </button>
-              </div>
             </div>
 
             <div className="ad-grid-3 ad-plans">
@@ -651,21 +671,13 @@ const Landing = () => {
                   className={`ad-card ad-plan ${plan.featured ? "is-featured" : ""}`}
                   key={plan.name}
                 >
-                  {plan.featured && <span className="ad-ribbon">Most chosen</span>}
+                  {plan.featured && <span className="ad-ribbon">Recommended</span>}
                   <h3>{plan.name}</h3>
                   <p className="ad-plan-for">{plan.for}</p>
 
                   <div className="ad-price-row">
-                    <b>{isAnnual ? plan.annual : plan.monthly}</b>
-                    <span>
-                      {plan.subMonthly
-                        ? isAnnual
-                          ? plan.subAnnual
-                          : plan.subMonthly
-                        : isAnnual
-                          ? "/outlet / month, billed yearly"
-                          : "/outlet / month"}
-                    </span>
+                    <b>{plan.price}</b>
+                    <span>/outlet / month</span>
                   </div>
 
                   <ul>
@@ -696,9 +708,62 @@ const Landing = () => {
             </div>
 
             <p className="ad-plan-foot">
-              <b>Included in every plan:</b> hosting, unlimited orders, light &amp; dark
-              themes, model updates, and free re-prints of your table QR codes.
+              <b>Included in every plan:</b> a 14-day free trial, unlimited users, hosting,
+              unlimited orders, light &amp; dark themes, model updates, and free re-prints
+              of your table QR codes.
             </p>
+
+            <div className="ad-head is-wide ad-head-sub">
+              <div className="ad-eyebrow">Hardware</div>
+              <h2>The kit, bought once.</h2>
+              <p>
+                Customizable, and optional — keep the printer and screen you already have
+                if they do the job. The capture kit is the one piece we would not skip:
+                it is what turns a dish on your own table into a model, and it is the
+                same kit on every tier.
+              </p>
+            </div>
+
+            <div className="ad-grid-3 ad-plans">
+              {HARDWARE.map((kit) => (
+                <article
+                  className={`ad-card ad-plan ${kit.featured ? "is-featured" : ""}`}
+                  key={kit.name}
+                >
+                  {kit.featured && <span className="ad-ribbon">Recommended</span>}
+                  <h3>{kit.name}</h3>
+                  <p className="ad-plan-for">{kit.for}</p>
+
+                  <div className="ad-price-row">
+                    <b>{kit.total}</b>
+                    <span>one-time, all three pieces</span>
+                  </div>
+
+                  <ul>
+                    {kit.parts.map((part) => (
+                      <li key={part.name}>
+                        <span>
+                          {part.name} <b>{part.price}</b>
+                          <i>{` · ${part.spec}`}</i>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="ad-plan-note">Buy the pieces separately if you prefer</div>
+                  <button
+                    className={`ad-btn ad-btn-full ${kit.featured ? "ad-btn-solid" : "ad-btn-ghost"}`}
+                    type="button"
+                    onClick={() => {
+                      setSelectedPlan(`${kit.name} hardware kit`);
+                      setSalesDialogOpen(true);
+                    }}
+                  >
+                    Talk to Sales&nbsp;&nbsp;→
+                  </button>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 

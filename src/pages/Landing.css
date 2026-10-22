@@ -503,26 +503,9 @@ html[data-theme="dark"] .ad-chip-sm.is-eco { color: var(--ad-basil-soft); }
 html[data-theme="dark"] .ad-eco-foot b { color: var(--ad-basil-soft); }
 
 /* ----------------------------------------------------------------- pricing */
-.ad-billing {
-  display: inline-flex;
-  gap: 5px;
-  margin-top: 24px;
-  padding: 5px;
-  border-radius: 999px;
-  border: 1px solid var(--ad-line-strong);
-  background: var(--ad-surface);
-}
-.ad-billing button {
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 999px;
-  color: var(--ad-text-3);
-  border: 0;
-  background: none;
-}
-.ad-billing button.is-active { background: var(--ad-ember); color: #fff; }
-.ad-billing button i { font-style: normal; opacity: 0.85; }
+/* The hardware kits sit under the software plans inside the same pricing
+   section, so their heading needs the air a new section would have given it. */
+.ad-head-sub { margin-top: 64px; }
 
 .ad-plans { align-items: stretch; }
 .ad-plan { display: flex; flex-direction: column; padding: 30px 28px 28px; }
