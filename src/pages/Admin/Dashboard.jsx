@@ -26,6 +26,7 @@ import OverviewCharts, { Panel } from 'components/dashboard/OverviewCharts';
 import FeedbackStats from 'components/dashboard/FeedbackStats';
 import FeedbackSection from 'components/dashboard/FeedbackSection';
 import ServiceTimeline from 'components/dashboard/ServiceTimeline';
+import DishTimings from 'components/dashboard/DishTimings';
 import { formatINR } from 'config/business';
 import { FONT_DISPLAY } from 'theme/muiTheme';
 import { SkeletonText } from 'components/ui/Loaders';
@@ -339,6 +340,11 @@ const AdminDashboard = () => {
           </Panel>
         </Grid>
       </Grid>
+
+      {/* ------------------------------------------------- dish timings */}
+      <Box sx={{ mt: 3 }}>
+        <DishTimings rows={overview?.dishTimings || []} loading={loading} />
+      </Box>
 
       {/* -------------------------------------------------------- feedback */}
       <Box sx={{ mt: 4 }}>
