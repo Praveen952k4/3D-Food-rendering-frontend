@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Container, Paper, Typography } from '@mui/material';
-import { TableRestaurant, CheckCircle, EventSeat } from '@mui/icons-material';
+import { TableRestaurant, CheckCircle } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import { getTables, takeTable, getMyTable } from '../../services/api';
@@ -182,14 +182,6 @@ const PickTable = () => {
           )}
         </Button>
       </Paper>
-
-      <Button
-        startIcon={<EventSeat />}
-        onClick={() => navigate('/customer/bookings')}
-        sx={{ mt: 2, color: 'text.secondary' }}
-      >
-        I have a booking
-      </Button>
     </Container>
   );
 };

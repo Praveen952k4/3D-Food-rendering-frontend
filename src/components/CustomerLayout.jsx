@@ -1,9 +1,8 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button } from '@mui/material';
-import { RestaurantMenu, ReceiptLong, EventSeat } from '@mui/icons-material';
+import { RestaurantMenu, ReceiptLong } from '@mui/icons-material';
 import TableBanner from './TableBanner';
-import { useAuth } from '../context/AuthContext';
 
 /**
  * The frame every diner screen sits in: which table they are at, and the few
@@ -17,17 +16,11 @@ import { useAuth } from '../context/AuthContext';
 const LINKS = [
   { to: '/customer/home', label: 'Menu', shortLabel: 'Menu', icon: <RestaurantMenu sx={{ fontSize: { xs: 15, sm: 17 } }} /> },
   { to: '/customer/orders', label: 'Orders & receipts', shortLabel: 'Orders', icon: <ReceiptLong sx={{ fontSize: { xs: 15, sm: 17 } }} /> },
-  { to: '/customer/bookings', label: 'My bookings', shortLabel: 'Bookings', icon: <EventSeat sx={{ fontSize: { xs: 15, sm: 17 } }} />, accountOnly: true },
 ];
 
 const CustomerLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useAuth();
-
-  // A guest signs in by table number and has no account to hold a booking, so
-  // that door is not shown to them.
-  const links = LINKS.filter((link) => !link.accountOnly || role !== 'guest');
 
   return (
     <div>
@@ -45,7 +38,7 @@ const CustomerLayout = () => {
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        {links.map((link) => {
+        {LINKS.map((link) => {
           const active = location.pathname === link.to;
           return (
             <Button

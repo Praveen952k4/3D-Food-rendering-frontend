@@ -10,15 +10,12 @@ import GSTCompliancePortal from '../../pages/Admin/GST/GSTCompliancePortal';
 import AdminFoodManagement from '../../pages/Admin/FoodManagement';
 import CouponManagement from '../../pages/Admin/CouponManagement';
 import UserManagement from '../../pages/Admin/UserManagement';
-import AdminBookings from '../../pages/Admin/Bookings';
 import FoodRatings from '../../pages/Admin/FoodRatings';
 import ChefDashboard from '../../pages/Chef/Dashboard';
 import CustomerHome from '../../pages/Customer/Home';
 import CustomerMenu from '../../pages/Customer/Menu';
 import CustomerCart from '../../pages/Customer/Cart';
 import OrderHistory from '../../pages/Customer/OrderHistory';
-import CustomerBookTable from '../../pages/Customer/BookTable';
-import MyBookings from '../../pages/Customer/MyBookings';
 import PickTable from '../../pages/Customer/PickTable';
 import AdminLayout from '../AdminLayout';
 import ChefLayout from '../../pages/Chef/ChefLayout';
@@ -41,7 +38,6 @@ const AppRoutes = () => {
           bookmarks that are already out there. */}
       <Route path="/login" element={signedInRedirect(<SignIn />)} />
       <Route path="/login/guest" element={<Navigate to="/login" replace />} />
-      <Route path="/login/book" element={<Navigate to="/login" replace />} />
       <Route path="/login/customer" element={<Navigate to="/login" replace />} />
       <Route path="/login/chef" element={<Navigate to="/login" replace />} />
 
@@ -62,7 +58,6 @@ const AppRoutes = () => {
         <Route path="coupons" element={<CouponManagement />} />
         <Route path="food-ratings" element={<FoodRatings />} />
         <Route path="users" element={<UserManagement />} />
-        <Route path="bookings" element={<AdminBookings />} />
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
 
@@ -93,24 +88,6 @@ const AppRoutes = () => {
         <Route path="menu" element={<CustomerMenu />} />
         <Route path="cart" element={<CustomerCart />} />
         <Route path="orders" element={<OrderHistory />} />
-        {/* Booking ahead belongs to an account, so a guest signed in by table
-            number is sent to the booking door to sign in properly. */}
-        <Route
-          path="book"
-          element={
-            <PrivateRoute allow={['customer', 'admin']} redirectTo="/login/book">
-              <CustomerBookTable />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="bookings"
-          element={
-            <PrivateRoute allow={['customer', 'admin']} redirectTo="/login/book">
-              <MyBookings />
-            </PrivateRoute>
-          }
-        />
         <Route index element={<Navigate to="/customer/home" replace />} />
       </Route>
 

@@ -9,7 +9,6 @@ import {
   LocalOffer,
   Star,
   ReceiptLong,
-  EventSeat,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
@@ -17,7 +16,6 @@ import { FONT_DISPLAY } from '../../theme/muiTheme';
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/admin/dashboard' },
   { text: 'Orders', icon: <ShoppingCart />, path: '/admin/orders' },
-  { text: 'Bookings', icon: <EventSeat />, path: '/admin/bookings' },
   { text: 'GST compliance', icon: <ReceiptLong />, path: '/admin/gst' },
   { text: 'Food items', icon: <Restaurant />, path: '/admin/food' },
   { text: 'Coupons', icon: <LocalOffer />, path: '/admin/coupons' },

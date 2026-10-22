@@ -19,9 +19,8 @@ const PrivateRoute = ({ children, allow, redirectTo }) => {
   }
 
   if (allow && !allow.includes(role)) {
-    // `redirectTo` names the door that would actually get them in — a guest
-    // signed in by table number needs the booking door, not their own landing
-    // page, which is where they already are.
+    // `redirectTo`, when a caller gives one, names the door that would
+    // actually get them in; otherwise they go to their own landing page.
     return <Navigate to={redirectTo || defaultRouteFor(role)} replace />;
   }
 

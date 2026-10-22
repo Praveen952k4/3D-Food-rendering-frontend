@@ -61,18 +61,6 @@ export const getTables = () => api.get('/auth/tables');
 export const bookTable = (tableNumber, name) =>
   api.post('/auth/guest/book', { tableNumber, name });
 
-// --- advance bookings ------------------------------------------------------
-export const getTableAvailability = (scheduledFor, partySize) =>
-  api.get('/bookings/availability', { params: { scheduledFor, partySize } });
-export const createBooking = (booking) => api.post('/bookings', booking);
-export const getMyBookings = () => api.get('/bookings/mine');
-export const savePreOrder = (id, preOrderItems) =>
-  api.put(`/bookings/${id}/pre-order`, { preOrderItems });
-export const checkInBooking = (id) => api.post(`/bookings/${id}/check-in`);
-export const cancelBooking = (id) => api.patch(`/bookings/${id}/cancel`);
-export const getBookings = (days = 7) => api.get('/bookings', { params: { days } });
-export const setBookingStatus = (id, status) => api.patch(`/bookings/${id}/status`, { status });
-
 // --- tables on the floor ---------------------------------------------------
 export const getFloorTables = () => api.get('/tables');
 export const getMyTable = () => api.get('/tables/mine');
