@@ -128,7 +128,6 @@ const OrderCard = ({ row }) => {
     ['Taken by staff', row.acceptedAt || row.cookingAt],
     ['Ready', row.readyAt],
     ['Served', row.servedAt],
-    ['Receipt', row.receiptSentAt],
   ];
 
   return (
@@ -336,7 +335,6 @@ const ServiceTimeline = () => {
                     <TableCell>Taken</TableCell>
                     <TableCell>Ready</TableCell>
                     <TableCell>Served</TableCell>
-                    <TableCell>Receipt</TableCell>
                     <TableCell align="right">Total</TableCell>
                   </TableRow>
                 </TableHead>
@@ -363,14 +361,6 @@ const ServiceTimeline = () => {
                         )}
                       </TableCell>
                       <TableCell>{clockOf(row.servedAt)}</TableCell>
-                      <TableCell>
-                        {clockOf(row.receiptSentAt)}
-                        {row.servedToReceipt !== null && row.servedToReceipt !== undefined && (
-                          <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
-                            +{row.servedToReceipt} min
-                          </Typography>
-                        )}
-                      </TableCell>
                       <TableCell align="right">
                         <Mins value={row.totalMinutes} warnOver={row.estimatedPrepMinutes || 30} />
                       </TableCell>
