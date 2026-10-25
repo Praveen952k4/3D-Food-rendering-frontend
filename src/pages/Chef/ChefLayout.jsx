@@ -45,17 +45,6 @@ const ChefLayout = () => {
             <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 16, lineHeight: 1.2 }} noWrap>
               Kitchen studio
             </Typography>
-            <Typography
-              sx={{
-                fontSize: 9.5,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: 'text.disabled',
-                fontWeight: 600,
-              }}
-            >
-              AR Automated Dining
-            </Typography>
           </Box>
 
           <ThemeToggle size="small" />
