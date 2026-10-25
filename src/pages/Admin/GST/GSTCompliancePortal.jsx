@@ -48,9 +48,6 @@ const GSTCompliancePortal = () => {
         >
           GST Compliance &amp; Tax Returns
         </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-          Statutory 5% GST calculations (CGST 2.5% + SGST 2.5%), GSTR-1, GSTR-3B, ITC reconciliation, and in-app challans.
-        </Typography>
       </Box>
 
       {/* Tabs Navigation Bar */}
