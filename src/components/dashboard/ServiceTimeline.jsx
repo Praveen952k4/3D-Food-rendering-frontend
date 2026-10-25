@@ -303,12 +303,6 @@ const ServiceTimeline = () => {
         <Stat label="Ready to served" value={data?.averages?.waitToServe} />
         <Stat label="Order to table" value={data?.averages?.totalMinutes} />
         <Stat label="Served to receipt" value={data?.averages?.servedToReceipt} />
-        <Box sx={{ alignSelf: 'center' }}>
-          <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-            Averages across {data?.averages?.servedOrders ?? 0} served order
-            {data?.averages?.servedOrders === 1 ? '' : 's'}
-          </Typography>
-        </Box>
       </Box>
 
       <Divider sx={{ my: 2 }} />
