@@ -209,9 +209,36 @@ const ServiceTimeline = () => {
     fetchActivity();
   }, [fetchActivity]);
 
-  // One socket for the panel. Each event is prepended as it arrives; the
-  // per-order summary is refreshed alongside it, because its timings depend on
-  // the stage this event may have just completed.
+  // Reaching the current fetch from a listener that is only subscribed once.
+  const refreshRef = useRef(fetchActivity);
+  refreshRef.current = fetchActivity;
+
+  // The stage figures and the per-order table are both derived from the
+  // stages an event completes, so an arriving event makes them stale. They
+  // are refetched when one arrives rather than waiting to be asked for, but
+  // a burst is coalesced into a single request: one order moving through the
+  // kitchen emits several events within a few seconds.
+  const refreshTimer = useRef(null);
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimer.current) return;
+    refreshTimer.current = setTimeout(() => {
+      refreshTimer.current = null;
+      refreshRef.current();
+    }, 3000);
+  }, []);
+
+  useEffect(() => () => clearTimeout(refreshTimer.current), []);
+
+  // A socket that has quietly dropped would otherwise leave the panel frozen
+  // on whatever it last saw, with nothing on screen saying so.
+  useEffect(() => {
+    const id = setInterval(() => refreshRef.current(), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  // One socket for the panel. Each event is prepended as it arrives, and the
+  // summary beside it is refreshed, because its timings depend on the stage
+  // this event may have just completed.
   useEffect(() => {
     const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
     socketRef.current = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
@@ -224,10 +251,11 @@ const ServiceTimeline = () => {
         return { ...current, events: [event, ...current.events].slice(0, 60) };
       });
       setLiveCount((n) => n + 1);
+      scheduleRefresh();
     });
 
     return () => socketRef.current?.disconnect();
-  }, []);
+  }, [scheduleRefresh]);
 
   const events = data?.events || [];
   const timeline = useMemo(
