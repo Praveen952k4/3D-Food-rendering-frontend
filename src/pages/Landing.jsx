@@ -150,14 +150,14 @@ const PLANS = [
     for: "A single café or QSR putting its menu in 3D.",
     price: "₹799",
     features: [
-      ["", "14-day free trial"],
-      ["QR-based AR menu"],
-      ["Order management"],
-      ["Review system"],
-      ["Sales analytics"],
-      ["Inventory management"],
-      ["Up to ", "50 items"],
-      ["Single outlet, ", "unlimited users"],
+      "14-day free trial",
+      "QR-based AR menu",
+      "Order management",
+      "Review system",
+      "Sales analytics",
+      "Inventory management",
+      "Up to 50 items",
+      "Single outlet, unlimited users",
     ],
     note: "Setup ₹150 per dish for 3D modelling",
     cta: "Talk to Sales",
@@ -168,12 +168,12 @@ const PLANS = [
     for: "A full-service restaurant running a live kitchen.",
     price: "₹1,499",
     features: [
-      ["", "14-day free trial"],
-      ["Everything in Basic"],
-      ["Up to ", "200 items"],
-      ["Food customization"],
-      ["Up to ", "3 outlets"],
-      ["", "Unlimited users"],
+      "14-day free trial",
+      "Everything in Basic",
+      "Up to 200 items",
+      "Food customization",
+      "Up to 3 outlets",
+      "Unlimited users",
     ],
     note: "Setup waived above 20 dishes",
     cta: "Talk to Sales",
@@ -184,12 +184,12 @@ const PLANS = [
     for: "Multi-outlet brands and franchises.",
     price: "₹2,499",
     features: [
-      ["", "14-day free trial"],
-      ["Everything in Standard"],
-      ["", "Unlimited", " food items"],
-      ["AI insights, forecasting & performance analytics"],
-      ["", "Unlimited", " outlets"],
-      ["", "Unlimited users"],
+      "14-day free trial",
+      "Everything in Standard",
+      "Unlimited food items",
+      "AI insights, forecasting & performance analytics",
+      "Unlimited outlets",
+      "Unlimited users",
     ],
     note: "Onboarding and training included",
     cta: "Talk to Sales",
@@ -677,13 +677,9 @@ const Landing = () => {
                   </div>
 
                   <ul>
-                    {plan.features.map((parts, i) => (
+                    {plan.features.map((feature, i) => (
                       <li key={i}>
-                        <span>
-                          {parts[0]}
-                          {parts[1] && <b>{parts[1]}</b>}
-                          {parts[2] && <i>{parts[2]}</i>}
-                        </span>
+                        <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
