@@ -59,11 +59,6 @@ const AdminSidebar = ({ onLogout, onNavigate }) => {
           <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 15, lineHeight: 1.2 }}>
             Admin panel
           </Typography>
-          <Typography
-            sx={{ fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'text.disabled', fontWeight: 600 }}
-          >
-            AR Automated Dining
-          </Typography>
         </Box>
       </Box>
 
