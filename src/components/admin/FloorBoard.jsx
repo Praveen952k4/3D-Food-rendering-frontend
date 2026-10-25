@@ -223,7 +223,7 @@ const FloorBoard = () => {
               {table.isOccupied ? (
                 <>
                   <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                    {table.occupantName || 'Guest'} · {table.sittingMinutes} min
+                    {table.occupantName || 'Guest'}
                     {table.heldVia === 'booking' ? ' · booked' : ''}
                   </Typography>
 
