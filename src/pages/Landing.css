@@ -330,7 +330,6 @@ html[data-theme="dark"] .ad-chip-sm.is-eco { color: var(--ad-basil-soft); }
   color: var(--ad-text-3);
 }
 .ad-float b { display: block; font-size: 13px; margin-bottom: 2px; color: var(--ad-text); }
-.ad-float-a { top: 46px; left: -42px; }
 .ad-float-b { bottom: 126px; right: -46px; }
 .ad-float-c { bottom: 26px; left: -56px; display: flex; gap: 10px; align-items: center; }
 .ad-qr {

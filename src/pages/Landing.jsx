@@ -462,10 +462,6 @@ const Landing = () => {
                 </div>
               </div>
 
-              <div className="ad-float ad-float-a">
-                <b>View in your space</b>
-                <span>Three.js · ARCore / ARKit</span>
-              </div>
               <div className="ad-float ad-float-b">
                 <b>
                   <span className="ad-dot" />
