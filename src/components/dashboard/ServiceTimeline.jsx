@@ -240,13 +240,8 @@ const ServiceTimeline = () => {
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 2, mb: 2.5 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography className="ad-eyebrow">Service</Typography>
-          <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 19, mt: 0.5 }}>
-            Table to table service timeline
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            When each table was taken, ordered, picked up by staff, cooked and served
-            {data ? ` · ${data.tablesSeated} table${data.tablesSeated === 1 ? '' : 's'} seated` : ''}
+          <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 19 }}>
+            Table Management
           </Typography>
         </Box>
 
