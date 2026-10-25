@@ -15,12 +15,8 @@ import { FONT_DISPLAY } from 'theme/muiTheme';
 const AdminTables = () => (
   <Box>
     <Box sx={{ mb: 2.5 }}>
-      <Typography className="ad-eyebrow">Front of house</Typography>
-      <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 24, mt: 0.5 }}>
-        Tables
-      </Typography>
-      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-        Which tables are free, who is sitting at the rest, and how long they have been there.
+      <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 700, fontSize: 24 }}>
+        Table Management
       </Typography>
     </Box>
 

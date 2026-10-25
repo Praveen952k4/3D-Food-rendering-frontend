@@ -5,7 +5,6 @@ import io from 'socket.io-client';
 import { getFloorTables, freeTable, setTableFrozen } from 'services/api';
 import { useMessage } from 'components/ui/MessageDialog';
 import { SkeletonText } from 'components/ui/Loaders';
-import { FONT_DISPLAY } from 'theme/muiTheme';
 
 /**
  * The floor as it stands: which tables are free, which are taken, how long
@@ -117,7 +116,6 @@ const FloorBoard = () => {
   };
 
   const tables = useMemo(() => data?.tables || [], [data]);
-  const settings = data?.settings || {};
   const taken = tables.filter((table) => table.isOccupied).length;
   const frozen = tables.filter((table) => table.isFrozen).length;
   const free = tables.length - taken - frozen;
@@ -135,20 +133,6 @@ const FloorBoard = () => {
   return (
     <Paper sx={{ p: { xs: 2, sm: 3 } }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-        <Box>
-          <Typography className="ad-eyebrow">Floor</Typography>
-          <Typography sx={{ fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: 19, mt: 0.5 }}>
-            Who is sitting where
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {data
-              ? `${free} free · ${taken} taken${frozen ? ` · ${frozen} frozen` : ''} of ${tables.length} tables`
-              : 'Loading the floor'}
-            {settings.idleMinutes
-              ? ` · a table frees itself ${settings.idleMinutes} min after its last course, a no-show after ${settings.graceMinutes} min`
-              : ''}
-          </Typography>
-        </Box>
         <Tooltip title="Refresh">
           <span style={{ marginLeft: 'auto' }}>
             <IconButton onClick={load} disabled={loading} sx={{ border: '1px solid var(--ad-line-strong)' }}>
