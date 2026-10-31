@@ -29,7 +29,8 @@ const TalkToSalesDialog = ({ open, onClose, defaultPlan = '' }) => {
     name: '',
     phone: '',
     email: '',
-    description: defaultPlan ? `Interested in ${defaultPlan} Plan.` : '',
+    // Don't need description as of now.
+    // description: defaultPlan ? `Interested in ${defaultPlan} Plan.` : '',
   });
 
   const [errors, setErrors] = useState({});
@@ -96,7 +97,7 @@ const TalkToSalesDialog = ({ open, onClose, defaultPlan = '' }) => {
       name: '',
       phone: '',
       email: '',
-      description: '',
+      // description: '',
     });
     setErrors({});
     setServerError(null);
@@ -311,7 +312,7 @@ const TalkToSalesDialog = ({ open, onClose, defaultPlan = '' }) => {
                 inputProps={{ 'aria-label': 'Business Email' }}
               />
 
-              <TextField
+              {/* <TextField
                 fullWidth
                 multiline
                 rows={3}
@@ -325,7 +326,7 @@ const TalkToSalesDialog = ({ open, onClose, defaultPlan = '' }) => {
                 variant="outlined"
                 size="small"
                 inputProps={{ 'aria-label': 'Description and requirements' }}
-              />
+              /> */}
             </Box>
 
             <DialogActions sx={{ px: 0, pt: 3, pb: 0, justifyContent: 'flex-end', gap: 1.5 }}>

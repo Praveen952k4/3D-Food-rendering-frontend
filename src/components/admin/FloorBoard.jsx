@@ -215,7 +215,7 @@ const FloorBoard = () => {
                   {(table.orderCount ?? table.totalOrders ?? table.activeOrders ?? 0) > 0 ? (
                     <Chip
                       size="small"
-                      label={`${table.orderCount ?? table.totalOrders ?? table.activeOrders} orders`}
+                      label={`${table.orderCount ?? table.totalOrders ?? table.activeOrders} ${table.orderCount > 1 ? "order" : "orders"}`}
                       sx={{ mt: 0.75, bgcolor: 'var(--ad-saffron-wash)', color: 'var(--ad-warn)', fontWeight: 600 }}
                     />
                   ) : !table.canLeave ? (
