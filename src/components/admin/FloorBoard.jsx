@@ -212,10 +212,10 @@ const FloorBoard = () => {
                     {table.heldVia === 'booking' ? ' · booked' : ''}
                   </Typography>
 
-                  {table.activeOrders > 0 ? (
+                  {(table.orderCount ?? table.totalOrders ?? table.activeOrders ?? 0) > 0 ? (
                     <Chip
                       size="small"
-                      label={`${table.activeOrders} cooking`}
+                      label={`${table.orderCount ?? table.totalOrders ?? table.activeOrders} orders`}
                       sx={{ mt: 0.75, bgcolor: 'var(--ad-saffron-wash)', color: 'var(--ad-warn)', fontWeight: 600 }}
                     />
                   ) : !table.canLeave ? (

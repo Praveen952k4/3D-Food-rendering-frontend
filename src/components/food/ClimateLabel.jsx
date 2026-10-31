@@ -108,8 +108,8 @@ const ClimateLabel = ({ food, variant = 'chip', sx }) => {
 
       {[
         { label: 'Carbon', value: `${c.carbon} kg CO₂e`, pct: c.carbonPct, warm: true },
-        { label: 'Water', value: `${c.water} L`, pct: c.waterPct, warm: false },
-        { label: 'Sourced locally', value: `${c.local}%`, pct: c.local, warm: false },
+        // { label: 'Water', value: `${c.water} L`, pct: c.waterPct, warm: false },
+        // { label: 'Sourced locally', value: `${c.local}%`, pct: c.local, warm: false },
       ].map((row) => (
         <Box key={row.label} sx={{ mt: 1.75 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, mb: 0.75 }}>

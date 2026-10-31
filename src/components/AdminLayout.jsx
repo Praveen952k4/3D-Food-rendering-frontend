@@ -11,7 +11,7 @@ const drawerWidth = 248;
 const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
 
   const handleDrawerToggle = () => setMobileOpen((open) => !open);
 
@@ -48,8 +48,8 @@ const AdminLayout = () => {
             AR Automated Dining
           </Typography>
 
-          <Typography variant="body2" sx={{ color: 'text.secondary', display: { xs: 'none', sm: 'block' } }} noWrap>
-            {user?.name || user?.phone}
+          <Typography variant="body2" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600 }} noWrap>
+            admin
           </Typography>
           <ThemeToggle size="small" />
         </Toolbar>
