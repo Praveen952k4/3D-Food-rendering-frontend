@@ -6,6 +6,7 @@ import io from 'socket.io-client';
 import { getTables, takeTable, getMyTable } from '../../services/api';
 import { useMessage } from '../../components/ui/MessageDialog';
 import { Skeleton } from '../../components/ui/Loaders';
+import { sortTablesByNumber } from '../../utils/tableUtils';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
 
 /**
@@ -81,7 +82,8 @@ const PickTable = () => {
     }
   };
 
-  const free = (tables || []).filter((t) => !t.isOccupied);
+  const sortedTables = sortTablesByNumber(tables || []);
+  const free = sortedTables.filter((t) => !t.isOccupied);
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 6 } }}>
@@ -103,7 +105,7 @@ const PickTable = () => {
         ) : (
           <>
             <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1 }}>
-              {free.length} free · {(tables || []).length - free.length} taken
+              {free.length} free · {sortedTables.length - free.length} taken
             </Typography>
             <Box
               sx={{
@@ -112,7 +114,7 @@ const PickTable = () => {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
               }}
             >
-              {tables.map((table) => {
+              {sortedTables.map((table) => {
                 const isSelected = selected === table.number;
                 return (
                   <Box

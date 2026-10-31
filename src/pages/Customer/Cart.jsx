@@ -46,6 +46,7 @@ import ClimateLabel from '../../components/food/ClimateLabel';
 import { LoadingPanel } from '../../components/ui/Loaders';
 import { formatINR, GST_RATE } from '../../config/business';
 import { FONT_DISPLAY } from '../../theme/muiTheme';
+import { sortTablesByNumber } from '../../utils/tableUtils';
 import FoodViewer3D from '../../components/FoodViewer3D';
 
 const CustomerCart = () => {
@@ -125,7 +126,7 @@ const CustomerCart = () => {
 
     getTables()
       .then((res) => {
-        if (!cancelled) setTables(res.data.tables || []);
+        if (!cancelled) setTables(sortTablesByNumber(res.data.tables || []));
       })
       .catch(() => {});
 
@@ -365,17 +366,17 @@ const CustomerCart = () => {
 
   const handlePlaceOrder = async () => {
     if (!customerName.trim()) {
-      showInfo('Please enter your name.', { title: 'One more thing' });
+      showInfo('Please enter your name.', { title: 'Please enter your name' });
       return;
     }
 
     if (!customerPhone.trim() || customerPhone.length < 10) {
-      showInfo('Please enter a valid 10-digit phone number.', { title: 'One more thing' });
+      showInfo('Please enter a valid 10-digit phone number.', { title: 'Please enter your phone number' });
       return;
     }
 
     if (orderType === 'dine-in' && !tableNumber.trim()) {
-      showInfo('Please enter your table number for a dine-in order.', { title: 'One more thing' });
+      showInfo('Please enter your table number for a dine-in order.', { title: 'Please enter table number' });
       return;
     }
 
@@ -483,7 +484,7 @@ const CustomerCart = () => {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--ad-bg-2)', minHeight: '100vh', paddingBottom: 'calc(260px + env(safe-area-inset-bottom, 0px))' }}>
+    <div style={{ backgroundColor: 'var(--ad-bg-2)', minHeight: '100vh', paddingBottom: 'calc(170px + env(safe-area-inset-bottom, 0px))' }}>
       {/* Header */}
       <Paper
         sx={{
@@ -516,7 +517,7 @@ const CustomerCart = () => {
         </Container>
       </Paper>
 
-      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3 }, px: { xs: 1, sm: 2 }, pb: { xs: '260px', sm: '220px' } }}>
+      <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 3 }, px: { xs: 1, sm: 2 }, pb: { xs: '170px', sm: '150px' } }}>
         {cartItems.length === 0 ? (
           <Paper sx={{ p: 6, textAlign: 'center', border: '1px dashed var(--ad-line-strong)' }}>
             <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 22, mb: 0.5 }}>
@@ -541,23 +542,23 @@ const CustomerCart = () => {
                 <Card 
                   key={item._id} 
                   sx={{ 
-                    mb: { xs: 1.5, sm: 2 },
-                    borderRadius: { xs: '8px', sm: '12px' },
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    mb: { xs: 1, sm: 1.5 },
+                    borderRadius: '10px',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                     backgroundColor: 'var(--ad-surface)',
                     '&:hover': {
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
                     }
                   }}
                 >
-                  <div style={{ display: 'flex', padding: '12px', gap: '12px' }}>
+                  <div style={{ display: 'flex', padding: '10px', gap: '10px' }}>
                     <div style={{ position: 'relative', flexShrink: 0 }}>
                       <CardMedia
                         component="img"
                         sx={{ 
-                          width: { xs: 68, sm: 80 }, 
-                          height: { xs: 68, sm: 80 }, 
-                          borderRadius: { xs: 1.5, sm: 2 },
+                          width: { xs: 60, sm: 72 }, 
+                          height: { xs: 60, sm: 72 }, 
+                          borderRadius: 1.5,
                         }}
                         image={item.imageUrl || 'https://via.placeholder.com/150?text=Food'}
                         alt={item.name}
@@ -586,60 +587,56 @@ const CustomerCart = () => {
                         </IconButton>
                       )}
                     </div>
-                    <CardContent sx={{ flex: 1, py: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {/* Veg/Non-veg indicator */}
+                    <CardContent sx={{ flex: 1, py: 0, px: '0 !important' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0, pr: 1 }}>
+                          {/* Veg/Non-veg indicator */}
+                          <div
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              border: `2px solid ${item.isVeg ? 'var(--ad-basil)' : 'var(--ad-ember)'}`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
                             <div
                               style={{
-                                width: '14px',
-                                height: '14px',
-                                border: `2px solid ${item.isVeg ? 'var(--ad-basil)' : 'var(--ad-ember)'}`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
+                                width: '5px',
+                                height: '5px',
+                                borderRadius: '50%',
+                                backgroundColor: item.isVeg ? 'var(--ad-basil)' : 'var(--ad-ember)',
                               }}
-                            >
-                              <div
-                                style={{
-                                  width: '6px',
-                                  height: '6px',
-                                  borderRadius: '50%',
-                                  backgroundColor: item.isVeg ? 'var(--ad-basil)' : 'var(--ad-ember)',
-                                }}
-                              />
-                            </div>
-                            <Typography variant="body1" fontWeight="bold">
-                              {item.name}
-                            </Typography>
+                            />
                           </div>
-                          {/* Calories Display */}
-                          {item.calories && (
-                            <Typography variant="caption" sx={{ color: 'var(--ad-warn)', display: 'flex', alignItems: 'center', gap: '4px', mt: 0.5 }}>
-                              🔥 {item.calories} kcal
-                            </Typography>
-                          )}
-                          <Box sx={{ mt: 0.75 }}>
-                            <ClimateLabel food={item} />
-                          </Box>
-                          <Typography
-                            sx={{ fontFamily: FONT_DISPLAY, fontSize: 19, fontWeight: 600, color: 'var(--ad-ember)', mt: 1 }}
-                          >
-                            {formatINR(item.price, false)}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            Qty: {item.quantity}
+                          <Typography variant="body2" fontWeight="bold" noWrap sx={{ fontSize: { xs: '0.9rem', sm: '0.95rem' } }}>
+                            {item.name}
                           </Typography>
                         </div>
                         <IconButton
                           size="small"
                           onClick={() => removeItem(item._id)}
                           color="error"
+                          sx={{ p: 0.5, mt: -0.5, mr: -0.5 }}
                         >
-                          <DeleteIcon />
+                          <DeleteIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </div>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.75, mt: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                          <ClimateLabel food={item} />
+                          {item.calories && (
+                            <Typography variant="caption" sx={{ color: 'var(--ad-warn)', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              🔥 {item.calories} kcal
+                            </Typography>
+                          )}
+                        </Box>
+                        <Typography sx={{ fontFamily: FONT_DISPLAY, fontSize: 16, fontWeight: 700, color: 'var(--ad-ember)' }}>
+                          {formatINR(getItemTotal(item))}
+                        </Typography>
+                      </Box>
 
                       {/* Customizations Accordion Dropdown */}
                       {item.customizations && item.customizations.length > 0 && (
@@ -811,13 +808,14 @@ const CustomerCart = () => {
                           size="small"
                           onClick={() => openCustomizeDialog(item)}
                           sx={{
-                            marginTop: '12px',
+                            marginTop: '8px',
                             borderColor: '#e2552b',
                             color: '#e2552b',
                             fontWeight: 600,
-                            fontSize: '0.8rem',
-                            padding: '8px',
-                            borderRadius: '8px',
+                            fontSize: '0.72rem',
+                            py: 0.4,
+                            px: 1,
+                            borderRadius: '6px',
                             textTransform: 'none',
                             '&:hover': {
                               borderColor: '#f2a541',
@@ -830,29 +828,29 @@ const CustomerCart = () => {
                       )}
 
                       {/* Quantity Controls */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '12px' }}>
-                        <div
-                          style={{
-                            display: 'flex',
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1 }}>
+                        <Box
+                          sx={{
+                            display: 'inline-flex',
                             alignItems: 'center',
                             border: '1px solid var(--ad-line)',
-                            borderRadius: '16px',
+                            borderRadius: '14px',
+                            bgcolor: 'var(--ad-surface-2)',
                           }}
                         >
                           <IconButton
                             size="small"
                             onClick={() => updateQuantity(item._id, -1)}
-                            sx={{
-                              color: '#e2552b',
-                            }}
+                            sx={{ color: '#e2552b', p: 0.35 }}
                           >
-                            <RemoveIcon />
+                            <RemoveIcon sx={{ fontSize: 16 }} />
                           </IconButton>
                           <Typography
                             sx={{
-                              px: 2,
+                              px: 1.25,
                               fontWeight: 'bold',
-                              minWidth: 30,
+                              fontSize: '0.85rem',
+                              minWidth: 24,
                               textAlign: 'center',
                             }}
                           >
@@ -861,17 +859,15 @@ const CustomerCart = () => {
                           <IconButton
                             size="small"
                             onClick={() => updateQuantity(item._id, 1)}
-                            sx={{
-                              color: '#e2552b',
-                            }}
+                            sx={{ color: '#e2552b', p: 0.35 }}
                           >
-                            <AddIcon />
+                            <AddIcon sx={{ fontSize: 16 }} />
                           </IconButton>
-                        </div>
-                        <Typography variant="caption" color="text.secondary">
-                          ₹{item.price} each
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                          ₹{item.price} each · Qty: {item.quantity}
                         </Typography>
-                      </div>
+                      </Box>
                     </CardContent>
                   </div>
                 </Card>
@@ -1142,204 +1138,155 @@ const CustomerCart = () => {
         onClose={() => !loading && setCheckoutDialogOpen(false)} 
         maxWidth="sm" 
         fullWidth
-        fullScreen={typeof window !== 'undefined' && window.innerWidth < 600}
         PaperProps={{
           sx: {
-            m: { xs: 0, sm: 2 },
-            borderRadius: { xs: 0, sm: '12px' },
+            m: { xs: 1.5, sm: 2 },
+            borderRadius: 'var(--ad-radius)',
             backgroundColor: 'var(--ad-surface)',
             border: '1px solid var(--ad-line)',
           }
         }}
       >
-        <DialogTitle sx={{ borderBottom: '1px solid var(--ad-line)' }}>
+        <DialogTitle sx={{ py: 1.25, px: { xs: 2, sm: 2.5 }, borderBottom: '1px solid var(--ad-line)', fontFamily: FONT_DISPLAY, fontWeight: 600, fontSize: '1.15rem' }}>
           Complete Your Order
         </DialogTitle>
-        <DialogContent sx={{ mt: 2, backgroundColor: 'var(--ad-surface)' }}>
-          <TextField
-            fullWidth
-            label="Your Name"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            margin="normal"
-            required
-            placeholder="Enter your full name"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': {
-                  borderColor: '#e2552b',
+        <DialogContent sx={{ px: { xs: 2, sm: 2.5 }, py: 1.5, mt: 0, backgroundColor: 'var(--ad-surface)' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.25, mt: 1 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Your Name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              required
+              placeholder="Enter your full name"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 'var(--ad-radius-sm)',
+                  '&.Mui-focused fieldset': { borderColor: '#e2552b' },
                 },
-              },
-              '& label.Mui-focused': {
-                color: '#e2552b',
-              },
-            }}
-          />
-          <TextField
-            fullWidth
-            label="Phone Number"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            margin="normal"
-            required
-            placeholder="Enter 10-digit phone number"
-            inputProps={{ maxLength: 10 }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': {
-                  borderColor: '#e2552b',
-                },
-              },
-              '& label.Mui-focused': {
-                color: '#e2552b',
-              },
-            }}
-          />
-
-          <FormControl component="fieldset" sx={{ mt: 2, mb: 2, width: '100%' }}>
-            <FormLabel 
-              component="legend" 
-              sx={{ 
-                fontWeight: 700,
-                fontSize: '1rem',
-                color: 'var(--ad-text)',
-                mb: 1.5,
+                '& label.Mui-focused': { color: '#e2552b' },
               }}
-            >
+            />
+            <TextField
+              fullWidth
+              size="small"
+              label="Phone Number"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              required
+              placeholder="10-digit number"
+              inputProps={{ maxLength: 10 }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 'var(--ad-radius-sm)',
+                  '&.Mui-focused fieldset': { borderColor: '#e2552b' },
+                },
+                '& label.Mui-focused': { color: '#e2552b' },
+              }}
+            />
+          </Box>
+
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Order Type
-            </FormLabel>
-            <RadioGroup
-              value={orderType}
-              onChange={(e) => setOrderType(e.target.value)}
-              sx={{ gap: 1.5 }}
-            >
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 0.5 }}>
               <Paper
-                elevation={orderType === 'dine-in' ? 3 : 0}
-                sx={{
-                  p: 2,
-                  border: orderType === 'dine-in' ? '2px solid #e2552b' : `2px solid ${'var(--ad-line)'}`,
-                  borderRadius: '12px',
-                  background: orderType === 'dine-in' ? 'linear-gradient(135deg, rgba(226, 85, 43, 0.1) 0%, rgba(242, 165, 65, 0.1) 100%)' : 'var(--ad-surface)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#e2552b',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(226, 85, 43, 0.2)',
-                  },
-                }}
+                elevation={0}
                 onClick={() => setOrderType('dine-in')}
+                sx={{
+                  p: 1,
+                  px: 1.25,
+                  border: orderType === 'dine-in' ? '2px solid #e2552b' : '1px solid var(--ad-line)',
+                  borderRadius: 'var(--ad-radius-sm)',
+                  bgcolor: orderType === 'dine-in' ? 'var(--ad-ember-wash)' : 'var(--ad-surface-2)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <FormControlLabel
-                  value="dine-in"
-                  control={
-                    <Radio 
-                      sx={{
-                        color: '#e2552b',
-                        '&.Mui-checked': {
-                          color: '#e2552b',
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                      <RestaurantIcon sx={{ color: orderType === 'dine-in' ? '#e2552b' : 'var(--ad-text-3)' }} />
-                      <Box>
-                        <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
-                          Dine In
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Enjoy your meal at the restaurant
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                  sx={{ m: 0, width: '100%' }}
-                />
+                <RestaurantIcon sx={{ fontSize: 20, color: orderType === 'dine-in' ? '#e2552b' : 'text.secondary' }} />
+                <Box>
+                  <Typography variant="body2" fontWeight={700} sx={{ color: 'var(--ad-text)', lineHeight: 1.2 }}>
+                    Dine In
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                    Eat at table
+                  </Typography>
+                </Box>
               </Paper>
               <Paper
-                elevation={orderType === 'takeaway' ? 3 : 0}
-                sx={{
-                  p: 2,
-                  border: orderType === 'takeaway' ? '2px solid #e2552b' : `2px solid ${'var(--ad-line)'}`,
-                  borderRadius: '12px',
-                  background: orderType === 'takeaway' ? 'linear-gradient(135deg, rgba(226, 85, 43, 0.1) 0%, rgba(242, 165, 65, 0.1) 100%)' : 'var(--ad-surface)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#e2552b',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(226, 85, 43, 0.2)',
-                  },
-                }}
+                elevation={0}
                 onClick={() => setOrderType('takeaway')}
+                sx={{
+                  p: 1,
+                  px: 1.25,
+                  border: orderType === 'takeaway' ? '2px solid #e2552b' : '1px solid var(--ad-line)',
+                  borderRadius: 'var(--ad-radius-sm)',
+                  bgcolor: orderType === 'takeaway' ? 'var(--ad-ember-wash)' : 'var(--ad-surface-2)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <FormControlLabel
-                  value="takeaway"
-                  control={
-                    <Radio 
-                      sx={{
-                        color: '#e2552b',
-                        '&.Mui-checked': {
-                          color: '#e2552b',
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                      <TakeoutDiningIcon sx={{ color: orderType === 'takeaway' ? '#e2552b' : 'var(--ad-text-3)' }} />
-                      <Box>
-                        <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
-                          Takeaway
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Pick up your order to go
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                  sx={{ m: 0, width: '100%' }}
-                />
+                <TakeoutDiningIcon sx={{ fontSize: 20, color: orderType === 'takeaway' ? '#e2552b' : 'text.secondary' }} />
+                <Box>
+                  <Typography variant="body2" fontWeight={700} sx={{ color: 'var(--ad-text)', lineHeight: 1.2 }}>
+                    Takeaway
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                    Pick up to go
+                  </Typography>
+                </Box>
               </Paper>
-            </RadioGroup>
-          </FormControl>
+            </Box>
+          </Box>
 
           {orderType === 'dine-in' && (
             myTable ? (
-              // Already sitting somewhere: the table is a fact, not a choice.
               <Box
                 sx={{
-                  mt: 2,
-                  p: 1.75,
+                  mt: 1.25,
+                  p: 1,
+                  px: 1.5,
                   borderRadius: 'var(--ad-radius-sm)',
                   border: '1px solid var(--ad-line)',
                   bgcolor: 'var(--ad-basil-wash)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                 }}
               >
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                  Your table
-                </Typography>
-                <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
-                  Table {myTable.number}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  This is where your food will go. Ask a member of staff if you have moved.
+                <div>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    Your Assigned Table
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 16 }}>
+                    Table {myTable.number}
+                  </Typography>
+                </div>
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                  Food will be delivered here
                 </Typography>
               </Box>
             ) : (
               <TextField
                 select
                 fullWidth
-                label="Table Number"
+                size="small"
+                label="Select Table Number"
                 value={tableNumber}
                 onChange={(e) => setTableNumber(e.target.value)}
-                margin="normal"
                 required
-                helperText="Only tables nobody is sitting at can be chosen"
                 sx={{
+                  mt: 1.25,
                   '& .MuiOutlinedInput-root': {
+                    borderRadius: 'var(--ad-radius-sm)',
                     '&.Mui-focused fieldset': { borderColor: '#e2552b' },
                   },
                   '& label.Mui-focused': { color: '#e2552b' },
@@ -1347,7 +1294,7 @@ const CustomerCart = () => {
               >
                 {tables.length === 0 && (
                   <MenuItem value="" disabled>
-                    Loading the tables…
+                    Loading tables…
                   </MenuItem>
                 )}
                 {tables.map((table) => (
@@ -1362,184 +1309,139 @@ const CustomerCart = () => {
             )
           )}
 
-          <FormControl component="fieldset" sx={{ mt: 2, mb: 2, width: '100%' }}>
-            <FormLabel 
-              component="legend" 
-              sx={{ 
-                fontWeight: 700,
-                fontSize: '1rem',
-                color: 'var(--ad-text)',
-                mb: 1.5,
-              }}
-            >
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Payment Method
-            </FormLabel>
-            <RadioGroup
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              sx={{ gap: 1.5 }}
-            >
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mt: 0.5 }}>
               <Paper
-                elevation={paymentMethod === 'cash' ? 3 : 0}
-                sx={{
-                  p: 2,
-                  border: paymentMethod === 'cash' ? '2px solid #e2552b' : `2px solid ${'var(--ad-line)'}`,
-                  borderRadius: '12px',
-                  background: paymentMethod === 'cash' ? 'linear-gradient(135deg, rgba(226, 85, 43, 0.1) 0%, rgba(242, 165, 65, 0.1) 100%)' : 'var(--ad-surface)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#e2552b',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(226, 85, 43, 0.2)',
-                  },
-                }}
+                elevation={0}
                 onClick={() => setPaymentMethod('cash')}
+                sx={{
+                  p: 1,
+                  px: 1.25,
+                  border: paymentMethod === 'cash' ? '2px solid #e2552b' : '1px solid var(--ad-line)',
+                  borderRadius: 'var(--ad-radius-sm)',
+                  bgcolor: paymentMethod === 'cash' ? 'var(--ad-ember-wash)' : 'var(--ad-surface-2)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <FormControlLabel
-                  value="cash"
-                  control={
-                    <Radio 
-                      sx={{
-                        color: '#e2552b',
-                        '&.Mui-checked': {
-                          color: '#e2552b',
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Box sx={{ ml: 1 }}>
-                      <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
-                        💵 Cash on Delivery
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Pay with cash when your order arrives
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ m: 0, width: '100%' }}
+                <Radio
+                  size="small"
+                  checked={paymentMethod === 'cash'}
+                  sx={{ p: 0, color: '#e2552b', '&.Mui-checked': { color: '#e2552b' } }}
                 />
+                <Box>
+                  <Typography variant="body2" fontWeight={700} sx={{ color: 'var(--ad-text)', lineHeight: 1.2 }}>
+                    💵 Cash
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                    Pay upon arrival
+                  </Typography>
+                </Box>
               </Paper>
               <Paper
-                elevation={paymentMethod === 'online' ? 3 : 0}
-                sx={{
-                  p: 2,
-                  border: paymentMethod === 'online' ? '2px solid #e2552b' : `2px solid ${'var(--ad-line)'}`,
-                  borderRadius: '12px',
-                  background: paymentMethod === 'online' ? 'linear-gradient(135deg, rgba(226, 85, 43, 0.1) 0%, rgba(242, 165, 65, 0.1) 100%)' : 'var(--ad-surface)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#e2552b',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(226, 85, 43, 0.2)',
-                  },
-                }}
+                elevation={0}
                 onClick={() => setPaymentMethod('online')}
+                sx={{
+                  p: 1,
+                  px: 1.25,
+                  border: paymentMethod === 'online' ? '2px solid #e2552b' : '1px solid var(--ad-line)',
+                  borderRadius: 'var(--ad-radius-sm)',
+                  bgcolor: paymentMethod === 'online' ? 'var(--ad-ember-wash)' : 'var(--ad-surface-2)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  transition: 'all 0.2s ease',
+                }}
               >
-                <FormControlLabel
-                  value="online"
-                  control={
-                    <Radio 
-                      sx={{
-                        color: '#e2552b',
-                        '&.Mui-checked': {
-                          color: '#e2552b',
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Box sx={{ ml: 1 }}>
-                      <Typography variant="body1" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>
-                        💳 Online Payment
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        UPI • Card • Net Banking • Wallet
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ m: 0, width: '100%' }}
+                <Radio
+                  size="small"
+                  checked={paymentMethod === 'online'}
+                  sx={{ p: 0, color: '#e2552b', '&.Mui-checked': { color: '#e2552b' } }}
                 />
+                <Box>
+                  <Typography variant="body2" fontWeight={700} sx={{ color: 'var(--ad-text)', lineHeight: 1.2 }}>
+                    💳 Online
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                    Card / Net Banking
+                  </Typography>
+                </Box>
               </Paper>
-            </RadioGroup>
-          </FormControl>
+            </Box>
+          </Box>
 
           <Paper 
             sx={{ 
-              p: 3, 
-              mt: 3, 
-              background: themeMode === 'dark' 
-                ? 'linear-gradient(135deg, rgba(226, 85, 43, 0.15) 0%, rgba(242, 165, 65, 0.15) 100%)'
-                : 'linear-gradient(135deg, rgba(226, 85, 43, 0.05) 0%, rgba(242, 165, 65, 0.05) 100%)',
-              border: '2px solid rgba(226, 85, 43, 0.2)',
-              borderRadius: '12px',
+              p: 1.5, 
+              mt: 1.5, 
+              bgcolor: 'var(--ad-surface-2)',
+              border: '1px solid var(--ad-line)',
+              borderRadius: 'var(--ad-radius-sm)',
             }}
           >
             <Typography 
-              variant="h6" 
+              variant="subtitle2" 
               fontWeight="bold" 
-              gutterBottom
               sx={{ 
-                color: '#e2552b',
+                color: 'var(--ad-ember)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
+                gap: 0.75,
+                mb: 1,
               }}
             >
               🧾 Order Summary
             </Typography>
-            <Box sx={{ mt: 2 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <Typography variant="body1" color="text.secondary">
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <Typography variant="caption" color="text.secondary">
                   Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)})
                 </Typography>
-                <Typography variant="body1" fontWeight="600">₹{getSubtotal().toFixed(2)}</Typography>
+                <Typography variant="caption" fontWeight="600">{formatINR(getSubtotal())}</Typography>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <Typography variant="body1" color="text.secondary">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <Typography variant="caption" color="text.secondary">
                   GST {(GST_RATE * 100).toFixed(0)}% (CGST 2.5% + SGST 2.5%)
                 </Typography>
-                <Typography variant="body1" fontWeight="600">₹{getTax().toFixed(2)}</Typography>
+                <Typography variant="caption" fontWeight="600">{formatINR(getTax())}</Typography>
               </div>
               {couponDiscount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <Typography variant="body1" sx={{ color: '#2f7d62' }}>Coupon Discount</Typography>
-                  <Typography variant="body1" fontWeight="600" sx={{ color: '#2f7d62' }}>-₹{couponDiscount.toFixed(2)}</Typography>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <Typography variant="caption" sx={{ color: 'var(--ad-basil)' }}>Coupon Discount</Typography>
+                  <Typography variant="caption" fontWeight="600" sx={{ color: 'var(--ad-basil)' }}>-₹{couponDiscount.toFixed(2)}</Typography>
                 </div>
               )}
-              {/* The kitchen cooks the dishes side by side, so the wait is the
-                  longest dish on the order rather than the sum of them. */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <Typography variant="body1" color="text.secondary">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <Typography variant="caption" color="text.secondary">
                   Estimated preparation
                 </Typography>
-                <Typography variant="body1" fontWeight="600">
+                <Typography variant="caption" fontWeight="600">
                   ~{getEstimatedPrepMinutes()} min
                 </Typography>
               </div>
-              <Divider sx={{ my: 2, borderColor: 'rgba(226, 85, 43, 0.3)' }} />
+              <Divider sx={{ my: 1, borderColor: 'var(--ad-line)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>Total Amount</Typography>
+                <Typography variant="body2" fontWeight="bold" sx={{ color: 'var(--ad-text)' }}>Total Amount</Typography>
                 <Typography 
-                  variant="h5" 
+                  variant="subtitle1" 
                   fontWeight="bold" 
-                  sx={{ 
-                    background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
+                  sx={{ color: 'var(--ad-ember)' }}
                 >
-                  ₹{getTotal().toFixed(2)}
+                  {formatINR(getTotal())}
                 </Typography>
               </div>
-            </Box>
+            </div>
           </Paper>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setCheckoutDialogOpen(false)} disabled={loading}>
+        <DialogActions sx={{ px: { xs: 2, sm: 2.5 }, py: 1.5, borderTop: '1px solid var(--ad-line)' }}>
+          <Button onClick={() => setCheckoutDialogOpen(false)} disabled={loading} sx={{ textTransform: 'none', color: 'text.secondary' }}>
             Cancel
           </Button>
           <Button
@@ -1547,26 +1449,21 @@ const CustomerCart = () => {
             onClick={handlePlaceOrder}
             disabled={loading}
             sx={{
-              background: 'linear-gradient(135deg, #e2552b 0%, #f2a541 100%)',
-              px: 4,
-              py: 1.5,
-              fontSize: '1rem',
+              bgcolor: 'var(--ad-ember)',
+              color: '#ffffff',
+              px: 3,
+              py: 1,
+              fontSize: '0.95rem',
               fontWeight: 700,
-              borderRadius: '10px',
+              borderRadius: 'var(--ad-radius-sm)',
+              textTransform: 'none',
               boxShadow: '0 4px 14px rgba(226, 85, 43, 0.4)',
               '&:hover': {
-                background: 'linear-gradient(135deg, #f2a541 0%, #e2552b 100%)',
-                boxShadow: '0 6px 20px rgba(226, 85, 43, 0.6)',
-                transform: 'translateY(-2px)',
+                bgcolor: 'var(--ad-ember-deep)',
               },
-              '&:disabled': {
-                background: '#e5e7eb',
-                color: 'var(--ad-text-3)',
-              },
-              transition: 'all 0.3s ease',
             }}
           >
-            {loading ? '⏳ Placing Order...' : '🛒 Place Order'}
+            {loading ? 'Placing Order…' : `Place Order · ${formatINR(getTotal())}`}
           </Button>
         </DialogActions>
       </Dialog>

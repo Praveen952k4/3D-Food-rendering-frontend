@@ -634,7 +634,7 @@ const Landing = () => {
                 </div>
               </div>
 
-              <div className="ad-eco-row" style={{ marginTop: '24px' }}>
+              <div className="ad-eco-row">
                 <header>
                   <b>Carbon</b>
                   <span>1.4 kg CO₂e</span>
@@ -643,6 +643,33 @@ const Landing = () => {
                   <i style={{ width: "28%" }} />
                 </div>
               </div>
+              {/* <div className="ad-eco-row">
+                <header>
+                  <b>Water</b>
+                  <span>610 L</span>
+                </header>
+                <div className="ad-bar is-warm">
+                  <i style={{ width: "54%" }} />
+                </div>
+              </div>
+              <div className="ad-eco-row">
+                <header>
+                  <b>Local sourcing</b>
+                  <span>82%</span>
+                </header>
+                <div className="ad-bar">
+                  <i style={{ width: "82%" }} />
+                </div>
+              </div>
+              <div className="ad-eco-row">
+                <header>
+                  <b>Paper menus avoided</b>
+                  <span>100%</span>
+                </header>
+                <div className="ad-bar">
+                  <i style={{ width: "100%" }} />
+                </div>
+              </div> */}
             </div>
           </div>
         </section>

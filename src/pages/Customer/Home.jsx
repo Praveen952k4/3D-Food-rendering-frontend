@@ -1226,23 +1226,23 @@ const CustomerHome = () => {
             bottom: 0,
             left: 0,
             right: 0,
-            height: "calc(105px + env(safe-area-inset-bottom, 0px))",
-            paddingBottom: "max(6px, env(safe-area-inset-bottom, 6px))",
-            background: "color-mix(in srgb, " + palette.background + " 75%, transparent)",
-            backdropFilter: "blur(14px)",
+            height: "calc(118px + env(safe-area-inset-bottom, 0px))",
+            paddingBottom: "max(8px, env(safe-area-inset-bottom, 8px))",
+            background: "color-mix(in srgb, " + palette.background + " 80%, transparent)",
+            backdropFilter: "blur(16px)",
             zIndex: 35,
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            padding: "0 8px",
-            gap: "8px",
+            padding: "0 14px",
+            gap: "12px",
           }}
         >
           {/* LEFT: Minus Placeholder / Button */}
           <div
             style={{
-              width: "32px",
-              height: "32px",
+              width: "36px",
+              height: "36px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1274,21 +1274,21 @@ const CustomerHome = () => {
                 sx={{
                   background: "linear-gradient(135deg, #c5412f, #c5412f)",
                   color: "#fff",
-                  width: "32px",
-                  height: "32px",
+                  width: "36px",
+                  height: "36px",
                   "&:hover": {
                     background: "linear-gradient(135deg, #c5412f, #a8371f)",
-                    transform: "scale(1.1)",
+                    transform: "scale(1.08)",
                   },
                   boxShadow: "0 4px 12px rgba(197, 65, 47, 0.4)",
                   transition: "all 0.3s ease",
                 }}
               >
-                <RemoveIcon sx={{ fontSize: "16px" }} />
+                <RemoveIcon sx={{ fontSize: "18px" }} />
               </IconButton>
             ) : (
               // Placeholder when minus hidden
-              <div style={{ width: "32px", height: "32px" }}></div>
+              <div style={{ width: "36px", height: "36px" }}></div>
             )}
           </div>
 
@@ -1301,13 +1301,15 @@ const CustomerHome = () => {
               whiteSpace: "nowrap",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
+              gap: "16px",
               flex: 1,
               scrollBehavior: "smooth",
               WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
-              paddingTop: "15px",
-              paddingBottom: "15px",
+              paddingTop: "16px",
+              paddingBottom: "16px",
+              paddingLeft: "4px",
+              paddingRight: "4px",
             }}
             className="food-carousel-scroll"
           >
@@ -1337,10 +1339,10 @@ const CustomerHome = () => {
                     alignItems: "center",
                     gap: "6px",
                     cursor: "pointer",
-                    minWidth: isActive ? "80px" : "64px",
+                    minWidth: isActive ? "88px" : "72px",
                     transition: "all 0.3s ease",
-                    transform: isActive ? "scale(1.15)" : "scale(1)",
-                    opacity: isActive ? 1 : 0.7,
+                    transform: isActive ? "scale(1.12)" : "scale(1)",
+                    opacity: isActive ? 1 : 0.75,
                     position: "relative",
                     overflow: "visible",
                   }}
@@ -1348,8 +1350,8 @@ const CustomerHome = () => {
                   {/* IMAGE CIRCLE */}
                   <div
                     style={{
-                      width: isActive ? "64px" : "52px",
-                      height: isActive ? "64px" : "52px",
+                      width: isActive ? "68px" : "58px",
+                      height: isActive ? "68px" : "58px",
                       borderRadius: "50%",
                       overflow: "hidden",
                       border: isActive
@@ -1504,19 +1506,19 @@ const CustomerHome = () => {
               sx={{
                 background: "linear-gradient(135deg, #2f7d62, #2f7d62)",
                 color: "#fff",
-                width: "32px",
-                height: "32px",
-                minWidth: "32px",
+                width: "36px",
+                height: "36px",
+                minWidth: "36px",
                 flexShrink: 0,
                 "&:hover": {
                   background: "linear-gradient(135deg, #2f7d62, #276852)",
-                  transform: "scale(1.1)",
+                  transform: "scale(1.08)",
                 },
                 boxShadow: "0 4px 12px rgba(47, 125, 98, 0.4)",
                 transition: "all 0.3s ease",
               }}
             >
-              <AddIcon sx={{ fontSize: "16px" }} />
+              <AddIcon sx={{ fontSize: "18px" }} />
             </IconButton>
           )}
         </div>

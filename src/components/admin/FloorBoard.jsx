@@ -5,6 +5,7 @@ import io from 'socket.io-client';
 import { getFloorTables, freeTable, setTableFrozen } from 'services/api';
 import { useMessage } from 'components/ui/MessageDialog';
 import { SkeletonText } from 'components/ui/Loaders';
+import { sortTablesByNumber } from 'utils/tableUtils';
 
 /**
  * The floor as it stands: which tables are free, which are taken, how long
@@ -115,7 +116,7 @@ const FloorBoard = () => {
     }
   };
 
-  const tables = useMemo(() => data?.tables || [], [data]);
+  const tables = useMemo(() => sortTablesByNumber(data?.tables || []), [data]);
   const taken = tables.filter((table) => table.isOccupied).length;
   const frozen = tables.filter((table) => table.isFrozen).length;
   const free = tables.length - taken - frozen;
@@ -217,23 +218,13 @@ const FloorBoard = () => {
                       label={`${table.activeOrders} cooking`}
                       sx={{ mt: 0.75, bgcolor: 'var(--ad-saffron-wash)', color: 'var(--ad-warn)', fontWeight: 600 }}
                     />
-                  ) : table.canLeave ? (
-                    <Chip
-                      size="small"
-                      label={
-                        table.freesItselfInMinutes
-                          ? `Free in ${table.freesItselfInMinutes} min`
-                          : 'Freeing now'
-                      }
-                      sx={{ mt: 0.75, bgcolor: 'var(--ad-basil-wash)', color: 'var(--ad-basil)', fontWeight: 600 }}
-                    />
-                  ) : (
+                  ) : !table.canLeave ? (
                     <Chip
                       size="small"
                       label="Not ordered yet"
                       sx={{ mt: 0.75, bgcolor: 'var(--ad-bg-2)', color: 'text.secondary', fontWeight: 600 }}
                     />
-                  )}
+                  ) : null}
 
                   <Button
                     size="small"

@@ -445,43 +445,105 @@ const OrderManagement = () => {
 
       {/* status / payment dialog */}
       <Dialog open={!!selectedOrder} onClose={closeDialog} fullWidth maxWidth="xs">
-        <DialogTitle>{updateType === 'status' ? 'Update order status' : 'Update payment status'}</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            {selectedOrder?.orderNumber} · {selectedOrder?.customerName}
-          </Typography>
+        <DialogTitle sx={{ pb: 1, fontFamily: FONT_DISPLAY, fontWeight: 600 }}>
+          {updateType === 'status'
+            ? `Update Order Status · #${selectedOrder?.orderNumber || ''}`
+            : `Update Payment Status · #${selectedOrder?.orderNumber || ''}`}
+        </DialogTitle>
+        <DialogContent sx={{ pt: '12px !important' }}>
+          <Box sx={{ mb: 2, p: 1.5, bgcolor: 'var(--ad-surface-2)', borderRadius: 'var(--ad-radius-sm)', border: '1px solid var(--ad-line)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+              <Typography variant="body2" fontWeight={600} sx={{ color: 'var(--ad-text)' }}>
+                {selectedOrder?.customerName || 'Customer'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {selectedOrder?.tableNumber ? `Table ${selectedOrder.tableNumber}` : (selectedOrder?.orderType || 'Dine-in')}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                {updateType === 'status' ? 'Current Order Status:' : 'Current Payment Status:'}
+              </Typography>
+              <Chip
+                size="small"
+                label={updateType === 'status' ? selectedOrder?.status : selectedOrder?.paymentStatus}
+                sx={{
+                  fontWeight: 700,
+                  textTransform: 'capitalize',
+                  fontSize: '0.75rem',
+                  ...(updateType === 'status' && STATUS_TONE[selectedOrder?.status]
+                    ? { bgcolor: STATUS_TONE[selectedOrder.status].wash, color: STATUS_TONE[selectedOrder.status].fg }
+                    : {}),
+                }}
+              />
+            </Box>
+          </Box>
+
           {updateType === 'status' ? (
-            <FormControl fullWidth>
-              <InputLabel>Order status</InputLabel>
-              <Select label="Order status" value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
+            <FormControl fullWidth size="small">
+              <InputLabel id="order-status-select-label">Select New Status</InputLabel>
+              <Select
+                labelId="order-status-select-label"
+                label="Select New Status"
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+              >
                 {['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'].map((s) => (
                   <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>
-                    {s}
+                    {s.charAt(0).toUpperCase() + s.slice(1)} {s === selectedOrder?.status ? '(Current)' : ''}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           ) : (
-            <FormControl fullWidth>
-              <InputLabel>Payment status</InputLabel>
+            <FormControl fullWidth size="small">
+              <InputLabel id="payment-status-select-label">Select New Payment Status</InputLabel>
               <Select
-                label="Payment status"
+                labelId="payment-status-select-label"
+                label="Select New Payment Status"
                 value={newPaymentStatus}
                 onChange={(e) => setNewPaymentStatus(e.target.value)}
               >
                 {['pending', 'incomplete', 'completed', 'failed'].map((s) => (
                   <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>
-                    {s}
+                    {s.charAt(0).toUpperCase() + s.slice(1)} {s === selectedOrder?.paymentStatus ? '(Current)' : ''}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeDialog}>Cancel</Button>
-          <Button onClick={handleUpdate} variant="contained" disabled={saving}>
-            {saving ? 'Saving…' : 'Update'}
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1 }}>
+          <Button onClick={closeDialog} sx={{ textTransform: 'none', color: 'text.secondary' }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            variant="contained"
+            disabled={
+              saving ||
+              (updateType === 'status'
+                ? !newStatus || newStatus === selectedOrder?.status
+                : !newPaymentStatus || newPaymentStatus === selectedOrder?.paymentStatus)
+            }
+            sx={{
+              bgcolor: 'var(--ad-ember)',
+              color: '#ffffff',
+              borderRadius: 'var(--ad-radius-sm)',
+              fontWeight: 600,
+              textTransform: 'none',
+              '&:hover': { bgcolor: 'var(--ad-ember-deep)' },
+            }}
+          >
+            {saving
+              ? 'Saving…'
+              : updateType === 'status'
+              ? newStatus && newStatus !== selectedOrder?.status
+                ? `Set Status to ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`
+                : 'Select New Status'
+              : newPaymentStatus && newPaymentStatus !== selectedOrder?.paymentStatus
+              ? `Set Payment to ${newPaymentStatus.charAt(0).toUpperCase() + newPaymentStatus.slice(1)}`
+              : 'Select New Payment'}
           </Button>
         </DialogActions>
       </Dialog>
