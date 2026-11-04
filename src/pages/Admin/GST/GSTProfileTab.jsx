@@ -36,8 +36,8 @@ const GSTProfileTab = () => {
   const [profile, setProfile] = useState({
     isGstRegistered: true,
     gstin: business.gstin || '33AAACA1234A1Z5',
-    legalBusinessName: business.name || 'AR Automated Dining Pvt Ltd',
-    tradeName: 'AR Automated Dining',
+    legalBusinessName: business.name || 'UniDine Pvt Ltd',
+    tradeName: 'UniDine',
     registrationType: 'regular',
     state: 'Tamil Nadu',
     stateCode: '33',

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AR Automated Dining — global stylesheet
+   UniDine — global stylesheet
    The design tokens live in styles/theme.css ("Ember & Basil"). This file
    maps the older generic token names (--accent / --bg / --ink ...) onto that
    ramp so existing CSS keeps working, and holds the few global resets.

@@ -7,7 +7,7 @@ import TalkToSalesDialog from "../components/sales/TalkToSalesDialog";
 import "./Landing.css";
 
 /* --------------------------------------------------------------------------
-   Content is drawn from the project deck: "AR Automated Dining",
+   Content is drawn from the project deck: "UniDine",
    Project Phase I / 20AIPJ701.
    -------------------------------------------------------------------------- */
 
@@ -347,7 +347,7 @@ const Landing = () => {
           <a className="ad-brand" href="#top">
             <BrandMark />
             <span className="ad-brand-text">
-              <b>AR Automated Dining</b>
+              <b>UniDine</b>
               <small>20AIPJ701</small>
             </span>
           </a>
@@ -820,7 +820,7 @@ const Landing = () => {
               <div className="ad-brand">
                 <BrandMark />
                 <span className="ad-brand-text">
-                  <b>AR Automated Dining</b>
+                  <b>UniDine</b>
                   <small>Project Phase I · 20AIPJ701</small>
                 </span>
               </div>
@@ -832,7 +832,7 @@ const Landing = () => {
           </div>
 
           <div className="ad-footer-bottom">
-            <span>© {new Date().getFullYear()} AR Automated Dining</span>
+            <span>© {new Date().getFullYear()} UniDine</span>
             {/* <span>SDG 12 · 8 · 11 — currently in {themeMode} mode</span> */}
           </div>
         </div>

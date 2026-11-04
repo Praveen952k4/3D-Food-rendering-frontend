@@ -3,7 +3,7 @@
  * Edit here rather than in the receipt renderer.
  */
 const business = {
-  name: 'AR Automated Dining',
+  name: 'UniDine',
   tagline: 'Augmented reality menu · Table service',
   addressLines: [
     'Kumaraguru College of Technology',

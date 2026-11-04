@@ -45,7 +45,7 @@ const AdminLayout = () => {
           </IconButton>
 
           <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}>
-            AR Automated Dining
+            UniDine
           </Typography>
 
           <Typography variant="body2" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600 }} noWrap>
