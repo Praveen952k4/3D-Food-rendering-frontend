@@ -348,7 +348,6 @@ const Landing = () => {
             <BrandMark />
             <span className="ad-brand-text">
               <b>UniDine</b>
-              <small>20AIPJ701</small>
             </span>
           </a>
 
@@ -821,7 +820,6 @@ const Landing = () => {
                 <BrandMark />
                 <span className="ad-brand-text">
                   <b>UniDine</b>
-                  <small>Project Phase I · 20AIPJ701</small>
                 </span>
               </div>
               <p className="ad-footer-note">
